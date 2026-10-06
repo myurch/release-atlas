@@ -221,6 +221,14 @@ export function Tutorial({
         <div id="tutorial-description">
           <p className="tutorial-goal">{item.goal}</p>
           <p>{item.explanation}</p>
+          {item.how && (
+            <section className="tutorial-how" aria-label="How this works">
+              <h3>How this works</h3>
+              <p className="tutorial-concept">{item.how.concept}</p>
+              <p className="tutorial-tools">{item.how.tools}</p>
+              <p>{item.how.explanation}</p>
+            </section>
+          )}
           <p className="tutorial-takeaway">{item.takeaway}</p>
         </div>
         <div className="tutorial-controls">

@@ -1952,3 +1952,28 @@ body {
   overscroll-behavior: contain;
   padding-right: 5px;
 }
+
+.tutorial-how {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 12px 0;
+}
+.tutorial-how h3 {
+  color: var(--green);
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin: 0 0 7px;
+}
+.tutorial-how .tutorial-concept {
+  font-weight: 650;
+  margin-bottom: 4px;
+}
+.tutorial-how .tutorial-tools {
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+.tutorial-how p:last-child {
+  margin-bottom: 0;
+}
