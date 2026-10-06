@@ -1,0 +1,41 @@
+[
+  {
+    "path": "/api/embed",
+    "status": 501,
+    "result": {
+      "error": "This server does not support embeddings. Start it with `--embeddings`"
+    },
+    "seconds": 5.367
+  },
+  {
+    "path": "/v1/chat/completions",
+    "status": 200,
+    "result": {
+      "id": "chatcmpl-264",
+      "object": "chat.completion",
+      "created": 1791272745,
+      "model": "gpt-oss:20b",
+      "system_fingerprint": "fp_ollama",
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "ready",
+            "reasoning": "Just output \"ready\"."
+          },
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 73,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens": 16,
+        "total_tokens": 89
+      }
+    },
+    "seconds": 0.479
+  }
+]
