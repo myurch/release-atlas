@@ -51,7 +51,27 @@ async def main():
                 added=len(feed.json()['sources'])-len(snapshot['sources'])
                 assert 1<=added<=3
                 assert feed.json()['analysis'] is None
-                report={'result':'PASS','checks':['Real HTTP login for distinct sessions','Authenticated SSE initial and changed revisions','Stale write rejected with 409','SSE reconnect receives current state','Export/import round trip preserves cited review','Actual public GitHub release feed stores bounded versioned snapshots'], 'github_source_count_added':added,'github_repository':'tj/commander.js','feed_content_distributed':False,'limits':['One loopback process; no load or WAN proxy test','Temporary workspace removed after process exit']}
+                original=(await a.get('/api/state')).json()
+                original_id=original['active_id']
+                async with b.stream('GET','/api/events') as stream:
+                    lines=stream.aiter_lines()
+                    assert json.loads((await anext(lines))[6:])['revision']==4
+                    created=await a.post('/api/workspaces',json={'revision':4,'title':'Next upgrade'})
+                    assert created.status_code==200 and created.json()['sources']==[]
+                    while True:
+                        line=await anext(lines)
+                        if line.startswith('data:'): break
+                    assert json.loads(line[6:])['revision']==5
+                    assert (await b.get('/api/state')).json()['workspace']['title']=='Next upgrade'
+                    assert (await b.post('/api/workspaces/switch',json={'revision':4,'id':original_id})).status_code==409
+                    switched=await a.post('/api/workspaces/switch',json={'revision':5,'id':original_id})
+                    assert switched.status_code==200 and switched.json()['claims']==original['workspace']['claims']
+                    while True:
+                        line=await anext(lines)
+                        if line.startswith('data:'): break
+                    assert json.loads(line[6:])['revision']==6
+                assert len((await b.get('/api/state')).json()['workspaces'])==2
+                report={'result':'PASS','checks':['Real HTTP login for distinct sessions','Authenticated SSE initial and changed revisions','Stale write rejected with 409','SSE reconnect receives current state','Export/import round trip preserves cited review','Actual public GitHub release feed stores bounded versioned snapshots','New empty workspace preserves existing review and notifies a second session','Switch restores saved claims with a fresh global revision and SSE notification','Stale cross-workspace selection returns 409'], 'github_source_count_added':added,'github_repository':'tj/commander.js','feed_content_distributed':False,'limits':['One loopback process; no load or WAN proxy test','Temporary workspace removed after process exit']}
                 (ROOT/'validation/integration-results.json').write_text(json.dumps(report,indent=2)+'\n')
                 print(json.dumps(report))
         finally:

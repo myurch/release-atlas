@@ -6,7 +6,10 @@
     "Stale write rejected with 409",
     "SSE reconnect receives current state",
     "Export/import round trip preserves cited review",
-    "Actual public GitHub release feed stores bounded versioned snapshots"
+    "Actual public GitHub release feed stores bounded versioned snapshots",
+    "New empty workspace preserves existing review and notifies a second session",
+    "Switch restores saved claims with a fresh global revision and SSE notification",
+    "Stale cross-workspace selection returns 409"
   ],
   "github_source_count_added": 3,
   "github_repository": "tj/commander.js",

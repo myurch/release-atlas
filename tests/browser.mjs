@@ -72,7 +72,27 @@ try {
   const page = await a.newPage();
   observe(page);
   await login(page, "Alex");
-  await page.getByRole("button", { name: "Load the synthetic demo" }).click();
+  const tutorialBefore = await page.request.get(base + "/api/state");
+  const tutorialSnapshot = await tutorialBefore.json();
+  await page
+    .getByRole("button", { name: "Beginner tutorial", exact: true })
+    .click();
+  for (let i = 0; i < 14; i++) {
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+  }
+  await page.getByRole("button", { name: "Finish tutorial" }).click();
+  assert.deepEqual(
+    await (await page.request.get(base + "/api/state")).json(),
+    tutorialSnapshot,
+  );
+  checks.push(
+    "All beginner tutorial steps complete without changing the real workspace",
+  );
+  await page.request.post(base + "/api/demo", {
+    data: { revision: 0 },
+    headers: { Origin: base },
+  });
+  await page.reload();
   await page.getByText("The sources disagree.", { exact: true }).waitFor();
   mkdirSync("validation/screenshots", { recursive: true });
   await page.screenshot({

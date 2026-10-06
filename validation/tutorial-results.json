@@ -1,0 +1,1025 @@
+{
+  "result": "PASS_FOR_EXECUTED_CHECKS",
+  "date": "2026-10-06",
+  "browser": "Supported in-app browser; actual HTTP service in disposable data directory",
+  "lessons": [
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Highlighted: Look at the review overview",
+      "title": "Can our application move to Harbor 2.0?",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open Sources",
+      "title": "1. Gather the original documents",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 393.3984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 442.6015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 442.6015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open the Harbor 2.0 release notes",
+      "title": "Read a source before trusting a summary",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 412.8984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 423.1015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 423.1015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open the usage profile editor",
+      "title": "2. Tell Atlas what your application uses",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Show the prepared analysis results",
+      "title": "3. Turn documents into evidence cards",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open the retry_limit finding",
+      "title": "4. Investigate what affects you",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 412.8984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 423.1015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 423.1015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Read the other claim",
+      "title": "Read both sides of the conflict",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 412.8984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 423.1015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 423.1015625
+      },
+      "scrollWidth": 375,
+      "status": "Highlighted: Read the example decision and note",
+      "title": "5. Write a useful review decision",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 393.3984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 442.6015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 442.6015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Save the example review",
+      "title": "Save the review so the team can act",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open the evidence graph",
+      "title": "6. Explore how the evidence connects",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open Questions",
+      "title": "7. Ask a focused question",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Show the prepared evidence answer",
+      "title": "Inspect the answer and its citations",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 412.8984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 423.1015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 423.1015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open citation 1",
+      "title": "Follow a citation back to the evidence",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open Activity, then locate Export snapshot",
+      "title": "8. Check the history and share a snapshot",
+      "width": 390
+    },
+    {
+      "highlight": true,
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 257.6796875,
+        "right": 359.5,
+        "top": 779,
+        "width": 101.8203125,
+        "x": 257.6796875,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Highlighted: Review what you accomplished",
+      "title": "Your first review has a clear next action",
+      "width": 390
+    }
+  ],
+  "mobile_reduced_motion": [
+    {
+      "highlight": {
+        "bottom": 430.875,
+        "height": 288,
+        "left": 15,
+        "right": 360,
+        "top": 142.875,
+        "width": 345,
+        "x": 15,
+        "y": 142.875
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Highlighted: Look at the review overview",
+      "title": "Can our application move to Harbor 2.0?",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 337.15625,
+        "height": 194,
+        "left": 37,
+        "right": 338,
+        "top": 143.15625,
+        "width": 301,
+        "x": 37,
+        "y": 143.15625
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open Sources",
+      "title": "1. Gather the original documents",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 398.8515625,
+        "height": 256,
+        "left": 37,
+        "right": 338,
+        "top": 142.8515625,
+        "width": 301,
+        "x": 37,
+        "y": 142.8515625
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 393.3984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 442.6015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 442.6015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open the Harbor 2.0 release notes",
+      "title": "Read a source before trusting a summary",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 271.2265625,
+        "height": 127.984375,
+        "left": 37,
+        "right": 338,
+        "top": 143.2421875,
+        "width": 301,
+        "x": 37,
+        "y": 143.2421875
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 412.8984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 423.1015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 423.1015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open the usage profile editor",
+      "title": "2. Tell Atlas what your application uses",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 430.875,
+        "height": 288,
+        "left": 15,
+        "right": 360,
+        "top": 142.875,
+        "width": 345,
+        "x": 15,
+        "y": 142.875
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Show the prepared analysis results",
+      "title": "3. Turn documents into evidence cards",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 223.34375,
+        "height": 80.390625,
+        "left": 37,
+        "right": 338,
+        "top": 142.953125,
+        "width": 301,
+        "x": 37,
+        "y": 142.953125
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "note": {
+        "bottom": 808.53125,
+        "height": 86.390625,
+        "left": 42,
+        "right": 333,
+        "top": 722.140625,
+        "width": 291,
+        "x": 42,
+        "y": 722.140625
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open the retry_limit finding",
+      "title": "4. Investigate what affects you",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 223.34375,
+        "height": 80.390625,
+        "left": 37,
+        "right": 338,
+        "top": 142.953125,
+        "width": 301,
+        "x": 37,
+        "y": 142.953125
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "note": {
+        "bottom": 808.53125,
+        "height": 86.390625,
+        "left": 42,
+        "right": 333,
+        "top": 722.140625,
+        "width": 291,
+        "x": 42,
+        "y": 722.140625
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 412.8984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 423.1015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 423.1015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Read the other claim",
+      "title": "Read both sides of the conflict",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 229.53125,
+        "height": 86.390625,
+        "left": 37,
+        "right": 338,
+        "top": 143.140625,
+        "width": 301,
+        "x": 37,
+        "y": 143.140625
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "note": {
+        "bottom": 229.53125,
+        "height": 86.390625,
+        "left": 42,
+        "right": 333,
+        "top": 143.140625,
+        "width": 291,
+        "x": 42,
+        "y": 143.140625
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 412.8984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 423.1015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 423.1015625
+      },
+      "scrollWidth": 375,
+      "status": "Highlighted: Read the example decision and note",
+      "title": "5. Write a useful review decision",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 162.3359375,
+        "height": 19.1953125,
+        "left": 37,
+        "right": 338,
+        "top": 143.140625,
+        "width": 301,
+        "x": 37,
+        "y": 143.140625
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "note": {
+        "bottom": 359.7265625,
+        "height": 86.390625,
+        "left": 42,
+        "right": 333,
+        "top": 273.3359375,
+        "width": 291,
+        "x": 42,
+        "y": 273.3359375
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 393.3984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 442.6015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 442.6015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Save the example review",
+      "title": "Save the review so the team can act",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 644.2890625,
+        "height": 501.1328125,
+        "left": 15,
+        "right": 360,
+        "top": 143.15625,
+        "width": 345,
+        "x": 15,
+        "y": 143.15625
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open the evidence graph",
+      "title": "6. Explore how the evidence connects",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 442.625,
+        "height": 299.6875,
+        "left": 37,
+        "right": 338,
+        "top": 142.9375,
+        "width": 301,
+        "x": 37,
+        "y": 142.9375
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open Questions",
+      "title": "7. Ask a focused question",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 544.0234375,
+        "height": 400.8125,
+        "left": 15,
+        "right": 360,
+        "top": 143.2109375,
+        "width": 345,
+        "x": 15,
+        "y": 143.2109375
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Show the prepared evidence answer",
+      "title": "Inspect the answer and its citations",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 223.34375,
+        "height": 80.390625,
+        "left": 37,
+        "right": 338,
+        "top": 142.953125,
+        "width": 301,
+        "x": 37,
+        "y": 142.953125
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "note": {
+        "bottom": 839.7265625,
+        "height": 86.390625,
+        "left": 42,
+        "right": 333,
+        "top": 753.3359375,
+        "width": 291,
+        "x": 42,
+        "y": 753.3359375
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 412.8984375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 423.1015625,
+        "width": 374,
+        "x": 0.5,
+        "y": 423.1015625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open citation 1",
+      "title": "Follow a citation back to the evidence",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 179.5,
+        "height": 40,
+        "left": 223.6796875,
+        "right": 364,
+        "top": 139.5,
+        "width": 140.3203125,
+        "x": 223.6796875,
+        "y": 139.5
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 310.359375,
+        "right": 359.5,
+        "top": 779,
+        "width": 49.140625,
+        "x": 310.359375,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Clicked: Open Activity, then locate Export snapshot",
+      "title": "8. Check the history and share a snapshot",
+      "width": 390
+    },
+    {
+      "highlight": {
+        "bottom": 430.875,
+        "height": 288,
+        "left": 15,
+        "right": 360,
+        "top": 142.875,
+        "width": 345,
+        "x": 15,
+        "y": 142.875
+      },
+      "next": {
+        "bottom": 821,
+        "height": 42,
+        "left": 257.6796875,
+        "right": 359.5,
+        "top": 779,
+        "width": 101.8203125,
+        "x": 257.6796875,
+        "y": 779
+      },
+      "panel": {
+        "bottom": 836,
+        "height": 430.4375,
+        "left": 0.5,
+        "right": 374.5,
+        "top": 405.5625,
+        "width": 374,
+        "x": 0.5,
+        "y": 405.5625
+      },
+      "scrollWidth": 375,
+      "status": "Highlighted: Review what you accomplished",
+      "title": "Your first review has a clear next action",
+      "width": 390
+    }
+  ],
+  "checks": [
+    "All fifteen lesson actions exercised on final build",
+    "Next, Back, replay state, rapid cancellation and Exit",
+    "Actual unsaved draft preserved across tutorial",
+    "No network requests during complete final tutorial",
+    "New workspace preserves prior example; switching and reload restore it",
+    "Live import creates separate workspace and suffix disambiguates duplicate title",
+    "Own save keeps draft current; separate authenticated peer makes it stale without losing its note",
+    "Dialog focus containment, Escape and zero-transition reduced motion",
+    "All final controls fit their panel and no horizontal overflow at 390px",
+    "Replay step button repeats the source navigation correctly",
+    "User data migration compared against local SQLite backup: payload unchanged"
+  ],
+  "network_requests_during_final_tutorial": 0,
+  "browser_errors": [],
+  "limitations": [
+    "Not a full accessibility audit or real mobile-device test",
+    "Direct file navigation remains policy-blocked",
+    "Full standalone Playwright suite not run locally",
+    "Some emulated screenshot captures had provider scaling artifacts; final saved preview was visually inspected"
+  ]
+}

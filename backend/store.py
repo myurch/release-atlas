@@ -1,6 +1,7 @@
 """Saved workspaces with a shared active selection and global revision checks."""
 from __future__ import annotations
 
+from contextlib import contextmanager
 import secrets
 import sqlite3
 from pathlib import Path
@@ -34,8 +35,14 @@ class Store:
                 db.execute('UPDATE workspace SET active_id=? WHERE id=1', (identifier,))
             db.execute('PRAGMA user_version=2')
 
+    @contextmanager
     def connection(self):
-        return sqlite3.connect(self.path, timeout=5)
+        db = sqlite3.connect(self.path, timeout=5)
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     def read(self) -> Workspace:
         with self.connection() as db:
@@ -46,11 +53,10 @@ class Store:
         with self.connection() as db:
             db.execute('BEGIN')
             payload, active = db.execute('SELECT payload,active_id FROM workspace WHERE id=1').fetchone()
-            rows = db.execute('SELECT id,payload,updated_at FROM saved_workspaces ORDER BY updated_at DESC,id').fetchall()
+            rows = db.execute("SELECT id,json_extract(payload,'$.title'),json_array_length(payload,'$.sources'),json_array_length(payload,'$.claims'),updated_at FROM saved_workspaces ORDER BY updated_at DESC,id").fetchall()
         catalog = []
-        for identifier, text, updated in rows:
-            state = Workspace.model_validate_json(text)
-            catalog.append({'id':identifier,'title':state.title,'sources':len(state.sources),'claims':len(state.claims),'updated_at':updated})
+        for identifier, title, sources, claims, updated in rows:
+            catalog.append({'id':identifier,'title':title,'sources':sources,'claims':claims,'updated_at':updated})
         return {'workspace':Workspace.model_validate_json(payload).model_dump(),'active_id':active,'workspaces':catalog}
 
     @staticmethod

@@ -1722,3 +1722,233 @@ body {
     background: #17271ff5;
   }
 }
+
+[hidden] {
+  display: none !important;
+}
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.workspace-dialog {
+  max-height: 90dvh;
+  overflow: auto;
+  width: min(600px, 94vw);
+}
+.workspace-dialog h3 {
+  margin-top: 26px;
+}
+.workspace-list {
+  display: grid;
+  gap: 10px;
+}
+.workspace-choice {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 16px;
+}
+.workspace-choice strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.workspace-choice small {
+  display: block;
+  margin-top: 5px;
+}
+.workspace-choice:disabled {
+  opacity: 1;
+}
+.demo-label .text-button {
+  display: inline-block;
+  margin-left: 8px;
+}
+.tutorial-session .main-shell {
+  padding-bottom: 510px;
+}
+.tutorial-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(9, 27, 22, 0.08);
+}
+.tutorial-highlight {
+  position: fixed;
+  z-index: 31;
+  pointer-events: none;
+  border: 3px solid #50c69a;
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px rgba(39, 98, 76, 0.16);
+}
+.tutorial-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 33;
+  pointer-events: none;
+  transition: transform 600ms cubic-bezier(0.22, 0.7, 0.2, 1);
+  filter: drop-shadow(0 2px 4px #18382a99);
+}
+.click-ring {
+  display: none;
+  position: absolute;
+  left: -14px;
+  top: -14px;
+  width: 34px;
+  height: 34px;
+  border: 3px solid #31a47c;
+  border-radius: 50%;
+}
+.clicked .click-ring {
+  display: block;
+  animation: demo-click 700ms ease-out forwards;
+}
+@keyframes demo-click {
+  from {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  to {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.tutorial-panel {
+  position: fixed;
+  z-index: 34;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(900px, calc(100vw - 32px));
+  max-height: 48dvh;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 12px 70px #10251d55;
+  padding: 20px 24px;
+}
+.tutorial-panel:focus {
+  outline: none;
+}
+.tutorial-meta,
+.tutorial-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.tutorial-panel progress {
+  display: block;
+  width: 100%;
+  height: 4px;
+  accent-color: var(--green);
+  margin: 12px 0 16px;
+}
+.tutorial-panel h2 {
+  font-size: 22px;
+  margin: 0 0 8px;
+}
+.tutorial-panel p {
+  margin: 0 0 9px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.tutorial-panel .tutorial-goal {
+  font-weight: 650;
+}
+.tutorial-takeaway {
+  border-left: 3px solid #68ab90;
+  padding-left: 12px;
+}
+.tutorial-status {
+  font-size: 11px;
+  line-height: 1.4;
+  max-width: 45%;
+}
+.tutorial-controls {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+.reduced-motion .tutorial-cursor {
+  transition: none;
+}
+.reduced-motion .click-ring {
+  animation: none;
+  opacity: 0.7;
+}
+@media (max-width: 800px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .topbar .actions {
+    flex-wrap: wrap;
+  }
+  .tutorial-panel {
+    bottom: 8px;
+    width: calc(100vw - 16px);
+    padding: 14px;
+    max-height: 51dvh;
+  }
+  .tutorial-panel h2 {
+    font-size: 18px;
+  }
+  .tutorial-meta .eyebrow {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  .tutorial-controls {
+    flex-wrap: wrap;
+  }
+  .tutorial-status {
+    max-width: none;
+    width: 100%;
+  }
+  .tutorial-controls .actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .tutorial-controls .button {
+    padding: 9px 10px;
+  }
+  .tutorial-session .main-shell {
+    padding-bottom: 640px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-cursor {
+    transition: none;
+  }
+  .clicked .click-ring {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.tutorial-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tutorial-meta,
+.tutorial-controls,
+.tutorial-panel progress,
+.tutorial-panel h2 {
+  flex-shrink: 0;
+}
+#tutorial-description {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 5px;
+}

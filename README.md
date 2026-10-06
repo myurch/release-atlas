@@ -2,11 +2,11 @@
 
 A collaborative workbench for reviewing software upgrade evidence. Bring versioned release notes and reference text, declare the APIs your application uses, inspect cited changes and conflicting guidance, and record a review with your team.
 
-**Status: v0.1 local preview, preview 004.** The Python service, responsive interface, analysis, retrieval and collaboration are implemented and tested as described below. Direct file-browser testing and container execution remain unverified in this environment. This is not an enterprise security product or an upgrade-safety certification.
+**Status: v0.1 local preview, preview 005.** The Python service, responsive interface, analysis, retrieval and collaboration are implemented and tested as described below. Direct file-browser testing and container execution remain unverified in this environment. This is not an enterprise security product or an upgrade-safety certification.
 
 ## Try the application
 
-Open `dist/release-atlas.html` in a modern browser to inspect the included fictional Harbor SDK example. The file includes its JavaScript and CSS. This standalone mode can browse, import and export saved reviews. It cannot run Python analysis or synchronize with teammates. The UI keeps those technical mode details out of its main review workflow.
+Open `dist/release-atlas.html` in a modern browser and choose **Beginner tutorial** to learn with the included fictional Harbor SDK example. The file includes its JavaScript and CSS. This standalone mode can browse, import and export saved reviews. It cannot run Python analysis or synchronize with teammates. The UI keeps those technical mode details out of its main review workflow.
 
 For the live workspace, use Python 3.14 and run these commands from this project directory:
 
@@ -16,7 +16,7 @@ python3 -m venv .venv
 ./start.sh
 ```
 
-Open http://127.0.0.1:8765. Read the generated `.atlas/access-code` locally, enter it with a display name, then choose **Load the synthetic demo**. The code is generated once with owner-only permissions. The server stores workspace data in `.atlas/workspace.sqlite3`. Do not commit or share that directory. `Ctrl+C` stops the server; the workspace survives a restart. Sessions expire after 12 hours and reset on restart.
+Open http://127.0.0.1:8765. Read the generated `.atlas/access-code` locally, enter it with a display name, then choose **Beginner tutorial**, or add your own source. The tutorial is also available from the sign-in screen without an access code. The code is generated once with owner-only permissions. The server stores workspace data in `.atlas/workspace.sqlite3`. Do not commit or share that directory. `Ctrl+C` stops the server; the workspace survives a restart. Sessions expire after 12 hours and reset on restart.
 
 Python 3.14.4 and Node 26 were exercised on macOS. Node 22+ is required only to rebuild the frontend, not to run the included HTML or Python server. Initial dependency installation requires network access; model weights are not included or downloaded by this project.
 
@@ -24,16 +24,34 @@ Python 3.14.4 and Node 26 were exercised on macOS. Node 22+ is required only to 
 
 The generated atlas-and-route logo is embedded in the interface and favicon. Its original PNG and full generation prompt are in `assets/`. The **Appearance** selector offers System, Dark and Light. System follows the browser/host preference and defaults to dark when neither preference can be determined. A manual choice persists locally when browser storage is available. No appearance setting changes the workspace or other reviewers.
 
-## A five-minute review
+## Beginner tutorial
 
-1. Load the demo and inspect the two conflicting `retry_limit` claims for version 2.0. The 1.8 reference is historical context, not a same-version contradiction.
-2. Open **Evidence**, compare both exact passages, and follow their source links. Category and usage matches are suggestions.
-3. Open **Graph** and focus on Checkout service. The graph links declared usage to identifiers and cited claims.
-4. Ask “What affects Checkout service?” Compare keyword, embedding and graph retrieval. Check the model option for a drafted answer with citations.
-5. Open another session, record a review, and observe revision updates. A draft opened before another change cannot silently overwrite it. Load the current review before saving again.
-6. Export the snapshot. Import it into the standalone HTML to keep the source text, claims, graph, saved answers and review names together. Exports contain source content and display names; check them before sharing.
+Choose **Beginner tutorial** in the toolbar, **Start beginner tutorial** in an empty workspace, or **Try the beginner tutorial** from the sign-in screen. The fifteen-step lesson starts with a concrete goal: decide what must be checked before upgrading the fictional Checkout service to Harbor 2.0.
 
-Harbor SDK, all demonstration documents and the training/evaluation examples are original synthetic fixtures. They are not advice about a real library. Imported actor names are provenance, not verified identity. Export preserves the current view, which can lag briefly during a reconnect; wait for the live connection before taking a final shared snapshot.
+The lesson explains sources, versions, claims, usage profiles, conflict candidates, review decisions, graphs, retrieval and citations in plain language. Its cursor moves to actual interface controls, clicks them and outlines the relevant result. **Next** advances at your pace. **Back** reconstructs the earlier example state; **Replay step** repeats the action. **Exit tutorial**, **Finish tutorial** or Escape returns to your previous screen, including unsaved form inputs. The tutorial uses prepared analysis and a labeled example answer. It does not write to the API, fetch feeds, call models or download exports.
+
+Reduced-motion preferences remove cursor travel and click animation. Tutorial controls remain visible while longer lesson text scrolls. Keyboard focus stays in the tutorial controls. A click/status caption describes actions without relying on the cursor alone.
+
+The example conclusion is deliberately limited: investigate the two version 2.0 `retry_limit` passages, verify the supported setting and test retry behavior before proceeding. The 1.8 reference is historical context, and other findings still need review. A human review is not a certification of upgrade safety.
+
+## Leave the example or switch workspaces
+
+In a signed-in workspace, choose **Workspaces**, enter a name, then **New empty workspace**. The previous review remains saved. Select **Open** beside it in the same chooser to return later. A saved synthetic example also shows **Leave example / switch workspace** next to its label. Existing databases migrate automatically, preserving their active review, sources, notes and history.
+
+The service keeps up to 30 named workspaces. The active selection is shared with everyone connected to that server. Creating or switching closes unsaved form inputs in the current view; save notes before switching. Each workspace retains its own audit history, while revisions increase across all switches so outdated writes cannot land in a different workspace. There is no delete operation in this preview.
+
+**Import** in the signed-in interface creates a new saved workspace and preserves the previous one. If its title is already present, an `(import N)` suffix distinguishes it. In the standalone viewer, Import replaces only the current view after confirmation; use Export first to keep an unsaved imported snapshot. The tutorial itself never needs unloading from the server because its state is temporary.
+
+## Review your own upgrade
+
+1. Create a named workspace and add release notes or versioned reference text in **Sources**, including its permission/license and version.
+2. In **Overview**, edit the usage profile with one `component | API_or_setting` pair per line, then **Analyze sources**.
+3. Open **Evidence**, compare exact passages and follow source links. Category and usage matches are suggestions. Investigate conflicts before deciding.
+4. Use **Graph** to follow a component to its settings and claims. In **Questions**, compare keyword, embedding and graph retrieval; the optional model checkbox drafts a cited answer.
+5. Record a review decision and note. Other sessions receive updates. If a peer changes the workspace while you are writing, load the current review before saving again.
+6. Check **Activity**, then **Export snapshot**. This JSON keeps sources, claims, graph, answers and review names together. Check its content and permissions before sharing.
+
+Harbor SDK, all demonstration documents and training/evaluation examples are original synthetic fixtures, not advice about a real library. Imported names are provenance, not verified identity. Export preserves the current view, which can lag briefly during a reconnect; wait for the live connection before taking a final shared snapshot.
 
 ## Models and data flow
 
@@ -133,7 +151,7 @@ Compose binds the published port to host loopback and keeps data in a named volu
 - **HTTP 400/403:** the browser origin/Host must match `ATLAS_ORIGINS`. Do not solve this by allowing arbitrary origins.
 - **HTTP 409:** refresh/load the current review. Preserve or copy your draft before replacing it. Do not blindly retry an old write with a new revision.
 - **Model failure:** keep the evidence, check the model/server configuration and retry. Rejected answers are not saved. Inspect sources directly while inference is unavailable.
-- **Need another workspace:** export the current review, then import another valid snapshot, or stop the server and start it with a different `ATLAS_DATA_DIR`. v0.1 does not provide an in-app workspace catalog.
+- **Need another workspace:** use Workspaces to create an empty review or reopen an existing one. At the 30-workspace limit, existing reviews remain available; export needed snapshots, then stop the server and start with a different `ATLAS_DATA_DIR` for more space. Do not delete the original data directory.
 - **Back up live data:** export through the UI/API or stop the server before copying `.atlas`. Do not copy an active SQLite main file alone while its WAL may contain newer transactions.
 
 ## Sources and licensing

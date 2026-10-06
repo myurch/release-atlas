@@ -129,3 +129,53 @@ test("appearance respects overrides and defaults dark when no host theme is avai
   assert.equal(theme.readPreference({ getItem: () => "unknown" }), "system");
   assert.equal(theme.readPreference({ getItem: () => "dark" }), "dark");
 });
+
+test("tutorial replay is deterministic and preserves the original workspace and valid citations", async () => {
+  const bundled = await build({
+    entryPoints: ["frontend/tutorial.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const tutorial = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundled.outputFiles[0].text).toString("base64")
+  );
+  const original = JSON.stringify(demo);
+  for (let step = 0; step < tutorial.tutorialSteps.length; step++) {
+    const state = tutorial.tutorialWorkspace(demo, step);
+    await validateSnapshot(state);
+    assert.deepEqual(state, tutorial.tutorialWorkspace(demo, step));
+    state.title = "Changed isolated state";
+    state.claims[0].quote = "Changed isolated claim";
+    assert.equal(JSON.stringify(demo), original);
+  }
+  const reviewed = tutorial.addTutorialReview(
+    tutorial.tutorialWorkspace(demo, 8),
+  );
+  assert.equal(
+    tutorial.tutorialClaim(reviewed).review.note,
+    tutorial.REVIEW_NOTE,
+  );
+  const answered = tutorial.addTutorialAnswer(
+    tutorial.tutorialWorkspace(demo, 11),
+  );
+  await validateSnapshot(answered);
+  assert(
+    answered.answers[0].citations.every((id) =>
+      answered.claims.some((c) => c.id === id),
+    ),
+  );
+  assert(answered.answers[0].method.includes("Prepared tutorial"));
+  assert.equal(
+    tutorial.tutorialWorkspace(demo, 7).claims.filter((c) => c.review).length,
+    0,
+  );
+  assert.equal(
+    tutorial.tutorialWorkspace(demo, 14).claims.filter((c) => c.review).length,
+    1,
+  );
+  await validateSnapshot(tutorial.emptyWorkspace());
+  assert.equal(JSON.stringify(demo), original);
+});
