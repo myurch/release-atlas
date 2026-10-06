@@ -1,0 +1,35 @@
+{
+  "endpoint": "http://localhost:11434/api/chat",
+  "model": "gpt-oss:20b",
+  "http_status": 200,
+  "done": true,
+  "output": {
+    "status": "ok"
+  },
+  "elapsed_seconds": 7.403,
+  "passed": true,
+  "scope": "one actual native Ollama structured-generation request; not an application benchmark",
+  "request": {
+    "model": "gpt-oss:20b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Return only a JSON object with one field status set to ok."
+      }
+    ],
+    "stream": false,
+    "format": "json",
+    "think": "low",
+    "options": {
+      "temperature": 0,
+      "num_predict": 256
+    }
+  },
+  "observed_date": "2026-10-06",
+  "limitations": [
+    "Native Ollama endpoint only",
+    "One tiny response is not a model-quality, latency or application benchmark",
+    "Embedding support and other OpenAI-compatible servers remain untested",
+    "No model downloads or global configuration changes"
+  ]
+}
