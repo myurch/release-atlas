@@ -1,0 +1,24 @@
+{
+  "license": "Original synthetic evaluation examples, MIT, 2026 36048692+myurch@users.noreply.github.com",
+  "scope": "Small held-out wording set. Not representative production accuracy.",
+  "examples": [
+    ["breaking", "Removed `requestDelay`; the replacement parameter is required."],
+    ["breaking", "The `oldTransport` option is no longer supported."],
+    ["breaking", "Incompatible default change requires applications to update their settings."],
+    ["deprecation", "Deprecated `fetchLegacy`; it still works during the migration period."],
+    ["deprecation", "The `connectOld` method emits a deprecation warning."],
+    ["deprecation", "Removal is scheduled for next year; migrate to the replacement interface."],
+    ["security", "Patched an authorization vulnerability in the export service."],
+    ["security", "Prevent injection attacks by checking unsafe template input."],
+    ["security", "Security repair stops secret credentials from appearing in logs."],
+    ["feature", "Added a new endpoint for exporting CSV reports."],
+    ["feature", "Introduced support for another database integration."],
+    ["feature", "New optional streaming capability is available for clients."],
+    ["fix", "Fixed a crash when a search result is empty."],
+    ["fix", "Corrected the ordering of duplicate table rows."],
+    ["fix", "Resolved a race condition during cache updates."],
+    ["other", "The `pool_limit` setting remains supported and unchanged."],
+    ["other", "Reference guide with examples of configuration syntax."],
+    ["other", "Contributor acknowledgments and maintenance notes."]
+  ]
+}

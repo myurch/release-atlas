@@ -1,0 +1,593 @@
+{
+  "schema_version": 1,
+  "revision": 0,
+  "title": "Harbor SDK: 1.8 to 2.0",
+  "sources": [
+    {
+      "title": "Harbor 2.0 release notes",
+      "version": "2.0",
+      "text": "Removed `retry_limit`; configure `retry_policy` instead.\nDeprecated `legacy_auth`; it remains available until version 3.0.\nAdded `export_batch` for bulk report exports.\nFixed an authentication bypass in `session_check`.\nCorrected a sorting bug in `list_orders`.",
+      "url": "",
+      "license": "Original synthetic demo, MIT. Not a real package advisory.",
+      "id": "s-b8afaff518dc06ad62e6",
+      "sha256": "28af8500206828d470525af437e0b553b958eeab9826d0b3b8062041472bd057"
+    },
+    {
+      "title": "Harbor 2.0 configuration reference",
+      "version": "2.0",
+      "text": "The `retry_limit` setting remains supported in version 2.0.\nThe `retry_policy` setting controls retry delays and maximum attempts.\nThe `export_batch` API supports JSON and CSV output.\nThe `legacy_auth` adapter is deprecated but still works.",
+      "url": "",
+      "license": "Original synthetic demo, MIT. Not a real package advisory.",
+      "id": "s-6fb3f1a904da22b9fc24",
+      "sha256": "dbb86c775d5231ecfca450dc657bc24328f55cd67a21a50c812184936d014d6c"
+    },
+    {
+      "title": "Harbor 1.8 reference snapshot",
+      "version": "1.8",
+      "text": "The `retry_limit` setting is supported in version 1.8.\nThe `legacy_auth` adapter is available for existing applications.\nUse `list_orders` to fetch customer order history.",
+      "url": "",
+      "license": "Original synthetic demo, MIT. Not a real package advisory.",
+      "id": "s-26aabfe080718f215ade",
+      "sha256": "ebf7aea980a6722163294abb8ec5fcad43cebb7f9035eb38e30e1a5771f872f3"
+    }
+  ],
+  "usage": [
+    {
+      "component": "Checkout service",
+      "entity": "retry_limit"
+    },
+    {
+      "component": "Export worker",
+      "entity": "export_batch"
+    },
+    {
+      "component": "Admin portal",
+      "entity": "legacy_auth"
+    }
+  ],
+  "claims": [
+    {
+      "id": "c-aefd00a45ab49749cf02",
+      "source_id": "s-b8afaff518dc06ad62e6",
+      "quote": "Removed `retry_limit`; configure `retry_policy` instead.",
+      "start": 0,
+      "end": 56,
+      "entities": [
+        "retry_limit",
+        "retry_policy"
+      ],
+      "category": "breaking",
+      "score": 0.6126,
+      "topic": 0,
+      "applicable": true,
+      "conflicts": [
+        "c-7f97e6a33c7ef1da0ec0"
+      ],
+      "review": null
+    },
+    {
+      "id": "c-62c2ae4cd75021fa42de",
+      "source_id": "s-b8afaff518dc06ad62e6",
+      "quote": "Deprecated `legacy_auth`; it remains available until version 3.0.",
+      "start": 57,
+      "end": 122,
+      "entities": [
+        "legacy_auth"
+      ],
+      "category": "deprecation",
+      "score": 0.9399,
+      "topic": 1,
+      "applicable": true,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-041017e7d1eb6b9e1b8a",
+      "source_id": "s-b8afaff518dc06ad62e6",
+      "quote": "Added `export_batch` for bulk report exports.",
+      "start": 123,
+      "end": 168,
+      "entities": [
+        "export_batch"
+      ],
+      "category": "feature",
+      "score": 0.8634,
+      "topic": 3,
+      "applicable": true,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-50766ffb8246b84b5462",
+      "source_id": "s-b8afaff518dc06ad62e6",
+      "quote": "Fixed an authentication bypass in `session_check`.",
+      "start": 169,
+      "end": 219,
+      "entities": [
+        "session_check"
+      ],
+      "category": "security",
+      "score": 0.7409,
+      "topic": 3,
+      "applicable": false,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-9623aa0cf5f49ca900cb",
+      "source_id": "s-b8afaff518dc06ad62e6",
+      "quote": "Corrected a sorting bug in `list_orders`.",
+      "start": 220,
+      "end": 261,
+      "entities": [
+        "list_orders"
+      ],
+      "category": "fix",
+      "score": 0.837,
+      "topic": 2,
+      "applicable": false,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-7f97e6a33c7ef1da0ec0",
+      "source_id": "s-6fb3f1a904da22b9fc24",
+      "quote": "The `retry_limit` setting remains supported in version 2.0.",
+      "start": 0,
+      "end": 59,
+      "entities": [
+        "retry_limit"
+      ],
+      "category": "other",
+      "score": 0.6184,
+      "topic": 0,
+      "applicable": true,
+      "conflicts": [
+        "c-aefd00a45ab49749cf02"
+      ],
+      "review": null
+    },
+    {
+      "id": "c-fa9ba15d3fdcf8f6732b",
+      "source_id": "s-6fb3f1a904da22b9fc24",
+      "quote": "The `retry_policy` setting controls retry delays and maximum attempts.",
+      "start": 60,
+      "end": 130,
+      "entities": [
+        "retry_policy"
+      ],
+      "category": "other",
+      "score": 0.5404,
+      "topic": 0,
+      "applicable": false,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-9a96f5b5370e0076f8a4",
+      "source_id": "s-6fb3f1a904da22b9fc24",
+      "quote": "The `export_batch` API supports JSON and CSV output.",
+      "start": 131,
+      "end": 183,
+      "entities": [
+        "export_batch"
+      ],
+      "category": "feature",
+      "score": 0.6401,
+      "topic": 3,
+      "applicable": true,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-37e7025f389f7442a77f",
+      "source_id": "s-6fb3f1a904da22b9fc24",
+      "quote": "The `legacy_auth` adapter is deprecated but still works.",
+      "start": 184,
+      "end": 240,
+      "entities": [
+        "legacy_auth"
+      ],
+      "category": "deprecation",
+      "score": 0.954,
+      "topic": 1,
+      "applicable": true,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-997cffe46e3f4498fb16",
+      "source_id": "s-26aabfe080718f215ade",
+      "quote": "The `retry_limit` setting is supported in version 1.8.",
+      "start": 0,
+      "end": 54,
+      "entities": [
+        "retry_limit"
+      ],
+      "category": "other",
+      "score": 0.4768,
+      "topic": 0,
+      "applicable": true,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-edd4f8dbd7526f49dac3",
+      "source_id": "s-26aabfe080718f215ade",
+      "quote": "The `legacy_auth` adapter is available for existing applications.",
+      "start": 55,
+      "end": 120,
+      "entities": [
+        "legacy_auth"
+      ],
+      "category": "deprecation",
+      "score": 0.5787,
+      "topic": 1,
+      "applicable": true,
+      "conflicts": [],
+      "review": null
+    },
+    {
+      "id": "c-6890f9a6d053f4640bdb",
+      "source_id": "s-26aabfe080718f215ade",
+      "quote": "Use `list_orders` to fetch customer order history.",
+      "start": 121,
+      "end": 171,
+      "entities": [
+        "list_orders"
+      ],
+      "category": "security",
+      "score": 0.3615,
+      "topic": 2,
+      "applicable": false,
+      "conflicts": [],
+      "review": null
+    }
+  ],
+  "topics": [
+    {
+      "id": 0,
+      "terms": [
+        "retry_limit",
+        "supported",
+        "setting",
+        "version"
+      ],
+      "count": 4
+    },
+    {
+      "id": 1,
+      "terms": [
+        "legacy_auth",
+        "adapter",
+        "deprecated",
+        "available"
+      ],
+      "count": 3
+    },
+    {
+      "id": 2,
+      "terms": [
+        "list_orders",
+        "corrected",
+        "sorting",
+        "bug"
+      ],
+      "count": 2
+    },
+    {
+      "id": 3,
+      "terms": [
+        "export_batch",
+        "added",
+        "exports",
+        "bulk"
+      ],
+      "count": 3
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "c-041017e7d1eb6b9e1b8a",
+        "label": "Added `export_batch` for bulk report exports.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-37e7025f389f7442a77f",
+        "label": "The `legacy_auth` adapter is deprecated but still works.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-50766ffb8246b84b5462",
+        "label": "Fixed an authentication bypass in `session_check`.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-62c2ae4cd75021fa42de",
+        "label": "Deprecated `legacy_auth`; it remains available until version 3.0.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-6890f9a6d053f4640bdb",
+        "label": "Use `list_orders` to fetch customer order history.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-7f97e6a33c7ef1da0ec0",
+        "label": "The `retry_limit` setting remains supported in version 2.0.",
+        "kind": "claim",
+        "degree": 3
+      },
+      {
+        "id": "c-9623aa0cf5f49ca900cb",
+        "label": "Corrected a sorting bug in `list_orders`.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-997cffe46e3f4498fb16",
+        "label": "The `retry_limit` setting is supported in version 1.8.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-9a96f5b5370e0076f8a4",
+        "label": "The `export_batch` API supports JSON and CSV output.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-aefd00a45ab49749cf02",
+        "label": "Removed `retry_limit`; configure `retry_policy` instead.",
+        "kind": "claim",
+        "degree": 4
+      },
+      {
+        "id": "c-edd4f8dbd7526f49dac3",
+        "label": "The `legacy_auth` adapter is available for existing applications.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "c-fa9ba15d3fdcf8f6732b",
+        "label": "The `retry_policy` setting controls retry delays and maximum attempts.",
+        "kind": "claim",
+        "degree": 2
+      },
+      {
+        "id": "e:export_batch",
+        "label": "export_batch",
+        "kind": "entity",
+        "degree": 3
+      },
+      {
+        "id": "e:legacy_auth",
+        "label": "legacy_auth",
+        "kind": "entity",
+        "degree": 4
+      },
+      {
+        "id": "e:list_orders",
+        "label": "list_orders",
+        "kind": "entity",
+        "degree": 2
+      },
+      {
+        "id": "e:retry_limit",
+        "label": "retry_limit",
+        "kind": "entity",
+        "degree": 4
+      },
+      {
+        "id": "e:retry_policy",
+        "label": "retry_policy",
+        "kind": "entity",
+        "degree": 2
+      },
+      {
+        "id": "e:session_check",
+        "label": "session_check",
+        "kind": "entity",
+        "degree": 1
+      },
+      {
+        "id": "s-26aabfe080718f215ade",
+        "label": "Harbor 1.8 reference snapshot",
+        "kind": "source",
+        "degree": 3
+      },
+      {
+        "id": "s-6fb3f1a904da22b9fc24",
+        "label": "Harbor 2.0 configuration reference",
+        "kind": "source",
+        "degree": 4
+      },
+      {
+        "id": "s-b8afaff518dc06ad62e6",
+        "label": "Harbor 2.0 release notes",
+        "kind": "source",
+        "degree": 5
+      },
+      {
+        "id": "u:Admin portal",
+        "label": "Admin portal",
+        "kind": "component",
+        "degree": 1
+      },
+      {
+        "id": "u:Checkout service",
+        "label": "Checkout service",
+        "kind": "component",
+        "degree": 1
+      },
+      {
+        "id": "u:Export worker",
+        "label": "Export worker",
+        "kind": "component",
+        "degree": 1
+      }
+    ],
+    "edges": [
+      {
+        "source": "c-041017e7d1eb6b9e1b8a",
+        "target": "e:export_batch",
+        "relation": "mentions"
+      },
+      {
+        "source": "c-50766ffb8246b84b5462",
+        "target": "e:session_check",
+        "relation": "mentions"
+      },
+      {
+        "source": "c-62c2ae4cd75021fa42de",
+        "target": "e:legacy_auth",
+        "relation": "mentions"
+      },
+      {
+        "source": "c-9623aa0cf5f49ca900cb",
+        "target": "e:list_orders",
+        "relation": "mentions"
+      },
+      {
+        "source": "c-aefd00a45ab49749cf02",
+        "target": "c-7f97e6a33c7ef1da0ec0",
+        "relation": "conflicts"
+      },
+      {
+        "source": "c-aefd00a45ab49749cf02",
+        "target": "e:retry_limit",
+        "relation": "mentions"
+      },
+      {
+        "source": "c-aefd00a45ab49749cf02",
+        "target": "e:retry_policy",
+        "relation": "mentions"
+      },
+      {
+        "source": "e:export_batch",
+        "target": "c-9a96f5b5370e0076f8a4",
+        "relation": "mentions"
+      },
+      {
+        "source": "e:export_batch",
+        "target": "u:Export worker",
+        "relation": "uses"
+      },
+      {
+        "source": "e:legacy_auth",
+        "target": "c-37e7025f389f7442a77f",
+        "relation": "mentions"
+      },
+      {
+        "source": "e:legacy_auth",
+        "target": "c-edd4f8dbd7526f49dac3",
+        "relation": "mentions"
+      },
+      {
+        "source": "e:legacy_auth",
+        "target": "u:Admin portal",
+        "relation": "uses"
+      },
+      {
+        "source": "e:list_orders",
+        "target": "c-6890f9a6d053f4640bdb",
+        "relation": "mentions"
+      },
+      {
+        "source": "e:retry_limit",
+        "target": "c-7f97e6a33c7ef1da0ec0",
+        "relation": "mentions"
+      },
+      {
+        "source": "e:retry_limit",
+        "target": "c-997cffe46e3f4498fb16",
+        "relation": "mentions"
+      },
+      {
+        "source": "e:retry_limit",
+        "target": "u:Checkout service",
+        "relation": "uses"
+      },
+      {
+        "source": "e:retry_policy",
+        "target": "c-fa9ba15d3fdcf8f6732b",
+        "relation": "mentions"
+      },
+      {
+        "source": "s-26aabfe080718f215ade",
+        "target": "c-6890f9a6d053f4640bdb",
+        "relation": "supports"
+      },
+      {
+        "source": "s-26aabfe080718f215ade",
+        "target": "c-997cffe46e3f4498fb16",
+        "relation": "supports"
+      },
+      {
+        "source": "s-26aabfe080718f215ade",
+        "target": "c-edd4f8dbd7526f49dac3",
+        "relation": "supports"
+      },
+      {
+        "source": "s-6fb3f1a904da22b9fc24",
+        "target": "c-37e7025f389f7442a77f",
+        "relation": "supports"
+      },
+      {
+        "source": "s-6fb3f1a904da22b9fc24",
+        "target": "c-7f97e6a33c7ef1da0ec0",
+        "relation": "supports"
+      },
+      {
+        "source": "s-6fb3f1a904da22b9fc24",
+        "target": "c-9a96f5b5370e0076f8a4",
+        "relation": "supports"
+      },
+      {
+        "source": "s-6fb3f1a904da22b9fc24",
+        "target": "c-fa9ba15d3fdcf8f6732b",
+        "relation": "supports"
+      },
+      {
+        "source": "s-b8afaff518dc06ad62e6",
+        "target": "c-041017e7d1eb6b9e1b8a",
+        "relation": "supports"
+      },
+      {
+        "source": "s-b8afaff518dc06ad62e6",
+        "target": "c-50766ffb8246b84b5462",
+        "relation": "supports"
+      },
+      {
+        "source": "s-b8afaff518dc06ad62e6",
+        "target": "c-62c2ae4cd75021fa42de",
+        "relation": "supports"
+      },
+      {
+        "source": "s-b8afaff518dc06ad62e6",
+        "target": "c-9623aa0cf5f49ca900cb",
+        "relation": "supports"
+      },
+      {
+        "source": "s-b8afaff518dc06ad62e6",
+        "target": "c-aefd00a45ab49749cf02",
+        "relation": "supports"
+      }
+    ]
+  },
+  "analysis": {
+    "method": "TF-IDF + LSA/logistic classification; NMF topics; technical identifier extraction",
+    "embedding_model": "local-lsa-v1",
+    "training_hash": "3b3f6801323d339faa7a7bf5040d418a61a392fc40cab795df2132ac31bc8739",
+    "source_digest": "9a71ead02ceb4232b263e0f71575d8c4e611cfaca6eb0f98fb5ceb47ffb346ea",
+    "created_at": "2026-10-06T00:00:00+00:00"
+  },
+  "answers": [],
+  "audit": []
+}

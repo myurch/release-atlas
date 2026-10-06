@@ -1,0 +1,9 @@
+{
+  "title": "Harbor SDK: 1.8 to 2.0",
+  "usage": [{"component":"Checkout service","entity":"retry_limit"},{"component":"Export worker","entity":"export_batch"},{"component":"Admin portal","entity":"legacy_auth"}],
+  "sources": [
+    {"title":"Harbor 2.0 release notes","version":"2.0","license":"Original synthetic demo, MIT. Not a real package advisory.","url":"","text":"Removed `retry_limit`; configure `retry_policy` instead.\nDeprecated `legacy_auth`; it remains available until version 3.0.\nAdded `export_batch` for bulk report exports.\nFixed an authentication bypass in `session_check`.\nCorrected a sorting bug in `list_orders`."},
+    {"title":"Harbor 2.0 configuration reference","version":"2.0","license":"Original synthetic demo, MIT. Not a real package advisory.","url":"","text":"The `retry_limit` setting remains supported in version 2.0.\nThe `retry_policy` setting controls retry delays and maximum attempts.\nThe `export_batch` API supports JSON and CSV output.\nThe `legacy_auth` adapter is deprecated but still works."},
+    {"title":"Harbor 1.8 reference snapshot","version":"1.8","license":"Original synthetic demo, MIT. Not a real package advisory.","url":"","text":"The `retry_limit` setting is supported in version 1.8.\nThe `legacy_auth` adapter is available for existing applications.\nUse `list_orders` to fetch customer order history."}
+  ]
+}
