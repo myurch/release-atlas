@@ -100,6 +100,127 @@ try {
     fullPage: true,
   });
   checks.push("Startup, login, original synthetic demo and overview");
+  await page.getByLabel("Appearance", { exact: true }).selectOption("dark");
+  await page.waitForFunction(
+    () => getComputedStyle(document.body).backgroundColor === "rgb(9, 9, 11)",
+  );
+  const hint = page.getByRole("button", {
+    name: "About Evidence cards",
+    exact: true,
+  });
+  await hint.focus();
+  await page.getByRole("tooltip").waitFor();
+  assert.match(await page.getByRole("tooltip").innerText(), /WHY IT MATTERS/);
+  assert(await hint.getAttribute("aria-describedby"));
+  await page.keyboard.press("Escape");
+  await page.getByRole("tooltip").waitFor({ state: "hidden" });
+  assert.equal(await hint.getAttribute("aria-describedby"), null);
+  await page.getByLabel("Appearance", { exact: true }).selectOption("light");
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.body).backgroundColor === "rgb(245, 246, 248)",
+  );
+  await page.getByLabel("Appearance", { exact: true }).selectOption("dark");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  assert.equal(
+    await page
+      .locator(".stat")
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName),
+    "none",
+  );
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  checks.push(
+    "Neutral dark/light themes, accessible help dismissal and reduced-motion preference",
+  );
+
+  const chatBefore = await (await page.request.get(base + "/api/state")).json();
+  await page
+    .getByRole("button", { name: "Open assistant", exact: true })
+    .click();
+  await page
+    .getByLabel("Assistant mode", { exact: true })
+    .selectOption("guide");
+  await page
+    .getByRole("button", { name: "What should I do next?", exact: true })
+    .click();
+  await page.getByText("Atlas · App guide", { exact: true }).waitFor();
+  for (const title of [
+    "Sources",
+    "Graph",
+    "Questions",
+    "Activity",
+    "Evidence",
+    "Overview",
+  ]) {
+    await page.getByRole("button", { name: title, exact: true }).click();
+    assert.match(
+      await page.locator(".assistant-context").innerText(),
+      new RegExp(title),
+    );
+    assert.equal(await page.locator(".chat-turn").count(), 2);
+  }
+  assert.deepEqual(
+    await (await page.request.get(base + "/api/state")).json(),
+    chatBefore,
+  );
+  await page
+    .getByRole("button", { name: "Close assistant", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Beginner tutorial", exact: true })
+    .click();
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Open assistant", exact: true })
+      .count(),
+    0,
+  );
+  await page
+    .getByRole("button", { name: "Exit tutorial", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Open assistant", exact: true })
+    .click();
+  assert.equal(await page.locator(".chat-turn").count(), 2);
+  checks.push(
+    "App guide persists across every page and tutorial round trip without workspace writes",
+  );
+
+  let chatRequest;
+  const literalAnswer = "Check the source. <script>window.hacked=true</script>";
+  await page.route("**/api/assistant", async (route) => {
+    chatRequest = route.request().postDataJSON();
+    await route.fulfill({
+      json: {
+        revision: chatRequest.revision,
+        answer: literalAnswer,
+        citations: [chatBefore.workspace.claims[0].id],
+        uncertainty: "Verify the passage.",
+      },
+    });
+  });
+  await page
+    .getByLabel("Assistant mode", { exact: true })
+    .selectOption("model");
+  await page
+    .getByLabel("Message Atlas", { exact: true })
+    .fill("Explain this evidence");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await page.getByText(literalAnswer, { exact: true }).waitFor();
+  assert.equal(chatRequest.page, "Overview");
+  assert.equal(chatRequest.history.length, 2);
+  assert(!(await page.evaluate(() => window.hacked)));
+  await page.locator(".assistant-panel .citation").click();
+  await page.getByRole("heading", { name: "Follow the evidence." }).waitFor();
+  assert.equal(await page.locator(".assistant-panel .chat-turn").count(), 4);
+  await page
+    .getByRole("button", { name: "Close assistant", exact: true })
+    .click();
+  await page.unroute("**/api/assistant");
+  checks.push(
+    "Model chat sends bounded page context, renders output as text and opens validated citations (mock provider)",
+  );
   const peer = await b.newPage();
   observe(peer);
   await login(peer, "Blair");
@@ -202,6 +323,85 @@ try {
       "Overflow on " + title,
     );
   }
+  await mobile
+    .getByRole("button", { name: "Open assistant", exact: true })
+    .click();
+  await mobile
+    .getByRole("button", { name: "What should I do next?", exact: true })
+    .click();
+  await mobile.getByText("Atlas · App guide", { exact: true }).waitFor();
+  assert.equal(await mobile.getByLabel("Assistant mode").inputValue(), "guide");
+  assert(
+    await mobile.locator(".assistant-panel").evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return (
+        r.left >= 0 &&
+        r.right <= innerWidth &&
+        r.top >= 0 &&
+        r.bottom <= innerHeight
+      );
+    }),
+  );
+  assert.equal(remoteRequests.length, 0);
+  await mobile.screenshot({
+    path: "validation/screenshots/mobile-assistant.png",
+    fullPage: true,
+  });
+  checks.push(
+    "Standalone mobile App guide fits the viewport and makes no remote requests",
+  );
+
+  let held;
+  const requestArrived = new Promise((resolve) => {
+    page.route("**/api/assistant", (route) => {
+      held = route;
+      resolve();
+    });
+  });
+  await page
+    .getByRole("button", { name: "Open assistant", exact: true })
+    .click();
+  await page
+    .getByLabel("Message Atlas", { exact: true })
+    .fill("Private old-workspace question");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await requestArrived;
+  const beforeSwitch = await (
+    await page.request.get(base + "/api/state")
+  ).json();
+  await page.request.post(base + "/api/workspaces", {
+    data: {
+      revision: beforeSwitch.workspace.revision,
+      title: "New isolated review",
+    },
+    headers: { Origin: base },
+  });
+  await page
+    .getByText("New isolated review", { exact: true })
+    .first()
+    .waitFor();
+  await page
+    .getByRole("button", { name: "Open assistant", exact: true })
+    .click();
+  assert.equal(await page.locator(".chat-turn").count(), 0);
+  assert.equal(await page.getByLabel("Message Atlas").inputValue(), "");
+  await held
+    .fulfill({
+      json: {
+        revision: beforeSwitch.workspace.revision,
+        answer: "Old answer must not appear",
+        citations: [],
+      },
+    })
+    .catch(() => {});
+  assert.equal(
+    await page.getByText("Old answer must not appear", { exact: true }).count(),
+    0,
+  );
+  await page.unroute("**/api/assistant");
+  checks.push(
+    "A workspace switch aborts pending chat and clears conversation/draft; stale replies cannot appear",
+  );
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.getByRole("button", { name: "Sign in to collaborate" }).click();
   await page.keyboard.press("Tab");
@@ -210,6 +410,8 @@ try {
     "Modal focus escaped",
   );
   await page.keyboard.press("Escape");
+  if (await page.getByRole("dialog").isVisible())
+    await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
   checks.push(
     "Mobile primary screens fit at 390px; sign-in dialog supports keyboard containment and Escape",

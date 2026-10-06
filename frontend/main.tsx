@@ -9,6 +9,7 @@ import { createRoot } from "react-dom/client";
 import { Claim, Workspace } from "./types";
 import { validateSnapshot } from "./import";
 import "./style.css";
+import "./design.css";
 import { Tutorial } from "./TutorialGuide";
 import {
   emptyWorkspace,
@@ -19,6 +20,9 @@ import {
   addTutorialAnswer,
   REVIEW_NOTE,
 } from "./tutorial";
+import { Assistant } from "./Assistant";
+import { ContextHelp, HelpHint } from "./ContextHelp";
+import { helpLabels } from "./help-content";
 import { WorkspaceDialog, WorkspaceEntry } from "./WorkspaceDialog";
 import {
   applyTheme,
@@ -179,6 +183,7 @@ function App() {
   }, []);
   return (
     <>
+      <ContextHelp enabled={!showTutorial} />
       <div hidden={showTutorial}>
         <Workbench startTutorial={start} suspended={showTutorial} />
       </div>
@@ -533,6 +538,7 @@ function Workbench({
               <button
                 key={item}
                 aria-label={item}
+                data-help={item}
                 data-tour={"nav-" + item}
                 className={tab === item ? "nav active" : "nav"}
                 aria-current={tab === item ? "page" : undefined}
@@ -828,7 +834,10 @@ function Workbench({
                     <div className="section-heading">
                       <div>
                         <span className="eyebrow">START HERE</span>
-                        <h2>What needs your attention</h2>
+                        <h2>
+                          What needs your attention{" "}
+                          <HelpHint topic="conflicts" />
+                        </h2>
                       </div>
                       <span className="badge amber">Human review</span>
                     </div>
@@ -908,7 +917,9 @@ function Workbench({
                     <div className="section-heading">
                       <div>
                         <span className="eyebrow">IN YOUR APPLICATION</span>
-                        <h2>Usage profile</h2>
+                        <h2>
+                          Usage profile <HelpHint topic="usage" />
+                        </h2>
                       </div>
                     </div>
                     <p className="muted small">
@@ -931,7 +942,9 @@ function Workbench({
                   <div className="section-heading">
                     <div>
                       <span className="eyebrow">PATTERNS IN THE TEXT</span>
-                      <h2>Topics in this review</h2>
+                      <h2>
+                        Topics in this review <HelpHint topic="topics" />
+                      </h2>
                     </div>
                     <span className="small muted">
                       Statistical grouping, not a risk score
@@ -1284,6 +1297,25 @@ function Workbench({
           </main>
         </div>
       </div>
+      {!tutorial && (
+        <Assistant
+          key={live ? user + ":" + activeId : "saved:" + viewKey}
+          workspace={workspace}
+          page={tab}
+          claimId={tab === "Evidence" ? chosen?.id || "" : ""}
+          sourceId={tab === "Sources" ? chosenSource?.id || "" : ""}
+          live={live}
+          provider={provider}
+          navigate={setTab}
+          openClaim={openClaim}
+          onAuthExpired={() => {
+            setUser("");
+            setLogin(true);
+          }}
+          refresh={refresh}
+          blocked={manager || login || suspended}
+        />
+      )}
       {tutorial && (
         <Tutorial
           step={tourStep}
@@ -1404,7 +1436,9 @@ function Stat({
 }) {
   return (
     <div className={"stat " + (warn ? "warning" : "")}>
-      <span>{label}</span>
+      <span>
+        {label} <HelpHint topic={helpLabels[label]} label={label} />
+      </span>
       <strong>{value}</strong>
       <small>{note}</small>
     </div>
@@ -1549,11 +1583,15 @@ function ClaimDetail({
       </button>
       <dl>
         <div>
-          <dt>Change type</dt>
+          <dt>
+            Change type <HelpHint topic="category" />
+          </dt>
           <dd>{human(claim.category)}</dd>
         </div>
         <div>
-          <dt>Usage match</dt>
+          <dt>
+            Usage match <HelpHint topic="usage" />
+          </dt>
           <dd>
             {claim.applicable
               ? "Declared in your profile"
@@ -1561,7 +1599,9 @@ function ClaimDetail({
           </dd>
         </div>
         <div>
-          <dt>Source position</dt>
+          <dt>
+            Source position <HelpHint topic="sourcePosition" />
+          </dt>
           <dd>
             Characters {claim.start + 1}–{claim.end}
           </dd>
@@ -1851,7 +1891,12 @@ function QuestionForm({
         </select>
       </label>
       <label className="checkbox">
-        <input type="checkbox" name="use_ai" disabled={disabled} />
+        <input
+          type="checkbox"
+          name="use_ai"
+          data-help="generation"
+          disabled={disabled}
+        />
         Draft an answer with {provider}
       </label>
       <button

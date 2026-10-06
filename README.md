@@ -4,7 +4,7 @@
 
 A collaborative workbench for reviewing software upgrade evidence. Bring versioned release notes and reference text, declare the APIs your application uses, inspect cited changes and conflicting guidance, and record a review with your team.
 
-**Status: v0.1 local preview, preview 006.** The Python service, responsive interface, analysis, retrieval and collaboration are implemented and tested as described below. Direct file-browser testing and container execution remain unverified in this environment. This is not an enterprise security product or an upgrade-safety certification.
+**Status: v0.1 local preview.** The Python service, responsive interface, analysis, retrieval, collaboration and contextual assistant are implemented and tested as described below. The Chromium CI suite covers live and standalone-file workflows; container execution remains unverified. This is not an enterprise security product or an upgrade-safety certification.
 
 ## Try the application
 
@@ -25,6 +25,22 @@ Python 3.14.4 and Node 26 were exercised on macOS. Node 22+ is required only to 
 ## Appearance
 
 The generated atlas-and-route logo is embedded in the interface and favicon. Its original PNG and full generation prompt are in `assets/`. The **Appearance** selector offers System, Dark and Light. System follows the browser/host preference and defaults to dark when neither preference can be determined. A manual choice persists locally when browser storage is available. No appearance setting changes the workspace or other reviewers.
+
+Dark mode uses neutral near-black surfaces, with a separate high-contrast light palette. Shared hover, press, focus, panel and feedback transitions make interactions visible. The interface respects `prefers-reduced-motion`.
+
+## Contextual help and Ask Atlas
+
+Hover or keyboard-focus navigation, form fields, filters and actions for an explanation of what they do and why they matter. The small **?** controls beside key concepts also open help by click or keyboard. Escape dismisses help; the tooltip can be hovered and scrolled without disappearing.
+
+**Ask Atlas** is available on every workbench page. It keeps a conversation as you move between Overview, Sources, Evidence, Graph, Questions and Activity. Its context indicator shows the current page and selected evidence or source.
+
+- **Model chat** uses the configured generation provider, including Ollama `gpt-oss:20b`, to explain the workflow, answer general questions or discuss retrieved evidence. Its responses include clickable evidence when appropriate. Check the underlying passages; model answers can still be wrong.
+- **App guide** provides immediate built-in explanations without a model request. It is also available in the standalone HTML viewer. It does not pretend to generate answers about arbitrary evidence.
+- Chat is read-only. It does not add sources, record decisions, execute tools or save shared answers. Use **Questions** for answers that should become part of the review snapshot.
+- Conversation is held only in the open browser view. Closing the panel or changing pages preserves it. Refreshing, signing out, importing a standalone snapshot or switching workspaces clears it. It is excluded from review exports. The tutorial hides and pauses live chat, preserving the conversation until you return.
+- Enter sends a message; Shift+Enter adds a line. **Stop response** cancels waiting in this browser and keeps the question. A provider may finish its current call before another model request can start.
+
+The server sends the selected page, workspace title, source titles/versions, declared usage, up to eight evidence excerpts and up to ten previous messages to its configured provider. No credentials or audit history are included. Requests and responses are bounded, authenticated and revision-checked. Citations must belong to the supplied evidence; known conflict partners travel together, and answers citing just one side of a supplied conflict are rejected. Stale analysis is excluded. Switching workspaces or losing the session prevents a pending result from being delivered. These checks do not establish semantic accuracy or eliminate prompt injection.
 
 ## Beginner tutorial
 
@@ -59,7 +75,7 @@ Harbor SDK, all demonstration documents and training/evaluation examples are ori
 
 ## Models and data flow
 
-Generation defaults to Ollama at `http://localhost:11434` with `gpt-oss:20b`. Ollama must already be running with that model installed. New classification, topics, entity extraction and graph retrieval work without an LLM. Only the optional drafted answer calls the configured generation provider.
+Generation defaults to Ollama at `http://localhost:11434` with `gpt-oss:20b`. Ollama must already be running with that model installed. New classification, topics, entity extraction and graph retrieval work without an LLM. The optional drafted answer and Ask Atlas Model chat call the configured generation provider. App guide and the tutorial do not.
 
 Environment variables are documented in `.env.example`. The server does not automatically load that file. Example compatible endpoint:
 
@@ -67,7 +83,7 @@ Environment variables are documented in `.env.example`. The server does not auto
 ATLAS_LLM_KIND=compatible ATLAS_LLM_BASE=http://localhost:11434/v1 ATLAS_LLM_MODEL=gpt-oss:20b ./start.sh
 ```
 
-Remote compatible endpoints must use HTTPS. Set `ATLAS_LLM_KEY` in the server environment if needed. Never put provider keys in browser code, source files or exported reviews. A remote provider receives the question and retrieved evidence, including source titles and versions. Response support is the documented nonstreaming JSON subset; not every service implements it identically.
+Remote compatible endpoints must use HTTPS. Set `ATLAS_LLM_KEY` in the server environment if needed. Never put provider keys in browser code, source files or exported reviews. A remote provider receives the question and retrieved evidence, including source titles and versions. Model chat also sends the bounded conversation and current page/usage context described above. Response support is the documented nonstreaming JSON subset; not every service implements it identically.
 
 Embeddings are a separate contract. Default retrieval and classification use TF-IDF with truncated SVD, a statistical latent semantic representation, not a neural encoder. Setting `ATLAS_EMBED_MODEL` enables the separate `ATLAS_EMBED_KIND`, `ATLAS_EMBED_BASE` and optional `ATLAS_EMBED_KEY` adapter. It checks row order, count, finite nonzero vectors and dimensions. Vectors are rebuilt per query, so cached vectors from different models are never mixed. The installed local endpoint returned HTTP 501 for embeddings; no external embedding model was downloaded or claimed as tested.
 
@@ -96,8 +112,8 @@ GitHub import accepts only `owner/repository`, uses the fixed public GitHub rele
 | RAG / GraphRAG | Three comparable retrieval routes plus optional cited generation | Graph bridges retrieve claims for component names absent from the passages; not a universal graph advantage |
 | APIs and data feeds | FastAPI JSON, GitHub release snapshots, two model protocols | Actual loopback HTTP, GitHub feed and both local generation routes exercised |
 | TypeScript multiuser UI | React, SSE synchronization and retained draft revisions | Live browser tabs plus distinct API sessions; stale writes return 409 |
-| Delivery and support | Locked dependencies, single HTML build, tests, launcher, container and CI recipes | Local rebuilds tested; Docker runtime and hosted CI have not been executed |
-
+| Delivery and support | Locked dependencies, single HTML build, tests, launcher, container and CI recipes | Local rebuilds and hosted Chromium CI tested; Docker runtime remains unverified |
+| Contextual assistance | `backend/assistant.py`, `frontend/Assistant.tsx`, `frontend/guide.ts` | Read-only page-aware chat, exact citation-ID checks, conflict-pair checks and built-in workflow fallback |
 
 ## Correctness and deployment boundaries
 
@@ -135,7 +151,7 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-The first command calls the configured local model through both protocols. The second uses an isolated workspace, real HTTP/SSE sessions and a public GitHub feed. The Playwright suite covers desktop/mobile, two contexts, export/import, direct file operation and keyboard checks; it requires a working browser runtime. In this environment, shell-launched Chrome aborted and the supported browser blocked `file://`. Substitute browser checks, module/import tests and artifact inspection passed, but they do not establish direct file-browser execution. Safari/Firefox, real mobile hardware, WAN load and remote paid providers were not tested.
+The first command calls the configured local model through both protocols. The second uses an isolated workspace, real HTTP/SSE sessions and a public GitHub feed. The Playwright suite covers desktop/mobile, two contexts, export/import, direct file operation, keyboard help, motion preferences, assistant navigation, safe text rendering and stale chat suppression. It requires a working browser runtime. Shell-launched Chrome aborts in the original macOS sandbox, so the full suite runs in GitHub Actions on Linux; supported local Chrome interactions and module tests supplement that run. Safari/Firefox, real mobile hardware, WAN load and remote paid providers were not tested.
 
 Recorded evidence lives in `validation/`. The evaluation result compares a keyword baseline and makes no claim that ML improved classification. Both real `gpt-oss:20b` adapters cited the two conflicting 2.0 passages and described the uncertainty. A valid citation ID alone cannot prove factual grounding. The reviewer is still responsible for reading the text.
 

@@ -179,3 +179,59 @@ test("tutorial replay is deterministic and preserves the original workspace and 
   await validateSnapshot(tutorial.emptyWorkspace());
   assert.equal(JSON.stringify(demo), original);
 });
+
+test("built-in guide handles empty, unanalyzed and ready reviews without inventing model answers", async () => {
+  const result = await build({
+    entryPoints: ["frontend/guide.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { guideReply } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(result.outputFiles[0].text).toString("base64")
+  );
+  const empty = { ...demo, sources: [], analysis: null };
+  assert.match(
+    guideReply("Overview", empty, "What should I do next?"),
+    /add versioned release notes/,
+  );
+  assert.match(
+    guideReply(
+      "Sources",
+      { ...demo, analysis: null },
+      "What should I do next?",
+    ),
+    /Choose Analyze sources/,
+  );
+  assert.match(
+    guideReply("Graph", demo, "Explain this page simply"),
+    /Connections in the evidence/,
+  );
+  assert.match(
+    guideReply("Questions", demo, "How does vector retrieval work?"),
+    /statistical text similarity/,
+  );
+  assert.match(
+    guideReply("Sources", demo, "Can I upload a PDF?"),
+    /Paste text/,
+  );
+  assert.match(
+    guideReply("Overview", demo, "What is the capital of France?"),
+    /use Model chat/,
+  );
+  const help = await build({
+    entryPoints: ["frontend/help-content.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const content = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(help.outputFiles[0].text).toString("base64")
+  );
+  for (const key of Object.values(content.helpLabels))
+    assert(content.help[key], "Missing help: " + key);
+});

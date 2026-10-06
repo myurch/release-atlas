@@ -7,6 +7,7 @@ Release Atlas helps software maintainers review upgrade evidence. It connects ve
 - Backend: Python, FastAPI, SQLite, scikit-learn and NetworkX.
 - Frontend: React, TypeScript and CSS. Edit frontend sources, then rebuild the self-contained HTML with `npm run build`.
 - `backend/models.py` defines validated data contracts; `backend/store.py` owns persistence and revision checks; `backend/nlp.py` implements analysis and retrieval; `backend/providers.py` implements model adapters.
+- `backend/assistant.py` supplies bounded, read-only chat with revision and citation checks. `frontend/Assistant.tsx` owns ephemeral conversation state, `frontend/guide.ts` is deterministic help, and `frontend/help-content.ts` / `frontend/ContextHelp.tsx` supply accessible contextual tooltips. `frontend/design.css` owns shared color and interaction tokens.
 - `frontend/main.tsx` contains the workbench; `frontend/tutorial.ts` and `frontend/TutorialGuide.tsx` define the beginner tutorial; `frontend/WorkspaceDialog.tsx` manages saved workspace selection.
 - The standalone HTML browses saved reviews. New analysis and collaboration require the Python service. Optional generation supports Ollama and OpenAI-compatible services.
 
@@ -32,6 +33,8 @@ Release Atlas helps software maintainers review upgrade evidence. It connects ve
 
 ## User experience
 
+- Current design batch: use neutral near-black dark surfaces, clear light surfaces, restrained motion with reduced-motion support, contextual tooltips and a page-aware assistant. Chat is read-only, private to the current browser view, bounded and revision-checked; tutorial and saved-file guidance must never call the live API. Preserve citation validation and prevent stale or cross-workspace chat results.
+
 - Keep the generated logo and System/Dark/Light appearance options. Follow the host theme, use dark as the fallback, and preserve manual choices.
 - Lead with the evidence-review task. Do not add promotional offline badges or expose deployment details where they do not help the user.
 - Use plain language and no em dashes in authored text. Explain the goal, required input and useful result before technical terminology.
@@ -52,4 +55,4 @@ Run the checks relevant to the change and review regressions before committing:
 
 For affected integrations, use `tools/integration_probe.py`, `tools/live_probe.py` and `npm run test:browser` in an appropriate environment. Keep test data isolated from saved user work. Report actual results and distinguish mocks, static checks and real integration tests.
 
-Local validation has covered 16 Python tests, six frontend checks and supported browser interactions. Direct standalone file-browser execution, the complete local Playwright run and container runtime remain unverified in the original development environment. Consult actual CI results rather than assuming these checks passed. Do not describe this preview as fully production-validated.
+Local validation covers 24 Python tests, seven frontend checks and supported Chrome interactions. The hosted Chromium suite additionally covers standalone files, live collaboration, tutorial isolation, assistant navigation/context and stale chat responses. Local headless Chrome launch is unavailable in the original macOS sandbox; use the supported browser and hosted CI as substitutes. Docker runtime, Safari and Firefox remain unverified. Consult actual CI results rather than assuming checks passed. Do not describe this preview as fully production-validated.
