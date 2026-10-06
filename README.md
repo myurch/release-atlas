@@ -1,5 +1,7 @@
 # Release Atlas
 
+**Created by [Maryana Yurchyshyna](https://github.com/myurch).**
+
 A collaborative workbench for reviewing software upgrade evidence. Bring versioned release notes and reference text, declare the APIs your application uses, inspect cited changes and conflicting guidance, and record a review with your team.
 
 **Status: v0.1 local preview, preview 006.** The Python service, responsive interface, analysis, retrieval and collaboration are implemented and tested as described below. Direct file-browser testing and container execution remain unverified in this environment. This is not an enterprise security product or an upgrade-safety certification.
@@ -156,8 +158,10 @@ Compose binds the published port to host loopback and keeps data in a named volu
 - **Need another workspace:** use Workspaces to create an empty review or reopen an existing one. At the 30-workspace limit, existing reviews remain available; export needed snapshots, then stop the server and start with a different `ATLAS_DATA_DIR` for more space. Do not delete the original data directory.
 - **Back up live data:** export through the UI/API or stop the server before copying `.atlas`. Do not copy an active SQLite main file alone while its WAL may contain newer transactions.
 
-## Sources and licensing
+## Authorship and licensing
 
-Original implementation and synthetic data: [MIT license](LICENSE). Embedded runtime notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). 
+Release Atlas is an original personal project created by **Maryana Yurchyshyna** ([myurch](https://github.com/myurch)). The application-specific code and synthetic examples were developed for this project with AI coding assistance.
+
+The original implementation and synthetic data are available under the [MIT license](LICENSE), copyright Maryana Yurchyshyna. Open-source dependencies retain their own authorship and licenses; bundled runtime credits are preserved in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The AI-generated logo has a separate [provenance record](assets/logo-provenance.json).
 
 Primary implementation references: [Ollama chat](https://docs.ollama.com/api/chat), [Ollama embeddings](https://docs.ollama.com/api/embed), [Ollama compatible API](https://docs.ollama.com/api/openai-compatibility), [scikit-learn decomposition](https://scikit-learn.org/stable/modules/decomposition.html), [GitHub releases API](https://docs.github.com/en/rest/releases/releases), [FastAPI](https://fastapi.tiangolo.com/).

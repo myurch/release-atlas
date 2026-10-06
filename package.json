@@ -1,6 +1,10 @@
 {
   "name": "release-atlas",
   "version": "0.1.0",
+  "author": {
+    "name": "Maryana Yurchyshyna",
+    "url": "https://github.com/myurch"
+  },
   "private": true,
   "type": "module",
   "scripts": {
