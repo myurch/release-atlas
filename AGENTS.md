@@ -12,7 +12,7 @@ Release Atlas helps software maintainers review upgrade evidence. It connects ve
 
 ## Working practices
 
-- Every commit author and committer must use `36048692+myurch@users.noreply.github.com`. Set repository-local Git identity; never rely on or change the machine's global identity.
+- Every commit author and committer must use name `myurch` and email `36048692+myurch@users.noreply.github.com`, the owner's verified GitHub private address. Set repository-local Git identity; never rely on or change the machine's global identity. Keep personal email addresses out of public files and history, and retain GitHub email push protection.
 - Make focused commits with clear messages. Preserve unrelated work. Keep this file and README accurate when behavior, setup or validation changes.
 - Keep runtime state, credentials, installed dependencies and caches out of Git. `.atlas/` and environment files are private local data.
 - Retain the MIT license, embedded runtime notices and generated-logo provenance.
