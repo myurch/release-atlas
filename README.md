@@ -144,7 +144,7 @@ docker compose up --build
 docker compose exec atlas cat /data/access-code
 ```
 
-Compose binds the published port to host loopback and keeps data in a named volume. `host.docker.internal` refers to the host from the container, allowing access to host Ollama if its local configuration permits it. The container runs as UID 10001. Compose configuration was checked; the daemon was unavailable, so the image was not built or run. The CI workflow is checked in but has not been published or executed on GitHub.
+Compose binds the published port to host loopback and keeps data in a named volume. `host.docker.internal` refers to the host from the container, allowing access to host Ollama if its local configuration permits it. The container runs as UID 10001. Compose configuration was checked; the daemon was unavailable, so the image was not built or run. The CI workflow repeats the checks on GitHub; consult the repository Actions tab for its latest result.
 
 ## Troubleshooting and recovery
 
