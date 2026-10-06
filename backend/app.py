@@ -21,6 +21,7 @@ from .models import Answer, Review, Source, SourceInput, Strict, Usage, Workspac
 from .nlp import analyze, retrieve, source_digest
 from .providers import ProviderConfig, ProviderError, embed, generate
 from .store import Conflict, Store
+from .assistant import AssistantRequest, assist
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -339,6 +340,24 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
             raise HTTPException(404,'Claim not found')
         claim.review = Review(status=data.status,note=data.note,by=user,at=now())
         return publish(state,data.revision,user,'Reviewed '+claim_id+': '+data.status)
+
+    @app.post('/api/assistant')
+    async def assistant_chat(data: AssistantRequest, request: Request):
+        actor(request)
+        state = current(data.revision)
+        if not data.message.strip():
+            raise HTTPException(422, 'Enter a question for the assistant')
+        if data.selected_claim and not any(c.id == data.selected_claim for c in state.claims):
+            raise HTTPException(422, 'Selected evidence is no longer available')
+        if data.selected_source and not any(s.id == data.selected_source for s in state.sources):
+            raise HTTPException(422, 'Selected source is no longer available')
+        if busy.locked():
+            raise HTTPException(409, 'Another analysis or model request is running. Try again shortly.')
+        async with busy:
+            answer = await assist(provider, state, data)
+            actor(request)
+            current(data.revision)
+            return {'revision': data.revision, **answer.model_dump()}
 
     @app.post('/api/query')
     async def query(data: Query, request: Request):

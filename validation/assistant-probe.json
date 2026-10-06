@@ -1,0 +1,38 @@
+{
+  "provider": "Ollama gpt-oss:20b",
+  "probes": [
+    {
+      "question": "What should I do next?",
+      "response": {
+        "answer": "Since the workspace has no sources or usage data yet, start by adding documentation. Open the Sources page, paste the relevant text, and fill in the title, version, and license fields. Then click Save source. After that, return to Overview, enter a component\u2011identifier pair in the usage profile, and save it. Finally, click Analyze sources in Overview to generate evidence cards.",
+        "citations": [],
+        "uncertainty": ""
+      },
+      "workspace_unchanged": true
+    },
+    {
+      "question": "Does retry_limit still work in Harbor 2.0? Cite the evidence and explain what I should check.",
+      "response": {
+        "answer": "The evidence shows conflicting statements about `retry_limit` in Harbor\u202f2.0. One source (Harbor\u202f2.0 configuration reference) says the setting is still supported, while the release notes say it was removed and replaced by `retry_policy`. Because both sources are from the same version, the conflict is unresolved. You should:\n1. Open the Evidence view and look at the two quotes (IDs\u202fc\u20117f97e6a33c7ef1da0ec0 and c\u2011aefd00a45ab49749cf02).\n2. Verify which configuration file or API endpoint actually accepts `retry_limit` when you run a test in a 2.0 environment.\n3. If the setting is missing, switch to using `retry_policy` as described in the release notes.\n4. Document your findings in the review before deciding to keep or remove the claim.\n\nCitations: [c-7f97e6a33c7ef1da0ec0, c-aefd00a45ab49749cf02]",
+        "citations": [
+          "c-7f97e6a33c7ef1da0ec0",
+          "c-aefd00a45ab49749cf02"
+        ],
+        "uncertainty": "The cited sources contain conflicting statements. Compare both passages; this answer does not resolve the conflict. High"
+      },
+      "workspace_unchanged": true
+    }
+  ],
+  "result": "PASS",
+  "scope": "Two real local model probes on empty and synthetic analyzed workspaces; not a general accuracy evaluation",
+  "checks": [
+    "Manual Analyze sources action named in workflow answer",
+    "Both same-version conflict passages cited",
+    "Uncertainty retained",
+    "No workspace mutation"
+  ],
+  "limitations": [
+    "Generated prose still requires human review",
+    "Other models and remote providers not live-tested for assistant chat"
+  ]
+}
