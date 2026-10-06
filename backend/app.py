@@ -34,6 +34,15 @@ class Revision(Strict):
     revision: int = Field(ge=0)
 
 
+class NewWorkspace(Revision):
+    title: str = Field(min_length=1, max_length=160)
+    workspace: Workspace | None = None
+
+
+class SwitchWorkspace(Revision):
+    id: str = Field(pattern=r'^[a-f0-9]{32}$')
+
+
 class AddSource(Revision):
     source: SourceInput
 
@@ -144,6 +153,9 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
 
     def publish(state, expected, user, action):
         saved = store.save(state, expected, user, action)
+        return notify(saved)
+
+    def notify(saved):
         for queue in tuple(listeners):
             if queue.full():
                 queue.get_nowait()
@@ -199,7 +211,27 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
     @app.get('/api/state')
     async def state(request: Request):
         user = actor(request)
-        return {'workspace':store.read().model_dump(),'user':user,'provider':{'kind':provider.kind,'model':provider.model,'embedding':embedding.model if embedding else 'local-lsa-v1'}}
+        return {**store.snapshot(),'user':user,'provider':{'kind':provider.kind,'model':provider.model,'embedding':embedding.model if embedding else 'local-lsa-v1'}}
+
+    @app.post('/api/workspaces')
+    async def new_workspace(data: NewWorkspace, request: Request):
+        user = actor(request)
+        if not data.title.strip():
+            raise HTTPException(422,'Enter a workspace name')
+        state = data.workspace.model_copy(deep=True) if data.workspace else Workspace()
+        state.title = data.title.strip()
+        try:
+            return notify(store.create(state,data.revision,user,imported=data.workspace is not None))
+        except ValueError as exc:
+            raise HTTPException(422,str(exc)) from exc
+
+    @app.post('/api/workspaces/switch')
+    async def switch_workspace(data: SwitchWorkspace, request: Request):
+        user = actor(request)
+        try:
+            return notify(store.switch(data.id,data.revision,user))
+        except LookupError as exc:
+            raise HTTPException(404,str(exc)) from exc
 
     @app.get('/api/export')
     async def export(request: Request):

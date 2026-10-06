@@ -134,3 +134,58 @@ def test_stale_analysis_marker_and_unicode_import(clients):
     assert a.post('/api/sources',content=body,headers={**ORIGIN,'Content-Type':'application/json'}).status_code==422
     state['claims'][0]['id']='forged'
     assert a.post('/api/import',json={'revision':2,'workspace':state},headers=ORIGIN).status_code==422
+
+
+def test_saved_workspaces_preserve_history_and_reject_cross_workspace_writes(clients,tmp_path):
+    a,b,app = clients
+    initial = a.get('/api/state').json()
+    original = initial['active_id']
+    demo = a.post('/api/demo',json={'revision':0},headers=ORIGIN).json()
+    claim = demo['claims'][0]['id']
+    reviewed = a.put(f'/api/claims/{claim}/review',json={'revision':1,'status':'needs-investigation','note':'Keep this review'},headers=ORIGIN).json()
+    created = a.post('/api/workspaces',json={'revision':2,'title':'My upgrade'},headers=ORIGIN)
+    assert created.status_code==200 and created.json()['sources']==[]
+    snapshot = b.get('/api/state').json()
+    assert len(snapshot['workspaces'])==2 and snapshot['active_id']!=original
+    assert [x['action'] for x in snapshot['workspace']['audit']]==['Created empty workspace']
+    assert b.put(f'/api/claims/{claim}/review',json={'revision':2,'status':'applicable'},headers=ORIGIN).status_code==409
+    restored = a.post('/api/workspaces/switch',json={'revision':3,'id':original},headers=ORIGIN).json()
+    assert restored['revision']==4 and restored['claims']==reviewed['claims']
+    assert restored['audit'][:-1]==reviewed['audit']
+    assert a.post('/api/workspaces/switch',json={'revision':3,'id':snapshot['active_id']},headers=ORIGIN).status_code==409
+    assert a.post('/api/workspaces/switch',json={'revision':4,'id':'0'*32},headers=ORIGIN).status_code==404
+    assert a.post('/api/workspaces',json={'revision':4,'title':'   '},headers=ORIGIN).status_code==422
+    reopened = Store(tmp_path/'workspace.sqlite3').snapshot()
+    assert reopened['workspace']==restored and reopened['active_id']==original
+    assert len(reopened['workspaces'])==2
+    assert a.post('/api/workspaces',json={'revision':4,'title':'Imported review','workspace':demo},headers=ORIGIN).status_code==200
+    assert len(a.get('/api/state').json()['workspaces'])==3
+    assert a.post('/api/logout',headers=ORIGIN).status_code==200
+    assert a.post('/api/workspaces',json={'revision':5,'title':'Unauthorized'},headers=ORIGIN).status_code==401
+
+
+def test_original_database_migration_is_lossless_and_idempotent(tmp_path):
+    import sqlite3
+    path=tmp_path/'workspace.sqlite3'
+    state=Workspace.model_validate_json(Path('data/demo-snapshot.json').read_text())
+    state.revision=17
+    payload=state.model_dump_json()
+    with sqlite3.connect(path) as db:
+        db.execute('CREATE TABLE workspace (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL, payload TEXT NOT NULL)')
+        db.execute('INSERT INTO workspace VALUES (1,17,?)',(payload,))
+    first=Store(path).snapshot()
+    assert first['workspace']==state.model_dump() and len(first['workspaces'])==1
+    assert Store(path).snapshot()==first
+    with sqlite3.connect(path) as db:
+        assert db.execute('SELECT payload FROM workspace').fetchone()[0]==payload
+
+
+def test_workspace_capacity_and_import_failure_do_not_replace_saved_data(clients):
+    a,_,app=clients
+    app.state.store.LIMIT=2
+    assert a.post('/api/workspaces',json={'revision':0,'title':'Second'},headers=ORIGIN).status_code==200
+    before=a.get('/api/state').json()
+    assert a.post('/api/workspaces',json={'revision':1,'title':'Third'},headers=ORIGIN).status_code==422
+    bad={'schema_version':99}
+    assert a.post('/api/workspaces',json={'revision':1,'title':'Bad','workspace':bad},headers=ORIGIN).status_code==422
+    assert a.get('/api/state').json()==before
