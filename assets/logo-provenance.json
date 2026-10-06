@@ -1,0 +1,10 @@
+{
+  "method": "Built-in image generation, not CLI",
+  "date": "2026-10-06",
+  "prompt": "Use case: logo-brand. Asset type: production app logo mark for Release Atlas, a professional collaborative software upgrade evidence review workbench. Create one distinctive, compact geometric emblem combining an abstract folded atlas/map and a subtle upward route shaped like an A, with two small evidence nodes integrated into the route. Flat restrained design, strong readable silhouette at 32 px. Match the app's deep forest green, muted teal and warm ivory palette. Use a pale mint/ivory core on a deep forest green rounded-square tile so the mark works on both dark and light interfaces. Square composition, emblem occupies most of canvas with modest even padding. Truly transparent pixels outside the rounded tile. No text, letters as typography, slogan, gradients, drop shadow, mockup, presentation board, watermark or multiple variants. The result should feel like a careful software product identity, not generic AI sparkles or a chat icon.",
+  "transparent_background": true,
+  "asset": "release-atlas-logo.png",
+  "sha256": "8da0d8560902c87c3a29121dbc9bb798c5b27ea117080db6bdcadcd5dc524595",
+  "modifications": "Copied original generated pixels without editing; CSS controls display size",
+  "scope": "Project logo concept; no trademark search or exclusivity claim"
+}

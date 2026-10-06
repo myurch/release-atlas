@@ -3,9 +3,18 @@ import { createRoot } from "react-dom/client";
 import { Claim, Workspace } from "./types";
 import { validateSnapshot } from "./import";
 import "./style.css";
+import {
+  applyTheme,
+  currentPreference,
+  THEME_KEY,
+  ThemePreference,
+} from "./theme";
 
 declare const __DEMO__: Workspace;
+declare const __LOGO__: string;
 const demo = __DEMO__;
+const logo = __LOGO__;
+document.getElementById("app-icon")?.setAttribute("href", logo);
 const tabs = [
   "Overview",
   "Evidence",
@@ -86,6 +95,51 @@ function Icon({ name = "grid" }: { name?: string }) {
     >
       {paths[name] || paths.grid}
     </svg>
+  );
+}
+
+function Appearance() {
+  const [preference, setPreference] =
+    useState<ThemePreference>(currentPreference);
+  useEffect(() => {
+    applyTheme(preference);
+    const light = window.matchMedia?.("(prefers-color-scheme: light)");
+    const dark = window.matchMedia?.("(prefers-color-scheme: dark)");
+    const update = () => applyTheme(preference);
+    light?.addEventListener?.("change", update);
+    dark?.addEventListener?.("change", update);
+    const storage = (event: StorageEvent) => {
+      if (event.key === THEME_KEY || event.key === null)
+        setPreference(currentPreference());
+    };
+    window.addEventListener("storage", storage);
+    return () => {
+      light?.removeEventListener?.("change", update);
+      dark?.removeEventListener?.("change", update);
+      window.removeEventListener("storage", storage);
+    };
+  }, [preference]);
+  return (
+    <label className="appearance">
+      <span className="sr-only">Appearance</span>
+      <select
+        aria-label="Appearance"
+        value={preference}
+        onChange={(event) => {
+          const next = event.target.value as ThemePreference;
+          setPreference(next);
+          try {
+            localStorage.setItem(THEME_KEY, next);
+          } catch {
+            /* Choice still works for this open view. */
+          }
+        }}
+      >
+        <option value="system">System theme</option>
+        <option value="dark">Dark theme</option>
+        <option value="light">Light theme</option>
+      </select>
+    </label>
   );
 }
 
@@ -298,9 +352,13 @@ function App() {
           }}
           aria-label="Release Atlas overview"
         >
-          <span className="brand-mark">
-            <Icon name="Graph" />
-          </span>
+          <img
+            className="brand-symbol"
+            src={logo}
+            alt=""
+            width="38"
+            height="38"
+          />
           <span>
             release<span className="brand-light">atlas</span>
           </span>
@@ -385,6 +443,7 @@ function App() {
             {tab}
           </span>
           <div className="actions">
+            <Appearance />
             <button
               className="button subtle"
               onClick={() => importRef.current?.click()}
@@ -988,9 +1047,13 @@ function App() {
             >
               ×
             </button>
-            <span className="brand-mark">
-              <Icon name="Graph" />
-            </span>
+            <img
+              className="brand-symbol modal-logo"
+              src={logo}
+              alt="Release Atlas"
+              width="48"
+              height="48"
+            />
             <h2 id="login-title">Join the review.</h2>
             <p className="muted">
               Enter a display name and your local workspace access code. The

@@ -1,0 +1,31 @@
+{
+  "result": "PASS_FOR_EXECUTED_CHECKS",
+  "method": "Supported Codex in-app browser via CUA, with temporary CDP media emulation",
+  "executed": [
+    "Login and original synthetic demo",
+    "Save review and follow source-linked evidence",
+    "Live second tab receives revision and preserves an unsaved draft with save disabled",
+    "Graph-assisted query returns three source citations",
+    "Saved-analysis import through the actual file chooser and replacement confirmation",
+    "All six screens fit a 390px CSS viewport in light and dark palettes",
+    "Keyboard dialog focus remains inside and Escape closes it",
+    "Generated logo loads from embedded data, no external image dependency",
+    "Manual dark choice survives reload",
+    "System choice responds to emulated host light and dark preferences",
+    "Manual dark overrides host light",
+    "Promotional offline banner/badge removed",
+    "No captured JavaScript console errors in final browser check"
+  ],
+  "observed_css_viewports": [
+    "390x844",
+    "1440x1000"
+  ],
+  "limitations": [
+    "Full checked-in Playwright suite was not completed: local shell Chrome aborted",
+    "Direct file:// navigation blocked by browser policy; not bypassed",
+    "Browser download event timed out; actual export bytes validated by API and module tests instead",
+    "Safari/Firefox, real phone hardware, complete WCAG audit and remote proxy not tested",
+    "In-app screenshot scaling differs from CSS viewport; mobile screenshot is the clearest visual reference"
+  ],
+  "temporary_media_overrides_restored": true
+}

@@ -98,5 +98,34 @@ test("HTML contains inline runtime and styles with no external asset dependency"
   assert(!/<link[^>]+(?:stylesheet|preload)/i.test(html));
   assert(!/@import|url\(\s*['"]?https?:/i.test(html));
   assert(html.includes("SYNTHETIC EXAMPLE"));
-  assert(html.length < 500000);
+  assert(html.length < 2000000);
+});
+
+test("appearance respects overrides and defaults dark when no host theme is available", async () => {
+  const result = await build({
+    entryPoints: ["frontend/theme.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const theme = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(result.outputFiles[0].text).toString("base64")
+  );
+  assert.equal(theme.resolveTheme("system", false, false), "dark");
+  assert.equal(theme.resolveTheme("system", true, false), "light");
+  assert.equal(theme.resolveTheme("system", false, true), "dark");
+  assert.equal(theme.resolveTheme("dark", true, false), "dark");
+  assert.equal(theme.resolveTheme("light", false, true), "light");
+  assert.equal(
+    theme.readPreference({
+      getItem: () => {
+        throw new Error("unavailable");
+      },
+    }),
+    "system",
+  );
+  assert.equal(theme.readPreference({ getItem: () => "unknown" }), "system");
+  assert.equal(theme.readPreference({ getItem: () => "dark" }), "dark");
 });
