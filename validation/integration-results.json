@@ -1,0 +1,18 @@
+{
+  "result": "PASS",
+  "checks": [
+    "Real HTTP login for distinct sessions",
+    "Authenticated SSE initial and changed revisions",
+    "Stale write rejected with 409",
+    "SSE reconnect receives current state",
+    "Export/import round trip preserves cited review",
+    "Actual public GitHub release feed stores bounded versioned snapshots"
+  ],
+  "github_source_count_added": 3,
+  "github_repository": "tj/commander.js",
+  "feed_content_distributed": false,
+  "limits": [
+    "One loopback process; no load or WAN proxy test",
+    "Temporary workspace removed after process exit"
+  ]
+}

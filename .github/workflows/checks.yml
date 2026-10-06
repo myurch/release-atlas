@@ -1,0 +1,29 @@
+name: Check Release Atlas
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -r requirements.txt
+      - run: npm ci
+      - run: npm run typecheck && npm run format:check && npm run build && npm test
+      - run: .venv/bin/python -m pytest -q
+      - run: .venv/bin/python tools/evaluate.py
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation
+          path: validation/

@@ -1,0 +1,41 @@
+{
+  "result": "PASS",
+  "runs": [
+    {
+      "kind": "ollama",
+      "base": "http://localhost:11434",
+      "model": "gpt-oss:20b",
+      "elapsed_seconds": 6.033,
+      "answer": {
+        "answer": "The evidence is contradictory: one source (Harbor\u202f2.0 configuration reference) states that `retry_limit` remains supported in version\u202f2.0, while another source (Harbor\u202f2.0 release notes) claims that `retry_limit` was removed in favor of `retry_policy`. No source confirms the feature\u2019s status unambiguously, and the evidence does not resolve the conflict.",
+        "citations": [
+          "c-7f97e6a33c7ef1da0ec0",
+          "c-aefd00a45ab49749cf02"
+        ],
+        "uncertainty": "high"
+      },
+      "citation_allowlist": "PASS",
+      "scope": "Actual generation, not a mock; semantic grounding still needs human review"
+    },
+    {
+      "kind": "compatible",
+      "base": "http://localhost:11434/v1",
+      "model": "gpt-oss:20b",
+      "elapsed_seconds": 3.533,
+      "answer": {
+        "answer": "The evidence is contradictory: one source (Harbor\u202f2.0 configuration reference) states that `retry_limit` remains supported in version\u202f2.0, while another source (Harbor\u202f2.0 release notes) claims that `retry_limit` was removed in favor of `retry_policy`. No source confirms the feature\u2019s status unambiguously, and the evidence does not resolve the conflict.",
+        "citations": [
+          "c-7f97e6a33c7ef1da0ec0",
+          "c-aefd00a45ab49749cf02"
+        ],
+        "uncertainty": "high"
+      },
+      "citation_allowlist": "PASS",
+      "scope": "Actual generation, not a mock; semantic grounding still needs human review"
+    }
+  ],
+  "limitations": [
+    "One small synthetic question per adapter is not a quality or latency benchmark",
+    "Remote paid providers and external embedding models not tested"
+  ]
+}

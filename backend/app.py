@@ -12,8 +12,9 @@ from urllib.parse import urlsplit
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
-from pydantic import Field
+from pydantic import Field, ValidationError
 from starlette.concurrency import run_in_threadpool
 
 from .models import Answer, Review, Source, SourceInput, Strict, Usage, Workspace, digest, now
@@ -230,6 +231,15 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
                 listeners.discard(queue)
         return StreamingResponse(stream(),media_type='text/event-stream',headers={'Cache-Control':'no-cache','X-Accel-Buffering':'no'})
 
+    @app.exception_handler(RequestValidationError)
+    async def request_validation_error(request, exc):
+        # Never echo untrusted input, secrets or malformed Unicode in errors.
+        return JSONResponse({'detail':'Invalid request fields or unsupported limits'},status_code=422)
+
+    @app.exception_handler(ValidationError)
+    async def validation_error(request, exc):
+        return JSONResponse({'detail':'Workspace exceeds supported limits or has inconsistent content; no changes saved'},status_code=422)
+
     @app.post('/api/sources')
     async def add_source(data: AddSource, request: Request):
         user = actor(request)
@@ -238,6 +248,7 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
         if any(s.id == new.id for s in state.sources):
             raise HTTPException(409,'This version and source content already exist')
         state.sources.append(new)
+        state.analysis = None
         try:
             Workspace.model_validate(state.model_dump())
         except ValueError as exc:
@@ -249,6 +260,7 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
         user = actor(request)
         state = current(data.revision)
         state.usage = data.usage
+        state.analysis = None
         return publish(state,data.revision,user,'Updated usage profile')
 
     @app.post('/api/analyze')
@@ -272,8 +284,11 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
             raise HTTPException(409,'Demo only loads into an empty workspace. Export current work before importing another snapshot.')
         raw = json.loads((ROOT/'data/demo-input.json').read_text())
         result = Workspace(title=raw['title'],sources=[Source.create(SourceInput(**s)) for s in raw['sources']],usage=[Usage(**u) for u in raw['usage']])
-        result = await run_in_threadpool(analyze,result)
-        return publish(result,data.revision,user,'Loaded synthetic Harbor demo')
+        if busy.locked():
+            raise HTTPException(409,'Another analysis is running. Retry shortly.')
+        async with busy:
+            result = await run_in_threadpool(analyze,result)
+            return publish(result,data.revision,user,'Loaded synthetic Harbor demo')
 
     @app.post('/api/import')
     async def import_workspace(data: Import, request: Request):
@@ -350,13 +365,14 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
                 source = Source.create(SourceInput(title=str(release.get('name') or release['tag_name'])[:160],version=release['tag_name'],text=release['body'],url=release['html_url'],license=data.rights))
                 if not any(s.id==source.id for s in state.sources):
                     state.sources.append(source)
+                    state.analysis = None
                     count+=1
             if not count:
                 raise HTTPException(422,'No new nonempty releases found')
             Workspace.model_validate(state.model_dump())
         except (httpx.HTTPError, TimeoutError) as exc:
             raise HTTPException(502,'GitHub feed unavailable; no changes saved') from exc
-        except (ValueError, KeyError, TypeError) as exc:
+        except (ValueError, KeyError, TypeError, AttributeError) as exc:
             raise HTTPException(422,'Feed content or workspace exceeds supported limits; no changes saved') from exc
         return publish(state,data.revision,user,f'Imported {count} GitHub release snapshots')
 

@@ -108,3 +108,29 @@ async def test_embedding_order_dimensions_and_nonfinite():
     for rows in [[{'index':0,'embedding':[0,0]}],[{'index':0,'embedding':[1,2]},{'index':1,'embedding':[1]}],[{'index':0,'embedding':[1,2]},{'index':0,'embedding':[2,1]}]]:
         with pytest.raises(ProviderError):
             await embed(config,['a','b'],httpx.MockTransport(lambda r:httpx.Response(200,json={'data':rows})))
+
+
+@pytest.mark.asyncio
+async def test_malformed_provider_shapes_and_large_vectors():
+    evidence=[{'claim':{'id':'c-one','quote':'A change.'}}]
+    for kind in ['ollama','compatible']:
+        config=ProviderConfig(kind=kind,model='test')
+        for body in [[], {'message':None}, {'choices':[None]}, {'choices':{'bad':True}}]:
+            with pytest.raises(ProviderError):
+                await generate(config,'q',evidence,httpx.MockTransport(lambda r:httpx.Response(200,json=body)))
+        for body in [[], {'embeddings':[[1e308,1e308]]}, {'data':[None]}, {'data':[{'index':'0','embedding':[1,2]}]}]:
+            with pytest.raises(ProviderError):
+                await embed(config,['a'],httpx.MockTransport(lambda r:httpx.Response(200,json=body)))
+
+
+def test_stale_analysis_marker_and_unicode_import(clients):
+    a,_,_=clients
+    state=a.post('/api/demo',json={'revision':0},headers=ORIGIN).json()
+    r=a.post('/api/sources',json={'revision':1,'source':{'title':'More notes','version':'3','text':'Added `next_api`.'}},headers=ORIGIN)
+    assert r.status_code==200 and r.json()['analysis'] is None
+    claim=state['claims'][0]['id']
+    assert a.put(f'/api/claims/{claim}/review',json={'revision':2,'status':'applicable'},headers=ORIGIN).status_code==409
+    body='{"revision":2,"source":{"title":"Bad","version":"1","text":"\\ud800"}}'
+    assert a.post('/api/sources',content=body,headers={**ORIGIN,'Content-Type':'application/json'}).status_code==422
+    state['claims'][0]['id']='forged'
+    assert a.post('/api/import',json={'revision':2,'workspace':state},headers=ORIGIN).status_code==422

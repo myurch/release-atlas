@@ -42,7 +42,7 @@ def classify(texts: list[str]):
     vectorizer, projector, model, _ = classifier()
     vectors = normalize(projector.transform(vectorizer.transform(texts)))
     scores = model.predict_proba(vectors)
-    return [(str(model.classes_[int(s.argmax())]), round(float(s.max()), 4)) for s in scores]
+    return [(str(model.classes_[int(s.argmax())]) if s.max() >= 0.4 else 'other', round(float(s.max()), 4)) for s in scores]
 
 
 def source_digest(state: Workspace) -> str:
@@ -165,6 +165,7 @@ def retrieve(state: Workspace, question: str, mode: str = 'graph', limit: int = 
             raise exc
         scores = np.zeros(len(texts))
     ranked = {c.id: (max(0.0, float(score)), 'text similarity') for c, score in zip(state.claims, scores) if score > 0.04}
+    by_id = {c.id: c for c in state.claims}
     if mode == 'graph':
         graph = nx.Graph()
         for e in state.graph.edges:
@@ -176,7 +177,7 @@ def retrieve(state: Workspace, question: str, mode: str = 'graph', limit: int = 
             if node.id not in graph:
                 continue
             for ident, distance in nx.single_source_shortest_path_length(graph, node.id, cutoff=3).items():
-                if ident.startswith('c-'):
+                if ident in by_id:
                     score = 1.0/(1+distance/4)
                     if score > ranked.get(ident, (0, ''))[0]:
                         ranked[ident] = (score, f'{node.label}: graph path of {distance} edge(s)')
@@ -187,4 +188,5 @@ def retrieve(state: Workspace, question: str, mode: str = 'graph', limit: int = 
                 if other not in ranked:
                     ranked[other] = (score*0.95, 'conflicting cited claim')
     by_id = {c.id: c for c in state.claims}
-    return [{'claim': by_id[ident].model_dump(), 'score': round(value[0], 4), 'reason': value[1]} for ident, value in sorted(ranked.items(), key=lambda item: (-item[1][0], item[0]))[:limit]]
+    source_by_id = {s.id: s for s in state.sources}
+    return [{'claim': by_id[ident].model_dump(), 'source': {'title': source_by_id[by_id[ident].source_id].title, 'version': source_by_id[by_id[ident].source_id].version}, 'score': round(value[0], 4), 'reason': value[1]} for ident, value in sorted(ranked.items(), key=lambda item: (-item[1][0], item[0]))[:limit]]

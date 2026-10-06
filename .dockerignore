@@ -1,0 +1,11 @@
+.git
+.venv
+node_modules
+.atlas
+.env
+.env.*
+*.git.bundle
+validation
+releases
+__pycache__
+.pytest_cache

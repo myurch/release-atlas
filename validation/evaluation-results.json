@@ -1,0 +1,103 @@
+{
+  "classification": {
+    "held_out_examples": 18,
+    "training_examples": 36,
+    "macro_f1": 1.0,
+    "keyword_baseline_macro_f1": 1.0,
+    "report": {
+      "breaking": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "deprecation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "feature": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "fix": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "other": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "security": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 18.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 18.0
+      }
+    }
+  },
+  "retrieval": [
+    {
+      "question": "What affects Checkout service?",
+      "expected_entity": "retry_limit",
+      "relevant_count": 3,
+      "lexical_recall_at_6": 0.0,
+      "vector_recall_at_6": 0.0,
+      "graph_recall_at_6": 1.0
+    },
+    {
+      "question": "What affects Export worker?",
+      "expected_entity": "export_batch",
+      "relevant_count": 2,
+      "lexical_recall_at_6": 0.0,
+      "vector_recall_at_6": 0.0,
+      "graph_recall_at_6": 1.0
+    },
+    {
+      "question": "What affects Admin portal?",
+      "expected_entity": "legacy_auth",
+      "relevant_count": 3,
+      "lexical_recall_at_6": 0.0,
+      "vector_recall_at_6": 0.0,
+      "graph_recall_at_6": 1.0
+    },
+    {
+      "question": "What changed for retry_limit?",
+      "expected_entity": "retry_limit",
+      "relevant_count": 3,
+      "lexical_recall_at_6": 1.0,
+      "vector_recall_at_6": 1.0,
+      "graph_recall_at_6": 1.0
+    }
+  ],
+  "entity_exact_set_accuracy": 1.0,
+  "quote_integrity": true,
+  "same_version_conflict_candidates": 2,
+  "limitations": [
+    "Small original synthetic corpus; no claim of representative production quality",
+    "Evaluation wording/entities are disjoint from training, but domain and author are shared",
+    "Rule-based technical entity and conflict extraction does not handle general named entities, negation or version ranges comprehensively",
+    "Graph advantage is tested on declared usage bridges; does not establish universal superiority over text retrieval",
+    "Classifier score is uncalibrated; no upgrade-safety prediction"
+  ]
+}

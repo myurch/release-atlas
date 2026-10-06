@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import hashlib
 from datetime import datetime, timezone
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def now() -> str:
@@ -18,6 +18,18 @@ def digest(text: str) -> str:
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
+
+    @field_validator('*')
+    @classmethod
+    def valid_unicode(cls, value):
+        def check(item):
+            if isinstance(item, str):
+                item.encode('utf-8')
+            elif isinstance(item, list):
+                for child in item:
+                    check(child)
+        check(value)
+        return value
 
 
 class SourceInput(Strict):
@@ -64,7 +76,7 @@ class Claim(Strict):
     quote: str = Field(min_length=1, max_length=12000)
     start: int = Field(ge=0)
     end: int = Field(ge=1)
-    entities: list[str] = Field(max_length=30)
+    entities: list[Annotated[str, Field(max_length=100)]] = Field(max_length=30)
     category: Literal['breaking', 'deprecation', 'security', 'feature', 'fix', 'other']
     score: float = Field(ge=0, le=1)
     topic: int = Field(ge=0)
@@ -75,7 +87,7 @@ class Claim(Strict):
 
 class Topic(Strict):
     id: int = Field(ge=0)
-    terms: list[str] = Field(max_length=6)
+    terms: list[Annotated[str, Field(max_length=100)]] = Field(max_length=6)
     count: int = Field(ge=0)
 
 
@@ -151,8 +163,13 @@ class Workspace(Strict):
             source = sources.get(c.source_id)
             if source is None or c.end <= c.start or source.text[c.start:c.end] != c.quote:
                 raise ValueError('Claim citation does not match source text')
+            if c.id != 'c-'+digest(c.source_id+'\0'+str(c.start)+'\0'+c.quote)[:20]:
+                raise ValueError('Claim identity mismatch')
             if any(x not in claims or x == c.id for x in c.conflicts):
                 raise ValueError('Invalid conflict reference')
+        for n in self.graph.nodes:
+            if (n.kind == 'claim' and n.id not in claims) or (n.kind == 'source' and n.id not in sources):
+                raise ValueError('Graph references a missing source or claim')
         nodes = {n.id for n in self.graph.nodes}
         if len(nodes) != len(self.graph.nodes):
             raise ValueError('Duplicate graph node')
@@ -160,4 +177,6 @@ class Workspace(Strict):
             raise ValueError('Dangling graph edge')
         if any(x not in claims for a in self.answers for x in a.citations):
             raise ValueError('Unknown answer citation')
+        if len(self.model_dump_json().encode('utf-8')) > 1_800_000:
+            raise ValueError('Saved workspace exceeds 1.8 MB; reduce source or graph content')
         return self

@@ -1,0 +1,16 @@
+services:
+  atlas:
+    build: .
+    ports:
+      - "127.0.0.1:8765:8765"
+    environment:
+      ATLAS_LLM_BASE: http://host.docker.internal:11434
+      ATLAS_LLM_MODEL: gpt-oss:20b
+      ATLAS_ORIGINS: http://127.0.0.1:8765,http://localhost:8765
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - atlas-data:/data
+    init: true
+volumes:
+  atlas-data:
