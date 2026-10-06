@@ -1094,3 +1094,23 @@ blockquote {
 .empty {
   color: var(--muted);
 }
+
+@media (max-height: 600px) {
+  .assistant-panel {
+    top: 12px;
+    bottom: 72px;
+    height: auto;
+    overflow-y: auto;
+  }
+  .assistant-transcript {
+    min-height: 100px;
+    flex-shrink: 0;
+  }
+  .assistant-compose textarea {
+    min-height: 48px;
+    height: 54px;
+  }
+  .assistant-launcher {
+    bottom: 16px;
+  }
+}

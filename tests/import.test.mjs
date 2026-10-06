@@ -235,3 +235,48 @@ test("built-in guide handles empty, unanalyzed and ready reviews without inventi
   for (const key of Object.values(content.helpLabels))
     assert(content.help[key], "Missing help: " + key);
 });
+
+test("help placement avoids the next form control and stays inside small viewports", async () => {
+  const result = await build({
+    entryPoints: ["frontend/help-layout.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { placeHelp } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(result.outputFiles[0].text).toString("base64")
+  );
+  const field = { left: 400, right: 800, top: 500, bottom: 540 };
+  const form = { left: 400, right: 800, top: 300, bottom: 650 };
+  const right = placeHelp(field, form, 340, 210, 1440, 900);
+  assert(right.x >= form.right + 12);
+  const mobile = placeHelp(
+    { left: 20, right: 370, top: 500, bottom: 540 },
+    { left: 20, right: 370, top: 150, bottom: 650 },
+    340,
+    210,
+    390,
+    700,
+  );
+  assert(
+    mobile.y + 210 < 500,
+    "Mobile help should stay above the focused field and submit action",
+  );
+  for (const [w, h] of [
+    [390, 844],
+    [320, 480],
+    [1440, 900],
+  ]) {
+    const pos = placeHelp(
+      { left: 10, right: w - 10, top: h - 40, bottom: h - 10 },
+      { left: 10, right: w - 10, top: 20, bottom: h - 10 },
+      Math.min(340, w - 24),
+      210,
+      w,
+      h,
+    );
+    assert(pos.x >= 12 && pos.y >= 12 && pos.y + 210 <= h - 12);
+  }
+});

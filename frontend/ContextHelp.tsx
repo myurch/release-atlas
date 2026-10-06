@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { help, helpLabels } from "./help-content";
+import { HelpRect, placeHelp } from "./help-layout";
 
 export function HelpHint({ topic, label }: { topic: string; label?: string }) {
   return (
@@ -51,18 +52,25 @@ export function ContextHelp({ enabled = true }: { enabled?: boolean }) {
     key: string;
     x: number;
     y: number;
-    above: boolean;
+    anchor: HelpRect;
+    group: HelpRect;
   } | null>(null);
   useLayoutEffect(() => {
     if (!tip || !popup.current) return;
     const rect = popup.current.getBoundingClientRect();
-    const offset =
-      rect.top < 12
-        ? 12 - rect.top
-        : rect.bottom > innerHeight - 12
-          ? innerHeight - 12 - rect.bottom
-          : 0;
-    if (offset) setTip({ ...tip, y: tip.y + offset });
+    const position = placeHelp(
+      tip.anchor,
+      tip.group,
+      rect.width,
+      rect.height,
+      innerWidth,
+      innerHeight,
+    );
+    if (
+      Math.abs(position.x - tip.x) > 0.5 ||
+      Math.abs(position.y - tip.y) > 0.5
+    )
+      setTip({ ...tip, ...position });
   }, [tip]);
   useEffect(() => {
     if (!enabled) {
@@ -96,16 +104,21 @@ export function ContextHelp({ enabled = true }: { enabled?: boolean }) {
         "aria-describedby",
         [previous, id].filter(Boolean).join(" "),
       );
-      const width = Math.min(340, innerWidth - 24);
-      const above = r.bottom + 210 > innerHeight && r.top > 210;
+      const form = target.matches("input,textarea,select")
+        ? target.closest("form")
+        : null;
+      const group = form?.getBoundingClientRect() || r;
       setTip({
         key,
-        x: Math.max(
-          12,
-          Math.min(r.left + r.width / 2 - width / 2, innerWidth - width - 12),
-        ),
-        y: above ? r.top - 10 : Math.min(r.bottom + 10, innerHeight - 210),
-        above,
+        anchor: { left: r.left, right: r.right, top: r.top, bottom: r.bottom },
+        group: {
+          left: group.left,
+          right: group.right,
+          top: group.top,
+          bottom: group.bottom,
+        },
+        x: r.left,
+        y: r.bottom + 12,
       });
     };
     const enter = (event: Event) => {
@@ -161,6 +174,7 @@ export function ContextHelp({ enabled = true }: { enabled?: boolean }) {
     document.addEventListener("pointerout", leave);
     document.addEventListener("focusout", leave);
     document.addEventListener("click", click);
+    document.addEventListener("input", close);
     document.addEventListener("keydown", key, true);
     const scroll = (e: Event) => {
       if (!popup.current?.contains(e.target as Node)) close();
@@ -175,6 +189,7 @@ export function ContextHelp({ enabled = true }: { enabled?: boolean }) {
       document.removeEventListener("pointerout", leave);
       document.removeEventListener("focusout", leave);
       document.removeEventListener("click", click);
+      document.removeEventListener("input", close);
       document.removeEventListener("keydown", key, true);
       window.removeEventListener("scroll", scroll, true);
       window.removeEventListener("resize", close);
@@ -191,7 +206,6 @@ export function ContextHelp({ enabled = true }: { enabled?: boolean }) {
       style={{
         left: tip.x,
         top: tip.y,
-        transform: tip.above ? "translateY(-100%)" : undefined,
       }}
     >
       <strong>{content.title}</strong>

@@ -42,6 +42,10 @@ async function login(page, name) {
   await page.goto(base);
   await page.getByLabel("Display name").fill(name);
   await page.getByLabel("Workspace access code", { exact: true }).fill(code);
+  await page.getByLabel("Display name", { exact: true }).focus();
+  await page.getByLabel("Workspace access code", { exact: true }).focus();
+  // Let field help open so this catches tooltips that intercept the submit button.
+  await page.getByRole("tooltip").waitFor();
   await page.getByRole("button", { name: "Enter workspace" }).click();
   await page.getByRole("dialog").waitFor({ state: "hidden" });
 }
