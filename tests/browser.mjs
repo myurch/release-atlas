@@ -494,7 +494,7 @@ try {
     assert(
       await hosted
         .getByRole("option", { name: "Model chat", exact: true })
-        .isDisabled(),
+        .evaluate((option) => option.disabled),
     );
     await hosted
       .getByRole("button", { name: "What should I do next?", exact: true })
