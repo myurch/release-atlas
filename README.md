@@ -12,6 +12,8 @@ A collaborative workbench for reviewing software upgrade evidence. Bring version
 
 ## Hosted demo
 
+[Open the interactive demo](https://release-atlas.kakashisensai.chatgpt.site). Anyone with the link can explore it.
+
 The hosted demo opens with the fictional Harbor SDK review already loaded. Explore all six pages, inspect evidence and graph connections, follow a prepared answer's citations, and try the beginner tutorial. Ask Atlas uses built-in **App guide** help. There is no live LLM connection, Python service, shared editing or new analysis on the demo site. Prepared tutorial decisions and answers are labeled as examples.
 
 **Reset example** restores the sample review. Import and Export work in the current browser view; imported data is not sent to a backend. Refreshing returns to the original example. To run analysis, collaborate or connect Ollama, use the full application below.
