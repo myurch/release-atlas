@@ -221,6 +221,24 @@ test("built-in guide handles empty, unanalyzed and ready reviews without inventi
     guideReply("Overview", demo, "What is the capital of France?"),
     /use Model chat/,
   );
+  for (const question of [
+    "What should I do next?",
+    "Can I upload a PDF?",
+    "How do I save a decision?",
+    "Use a model",
+  ])
+    assert.match(
+      guideReply("Overview", demo, question, true),
+      /full application/,
+    );
+  assert.doesNotMatch(
+    guideReply("Overview", demo, "What should I do next?", true),
+    /Choose Analyze sources|save a decision with your reasoning/,
+  );
+  assert.match(
+    guideReply("Overview", demo, "What is the capital of France?", true),
+    /not live AI answers/,
+  );
   const help = await build({
     entryPoints: ["frontend/help-content.ts"],
     bundle: true,

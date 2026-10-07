@@ -111,7 +111,7 @@ export function Assistant({
         ...t,
         {
           role: "assistant",
-          content: guideReply(page, workspace, message),
+          content: guideReply(page, workspace, message, !live),
           guide: true,
         },
       ]);
@@ -401,7 +401,9 @@ export function Assistant({
             <p className="assistant-disclosure">
               {live && mode === "model"
                 ? `Uses ${provider} with this page and relevant workspace text. Verify model answers against sources.`
-                : "Built-in workflow help. Model chat is available when signed in to the live workspace."}{" "}
+                : live
+                  ? "Built-in workflow help. Switch to Model chat for a generated answer."
+                  : "Built-in workflow help. Live AI answers are not enabled in this viewer."}{" "}
               Conversation stays in this open view; it is not saved with the
               review.
             </p>

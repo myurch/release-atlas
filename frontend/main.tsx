@@ -33,6 +33,7 @@ import {
 
 declare const __DEMO__: Workspace;
 declare const __LOGO__: string;
+declare const __HOSTED_DEMO__: boolean;
 const demo = __DEMO__;
 const logo = __LOGO__;
 document.getElementById("app-icon")?.setAttribute("href", logo);
@@ -46,7 +47,10 @@ const tabs = [
 ] as const;
 type Tab = (typeof tabs)[number];
 const isServer =
-  location.protocol === "http:" || location.protocol === "https:";
+  !__HOSTED_DEMO__ &&
+  (location.protocol === "http:" || location.protocol === "https:");
+const exampleWorkspace = () =>
+  tutorialWorkspace(demo, tutorialSteps.length - 1);
 const categories = [
   "breaking",
   "deprecation",
@@ -205,7 +209,11 @@ function Workbench({
   exitTutorial?: () => void;
 }) {
   const [workspace, setWorkspace] = useState<Workspace>(() =>
-    tutorial ? tutorialWorkspace(demo, 0) : emptyWorkspace(),
+    tutorial
+      ? tutorialWorkspace(demo, 0)
+      : __HOSTED_DEMO__
+        ? exampleWorkspace()
+        : emptyWorkspace(),
   );
   const root = useRef<HTMLDivElement>(null);
   const [tourStep, setTourStep] = useState(0);
@@ -241,8 +249,8 @@ function Workbench({
   };
 
   async function api(path: string, body?: unknown, method = "POST") {
-    if (tutorial)
-      throw new Error("Tutorial actions cannot contact the workspace service.");
+    if (tutorial || !isServer)
+      throw new Error("This view cannot contact the workspace service.");
     const response = await fetch("/api/" + path, {
       method: body === undefined ? "GET" : method,
       headers: body === undefined ? {} : { "Content-Type": "application/json" },
@@ -450,6 +458,24 @@ function Workbench({
     setNotice("");
     setError("");
   }
+  function resetExample() {
+    if (
+      !window.confirm(
+        "Restore the prepared example? Export first if you want to keep an imported review.",
+      )
+    )
+      return;
+    adopt(exampleWorkspace());
+    setViewKey((k) => k + 1);
+    setSelected("");
+    setSourceId("");
+    setSearch("");
+    setCategory("all");
+    setScope("all");
+    setTab("Overview");
+    setError("");
+    setNotice("The prepared Harbor SDK example is ready to explore.");
+  }
   async function openWorkspaces() {
     await act("Loading workspaces", async () => {
       if (!(await refresh())) return;
@@ -522,7 +548,11 @@ function Workbench({
             </span>
           </a>
           <div className="workspace-label">
-            {tutorial ? "TUTORIAL EXAMPLE" : "YOUR WORKSPACE"}
+            {tutorial
+              ? "TUTORIAL EXAMPLE"
+              : __HOSTED_DEMO__
+                ? "DEMO WORKSPACE"
+                : "YOUR WORKSPACE"}
           </div>
           <div className="project-card">
             <span className="project-monogram">
@@ -561,7 +591,9 @@ function Workbench({
                   ? connected
                     ? "Live workspace"
                     : "Reconnecting"
-                  : "Saved review"}
+                  : __HOSTED_DEMO__
+                    ? "Demo workspace"
+                    : "Saved review"}
             </div>
             <p>
               Evidence informs the decision.
@@ -592,11 +624,16 @@ function Workbench({
             ) : (
               <a
                 className="button"
-                href="http://127.0.0.1:8765"
+                href={
+                  __HOSTED_DEMO__
+                    ? "https://github.com/myurch/release-atlas"
+                    : "http://127.0.0.1:8765"
+                }
                 target="_blank"
                 rel="noreferrer"
               >
-                Open workspace <Icon name="arrow" />
+                {__HOSTED_DEMO__ ? "Get the full app" : "Open workspace"}{" "}
+                <Icon name="arrow" />
               </a>
             )}
           </div>
@@ -617,6 +654,11 @@ function Workbench({
                   disabled={!!busy}
                 >
                   Beginner tutorial
+                </button>
+              )}
+              {__HOSTED_DEMO__ && !tutorial && (
+                <button className="button" onClick={resetExample}>
+                  Reset example
                 </button>
               )}
               {live && (
@@ -688,11 +730,15 @@ function Workbench({
                 </button>
               ) : (
                 <a
-                  href="http://127.0.0.1:8765"
+                  href={
+                    __HOSTED_DEMO__
+                      ? "https://github.com/myurch/release-atlas"
+                      : "http://127.0.0.1:8765"
+                  }
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Open workspace ↗
+                  {__HOSTED_DEMO__ ? "Get the full app" : "Open workspace"} ↗
                 </a>
               )}
             </div>
@@ -745,6 +791,17 @@ function Workbench({
                 </button>
               )}
             </div>
+            {__HOSTED_DEMO__ && !tutorial && (
+              <section className="demo-notice" aria-label="About this demo">
+                <strong>Explore the sample review</strong>
+                <p>
+                  Browse prepared evidence, source documents, graphs and cited
+                  answers. Try the beginner tutorial for a guided walkthrough.
+                  Ask Atlas provides built-in App guide help. New analysis,
+                  shared edits and live AI answers require the full application.
+                </p>
+              </section>
+            )}
             {workspace.sources.some((s) => s.license.includes("synthetic")) && (
               <p className="demo-label">
                 SYNTHETIC EXAMPLE{" "}
@@ -760,7 +817,7 @@ function Workbench({
                     Leave example / switch workspace
                   </button>
                 )}
-                {!tutorial && !live && (
+                {!tutorial && !live && !__HOSTED_DEMO__ && (
                   <button
                     className="text-button"
                     onClick={() => {
@@ -1180,7 +1237,13 @@ function Workbench({
               <GraphView
                 workspace={workspace}
                 openClaim={openClaim}
-                initialFocus={tutorial ? "u:Checkout service" : undefined}
+                initialFocus={
+                  tutorial
+                    ? "u:Checkout service"
+                    : __HOSTED_DEMO__
+                      ? "e:legacy_auth"
+                      : undefined
+                }
               />
             )}
             {tab === "Questions" && (
@@ -1189,8 +1252,9 @@ function Workbench({
                   <span className="eyebrow">SOURCE-GROUNDED QUESTIONS</span>
                   <h2>Start with what you use.</h2>
                   <p className="muted">
-                    Try “What affects Checkout service?” Graph retrieval follows
-                    your usage profile to relevant passages.
+                    {__HOSTED_DEMO__ && !tutorial
+                      ? "Read the prepared example answer and follow its citations. New questions and model generation are available in the full application."
+                      : "Try “What affects Checkout service?” Graph retrieval follows your usage profile to relevant passages."}
                   </p>
                   <QuestionForm
                     disabled={locked || !workspace.analysis}

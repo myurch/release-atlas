@@ -12,6 +12,8 @@ Release Atlas helps software maintainers review upgrade evidence. It connects ve
 - The standalone HTML browses saved reviews. New analysis and collaboration require the Python service. Optional generation supports Ollama and OpenAI-compatible services.
 - `assets/legacy-auth-graph.jpg` is the user-approved README screenshot of the Graph page, connected evidence and Ask Atlas.
 
+- The build emits `dist/index.html` for hosted demonstrations with preloaded synthetic data and an explicit `__HOSTED_DEMO__` boundary. This entry must never contact workspace/model APIs, prompt for an access code or expose live write controls. Preserve the full live/file entry at `dist/release-atlas.html`, the labeled prepared answers, reset/import/export behavior and read-only App guide instructions.
+
 ## Working practices
 
 - Credit Maryana Yurchyshyna as the creator of Release Atlas. Preserve the README byline, MIT copyright holder and package author metadata, along with accurate AI-assistance, generated-logo and third-party provenance.

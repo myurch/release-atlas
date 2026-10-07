@@ -10,6 +10,14 @@ A collaborative workbench for reviewing software upgrade evidence. Bring version
 
 *The fictional Harbor SDK example: explore the `legacy_auth` evidence neighborhood, read its connected evidence, and get workflow guidance from Ask Atlas.*
 
+## Hosted demo
+
+The hosted demo opens with the fictional Harbor SDK review already loaded. Explore all six pages, inspect evidence and graph connections, follow a prepared answer's citations, and try the beginner tutorial. Ask Atlas uses built-in **App guide** help. There is no live LLM connection, Python service, shared editing or new analysis on the demo site. Prepared tutorial decisions and answers are labeled as examples.
+
+**Reset example** restores the sample review. Import and Export work in the current browser view; imported data is not sent to a backend. Refreshing returns to the original example. To run analysis, collaborate or connect Ollama, use the full application below.
+
+`npm run build` produces both `dist/release-atlas.html` for the live service/file viewer and `dist/index.html` for static demo hosting. Serve the demo index through any static host. Its explicit build mode prevents API, session, event-stream and model requests even over HTTPS. The original live-service behavior is preserved.
+
 ## Try the application
 
 Open `dist/release-atlas.html` in a modern browser and choose **Beginner tutorial** to learn with the included fictional Harbor SDK example. The file includes its JavaScript and CSS. This standalone mode can browse, import and export saved reviews. It cannot run Python analysis or synchronize with teammates. The UI keeps those technical mode details out of its main review workflow.

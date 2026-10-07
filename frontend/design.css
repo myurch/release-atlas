@@ -1114,3 +1114,20 @@ blockquote {
     bottom: 16px;
   }
 }
+
+.demo-notice {
+  margin: 0 0 20px;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+.demo-notice strong {
+  font-size: 14px;
+}
+.demo-notice p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
