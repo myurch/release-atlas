@@ -560,8 +560,9 @@ try {
       .getByRole("button", { name: "Reset example", exact: true })
       .click();
     await hosted
-      .getByText("The prepared Harbor SDK example is ready to explore.", {
-        exact: true,
+      .getByRole("status")
+      .filter({
+        hasText: "The prepared Harbor SDK example is ready to explore.",
       })
       .waitFor();
     assert.equal(
