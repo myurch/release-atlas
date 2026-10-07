@@ -6,6 +6,10 @@ A collaborative workbench for reviewing software upgrade evidence. Bring version
 
 **Status: v0.1 local preview.** The Python service, responsive interface, analysis, retrieval, collaboration and contextual assistant are implemented and tested as described below. The Chromium CI suite covers live and standalone-file workflows; container execution remains unverified. This is not an enterprise security product or an upgrade-safety certification.
 
+![Release Atlas Graph page focused on legacy_auth, with all four connected evidence entries and Ask Atlas open](assets/legacy-auth-graph.jpg)
+
+*The fictional Harbor SDK example: explore the `legacy_auth` evidence neighborhood, read its connected evidence, and get workflow guidance from Ask Atlas.*
+
 ## Try the application
 
 Open `dist/release-atlas.html` in a modern browser and choose **Beginner tutorial** to learn with the included fictional Harbor SDK example. The file includes its JavaScript and CSS. This standalone mode can browse, import and export saved reviews. It cannot run Python analysis or synchronize with teammates. The UI keeps those technical mode details out of its main review workflow.

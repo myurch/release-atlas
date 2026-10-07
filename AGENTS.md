@@ -10,6 +10,7 @@ Release Atlas helps software maintainers review upgrade evidence. It connects ve
 - `backend/assistant.py` supplies bounded, read-only chat with revision and citation checks. `frontend/Assistant.tsx` owns ephemeral conversation state, `frontend/guide.ts` is deterministic help, and `frontend/help-content.ts` / `frontend/ContextHelp.tsx` supply accessible contextual tooltips. `frontend/design.css` owns shared color and interaction tokens.
 - `frontend/main.tsx` contains the workbench; `frontend/tutorial.ts` and `frontend/TutorialGuide.tsx` define the beginner tutorial; `frontend/WorkspaceDialog.tsx` manages saved workspace selection.
 - The standalone HTML browses saved reviews. New analysis and collaboration require the Python service. Optional generation supports Ollama and OpenAI-compatible services.
+- `assets/legacy-auth-graph.jpg` is the user-approved README screenshot of the Graph page, connected evidence and Ask Atlas.
 
 ## Working practices
 
