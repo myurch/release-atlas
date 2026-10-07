@@ -422,172 +422,180 @@ try {
   checks.push(
     "Mobile primary screens fit at 390px; sign-in dialog supports keyboard containment and Escape",
   );
-  demoServer = createServer((request, response) => {
-    if (request.url === "/") {
-      response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      response.end(readFileSync("dist/index.html"));
-    } else {
-      response.writeHead(404);
-      response.end();
-    }
-  });
-  await new Promise((resolve) => demoServer.listen(0, "127.0.0.1", resolve));
-  const demoBase = `http://127.0.0.1:${demoServer.address().port}`;
-  const hostedContext = await browser.newContext({
-    viewport: { width: 1440, height: 1080 },
-    acceptDownloads: true,
-  });
-  const hosted = await hostedContext.newPage();
-  observe(hosted);
-  const hostedRequests = [];
-  hosted.on("request", (request) => {
-    if (/^https?:/.test(request.url())) hostedRequests.push(request.url());
-  });
-  await hosted.goto(demoBase);
-  await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
-  assert.equal(await hosted.getByRole("dialog").count(), 0);
-  assert.equal(
+  {
+    demoServer = createServer((request, response) => {
+      if (request.url === "/") {
+        response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        response.end(readFileSync("dist/index.html"));
+      } else {
+        response.writeHead(404);
+        response.end();
+      }
+    });
+    await new Promise((resolve) => demoServer.listen(0, "127.0.0.1", resolve));
+    const demoBase = `http://127.0.0.1:${demoServer.address().port}`;
+    const hostedContext = await browser.newContext({
+      viewport: { width: 1440, height: 1080 },
+      acceptDownloads: true,
+    });
+    const hosted = await hostedContext.newPage();
+    observe(hosted);
+    const hostedRequests = [];
+    hosted.on("request", (request) => {
+      if (/^https?:/.test(request.url())) hostedRequests.push(request.url());
+    });
+    await hosted.goto(demoBase);
+    await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
+    assert.equal(await hosted.getByRole("dialog").count(), 0);
+    assert.equal(
+      await hosted
+        .getByRole("button", { name: "Sign in to collaborate", exact: true })
+        .count(),
+      0,
+    );
+    assert.equal(
+      await hosted
+        .getByRole("button", { name: "Analyze sources", exact: true })
+        .count(),
+      0,
+    );
+    await hosted.getByRole("button", { name: "Graph", exact: true }).click();
+    assert.equal(
+      await hosted.getByLabel("Focus on an entity or component").inputValue(),
+      "e:legacy_auth",
+    );
+    await hosted.getByText("4 direct connections", { exact: true }).waitFor();
     await hosted
-      .getByRole("button", { name: "Sign in to collaborate", exact: true })
-      .count(),
-    0,
-  );
-  assert.equal(
+      .getByRole("button", { name: "Questions", exact: true })
+      .click();
     await hosted
-      .getByRole("button", { name: "Analyze sources", exact: true })
-      .count(),
-    0,
-  );
-  await hosted.getByRole("button", { name: "Graph", exact: true }).click();
-  assert.equal(
-    await hosted.getByLabel("Focus on an entity or component").inputValue(),
-    "e:legacy_auth",
-  );
-  await hosted.getByText("4 direct connections", { exact: true }).waitFor();
-  await hosted.getByRole("button", { name: "Questions", exact: true }).click();
-  await hosted
-    .getByText("Prepared tutorial example with source citations", {
-      exact: true,
-    })
-    .waitFor();
-  await hosted.getByRole("button", { name: "Source 1 ↗", exact: true }).click();
-  await hosted
-    .getByRole("button", { name: "Save review", exact: true })
-    .waitFor();
-  assert(
+      .getByText("Prepared tutorial example with source citations", {
+        exact: true,
+      })
+      .waitFor();
+    await hosted
+      .getByRole("button", { name: "Source 1 ↗", exact: true })
+      .click();
     await hosted
       .getByRole("button", { name: "Save review", exact: true })
-      .isDisabled(),
-  );
-  await hosted
-    .getByRole("button", { name: "Open assistant", exact: true })
-    .click();
-  assert.equal(
-    await hosted.getByLabel("Assistant mode", { exact: true }).inputValue(),
-    "guide",
-  );
-  assert(
-    await hosted
-      .getByRole("option", { name: "Model chat", exact: true })
-      .isDisabled(),
-  );
-  await hosted
-    .getByRole("button", { name: "What should I do next?", exact: true })
-    .click();
-  assert.match(
-    await hosted
-      .getByRole("log", { name: "Assistant conversation" })
-      .innerText(),
-    /full application/,
-  );
-  await hosted
-    .getByRole("button", { name: "Close assistant", exact: true })
-    .click();
-  for (const name of [
-    "Sources",
-    "Evidence",
-    "Graph",
-    "Questions",
-    "Activity",
-    "Overview",
-  ])
-    await hosted.getByRole("button", { name, exact: true }).click();
-  await hosted
-    .getByRole("button", { name: "Beginner tutorial", exact: true })
-    .click();
-  for (let i = 0; i < 14; i++)
-    await hosted.getByRole("button", { name: "Next", exact: true }).click();
-  await hosted
-    .getByRole("button", { name: "Finish tutorial", exact: true })
-    .click();
-  await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
-  const downloadPromise = hosted.waitForEvent("download");
-  await hosted
-    .getByRole("button", { name: "Export snapshot", exact: false })
-    .click();
-  const exported = JSON.parse(
-    readFileSync(await (await downloadPromise).path(), "utf8"),
-  );
-  assert.equal(exported.claims.length, 12);
-  assert.equal(exported.sources.length, 3);
-  assert.equal(exported.answers.length, 1);
-  const importedPath = path.join(temp, "hosted-review.json");
-  writeFileSync(
-    importedPath,
-    JSON.stringify({ ...exported, title: "Imported demonstration review" }),
-  );
-  hosted.once("dialog", (dialog) => dialog.accept());
-  await hosted.getByLabel("Import saved analysis").setInputFiles(importedPath);
-  await hosted
-    .getByRole("heading", {
-      name: "Know what changes. Decide together.",
-      exact: true,
-    })
-    .waitFor();
-  await hosted
-    .getByText(/Imported demonstration review/)
-    .first()
-    .waitFor();
-  hosted.once("dialog", (dialog) => dialog.accept());
-  await hosted
-    .getByRole("button", { name: "Reset example", exact: true })
-    .click();
-  await hosted
-    .getByText("The prepared Harbor SDK example is ready to explore.", {
-      exact: true,
-    })
-    .waitFor();
-  assert.equal(
-    await hosted.getByText(/Imported demonstration review/).count(),
-    0,
-  );
-  await hosted.setViewportSize({ width: 390, height: 844 });
-  for (const name of [
-    "Sources",
-    "Evidence",
-    "Graph",
-    "Questions",
-    "Activity",
-    "Overview",
-  ]) {
-    await hosted.getByRole("button", { name, exact: true }).click();
+      .waitFor();
     assert(
-      await hosted.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth + 1,
-      ),
-      `Hosted ${name} overflows mobile`,
+      await hosted
+        .getByRole("button", { name: "Save review", exact: true })
+        .isDisabled(),
+    );
+    await hosted
+      .getByRole("button", { name: "Open assistant", exact: true })
+      .click();
+    assert.equal(
+      await hosted.getByLabel("Assistant mode", { exact: true }).inputValue(),
+      "guide",
+    );
+    assert(
+      await hosted
+        .getByRole("option", { name: "Model chat", exact: true })
+        .isDisabled(),
+    );
+    await hosted
+      .getByRole("button", { name: "What should I do next?", exact: true })
+      .click();
+    assert.match(
+      await hosted
+        .getByRole("log", { name: "Assistant conversation" })
+        .innerText(),
+      /full application/,
+    );
+    await hosted
+      .getByRole("button", { name: "Close assistant", exact: true })
+      .click();
+    for (const name of [
+      "Sources",
+      "Evidence",
+      "Graph",
+      "Questions",
+      "Activity",
+      "Overview",
+    ])
+      await hosted.getByRole("button", { name, exact: true }).click();
+    await hosted
+      .getByRole("button", { name: "Beginner tutorial", exact: true })
+      .click();
+    for (let i = 0; i < 14; i++)
+      await hosted.getByRole("button", { name: "Next", exact: true }).click();
+    await hosted
+      .getByRole("button", { name: "Finish tutorial", exact: true })
+      .click();
+    await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
+    const downloadPromise = hosted.waitForEvent("download");
+    await hosted
+      .getByRole("button", { name: "Export snapshot", exact: false })
+      .click();
+    const exported = JSON.parse(
+      readFileSync(await (await downloadPromise).path(), "utf8"),
+    );
+    assert.equal(exported.claims.length, 12);
+    assert.equal(exported.sources.length, 3);
+    assert.equal(exported.answers.length, 1);
+    const importedPath = path.join(temp, "hosted-review.json");
+    writeFileSync(
+      importedPath,
+      JSON.stringify({ ...exported, title: "Imported demonstration review" }),
+    );
+    hosted.once("dialog", (dialog) => dialog.accept());
+    await hosted
+      .getByLabel("Import saved analysis")
+      .setInputFiles(importedPath);
+    await hosted
+      .getByRole("heading", {
+        name: "Know what changes. Decide together.",
+        exact: true,
+      })
+      .waitFor();
+    await hosted
+      .getByText(/Imported demonstration review/)
+      .first()
+      .waitFor();
+    hosted.once("dialog", (dialog) => dialog.accept());
+    await hosted
+      .getByRole("button", { name: "Reset example", exact: true })
+      .click();
+    await hosted
+      .getByText("The prepared Harbor SDK example is ready to explore.", {
+        exact: true,
+      })
+      .waitFor();
+    assert.equal(
+      await hosted.getByText(/Imported demonstration review/).count(),
+      0,
+    );
+    await hosted.setViewportSize({ width: 390, height: 844 });
+    for (const name of [
+      "Sources",
+      "Evidence",
+      "Graph",
+      "Questions",
+      "Activity",
+      "Overview",
+    ]) {
+      await hosted.getByRole("button", { name, exact: true }).click();
+      assert(
+        await hosted.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 1,
+        ),
+        `Hosted ${name} overflows mobile`,
+      );
+    }
+    await hosted.reload();
+    await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
+    assert.deepEqual(
+      hostedRequests.filter((url) => url !== demoBase + "/"),
+      [],
+      "Hosted demo must not request APIs, models or external runtime assets",
+    );
+    checks.push(
+      "Hosted HTTP demo preloads the example, supports all pages/tutorial/citations/import/export/reset and mobile layout without API or model requests",
     );
   }
-  await hosted.reload();
-  await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
-  assert.deepEqual(
-    hostedRequests.filter((url) => url !== demoBase + "/"),
-    [],
-    "Hosted demo must not request APIs, models or external runtime assets",
-  );
-  checks.push(
-    "Hosted HTTP demo preloads the example, supports all pages/tutorial/citations/import/export/reset and mobile layout without API or model requests",
-  );
   assert.deepEqual(errors, []);
   writeFileSync(
     "validation/browser-results.json",
