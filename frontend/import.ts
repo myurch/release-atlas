@@ -1,8 +1,9 @@
-import { Workspace } from "./types";
+import { purposes, Workspace } from "./types";
 
 const string = (value: unknown, max: number): value is string =>
   typeof value === "string" &&
   Array.from(value).length <= max &&
+  !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value) &&
   new TextDecoder().decode(new TextEncoder().encode(value)) === value;
 const list = (value: unknown, max: number): value is unknown[] =>
   Array.isArray(value) && value.length <= max;
@@ -128,6 +129,73 @@ export async function validateSnapshot(value: unknown): Promise<Workspace> {
         c.topic >= 0 &&
         typeof c.applicable === "boolean",
     );
+    if (c.document !== undefined && c.document !== null) {
+      const d = c.document;
+      require(
+        object(d) &&
+          string(d.title, 160) &&
+          !!d.title.trim() &&
+          list(d.headings, 8) &&
+          d.headings.every((x) => string(x, 160)) &&
+          ["paragraph", "list-item", "code", "table"].includes(d.kind) &&
+          Number.isInteger(d.words) &&
+          d.words >= 0 &&
+          Number.isInteger(d.sentences) &&
+          d.sentences >= 0 &&
+          purposes.includes(d.purpose) &&
+          list(d.alternatives, 3) &&
+          list(d.examples, 2) &&
+          list(d.mentions, 60) &&
+          Number.isFinite(d.topic_strength) &&
+          d.topic_strength >= 0 &&
+          d.topic_strength <= 1,
+      );
+      for (const row of d.alternatives)
+        require(
+          object(row) &&
+            purposes.includes(row.label) &&
+            Number.isFinite(row.score) &&
+            row.score >= 0 &&
+            row.score <= 1,
+        );
+      for (const row of d.examples)
+        require(
+          object(row) &&
+            purposes.includes(row.label) &&
+            string(row.text, 400) &&
+            row.text.length > 0 &&
+            Number.isFinite(row.similarity) &&
+            row.similarity >= -1 &&
+            row.similarity <= 1,
+        );
+      for (const m of d.mentions)
+        require(
+          object(m) &&
+            string(m.name, 100) &&
+            m.name.length > 0 &&
+            string(m.normalized, 100) &&
+            m.normalized === m.name.replace(/\(\)$/, "").toLowerCase() &&
+            [
+              "api",
+              "configuration",
+              "command",
+              "endpoint",
+              "package",
+              "protocol",
+              "identifier",
+            ].includes(m.kind) &&
+            string(m.rule, 80) &&
+            !!m.rule &&
+            Number.isInteger(m.start) &&
+            Number.isInteger(m.end) &&
+            m.start >= c.start &&
+            m.end <= c.end &&
+            m.end > m.start &&
+            Array.from(sources.get(c.source_id).text)
+              .slice(m.start, m.end)
+              .join("") === m.name,
+        );
+    }
     if (c.review !== null)
       require(
         object(c.review) &&
@@ -152,14 +220,44 @@ export async function validateSnapshot(value: unknown): Promise<Workspace> {
         string(u.entity, 100) &&
         /^[A-Za-z_][A-Za-z0-9_.:/-]*$/.test(u.entity),
     );
-  for (const t of value.topics)
+  const topicIds = new Set<number>();
+  for (const t of value.topics) {
     require(
       object(t) &&
         Number.isInteger(t.id) &&
+        t.id >= 0 &&
+        !topicIds.has(t.id) &&
         Number.isInteger(t.count) &&
+        t.count >= 0 &&
         list(t.terms, 6) &&
         t.terms.every((x) => string(x, 100)),
     );
+    topicIds.add(t.id);
+    if (t.weights !== undefined)
+      require(
+        list(t.weights, 6) &&
+          (!t.weights.length || t.weights.length === t.terms.length) &&
+          t.weights.every(
+            (x) =>
+              typeof x === "number" && Number.isFinite(x) && x >= 0 && x <= 1,
+          ),
+      );
+    if (t.source_count !== undefined)
+      require(
+        Number.isInteger(t.source_count) &&
+          t.source_count >= 0 &&
+          t.source_count <= 30,
+      );
+    if (t.representatives !== undefined)
+      require(
+        list(t.representatives, 3) &&
+          t.representatives.every(
+            (id) =>
+              string(id, 80) &&
+              value.claims.some((c: any) => c.id === id && c.topic === t.id),
+          ),
+      );
+  }
   const nodes = new Set<string>();
   for (const n of value.graph.nodes) {
     require(
@@ -211,5 +309,53 @@ export async function validateSnapshot(value: unknown): Promise<Workspace> {
         string(value.analysis.source_digest, 64) &&
         string(value.analysis.created_at, 80),
     );
+  if (
+    value.analysis?.pipeline !== undefined &&
+    value.analysis.pipeline !== null
+  ) {
+    const p = value.analysis.pipeline;
+    if (p.evaluation !== undefined && p.evaluation !== null) {
+      const e = p.evaluation;
+      require(
+        object(e) &&
+          Number.isInteger(e.held_out_examples) &&
+          e.held_out_examples >= 1 &&
+          e.held_out_examples <= 1000 &&
+          string(e.evaluation_hash, 64) &&
+          /^[a-f0-9]{64}$/.test(e.evaluation_hash),
+      );
+      for (const score of [e.macro_f1, e.keyword_macro_f1])
+        require(Number.isFinite(score) && score >= 0 && score <= 1);
+    }
+    require(
+      object(p) &&
+        p.version === "documentation-v1" &&
+        list(p.notices, 6) &&
+        p.notices.every((x) => string(x, 300)),
+    );
+    for (const field of [
+      "sources",
+      "passages",
+      "words",
+      "sections",
+      "code_blocks",
+      "entity_mentions",
+      "unique_entities",
+      "embedding_dimensions",
+      "training_examples",
+    ])
+      require(Number.isInteger(p[field]) && p[field] >= 0);
+    require(
+      p.sources <= 30 &&
+        p.passages <= 200 &&
+        p.code_blocks <= 200 &&
+        p.entity_mentions <= 12000 &&
+        p.unique_entities <= 12000 &&
+        p.embedding_dimensions >= 1 &&
+        p.embedding_dimensions <= 300 &&
+        p.training_examples >= 1 &&
+        p.training_examples <= 1000,
+    );
+  }
   return value as Workspace;
 }

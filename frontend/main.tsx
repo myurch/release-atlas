@@ -1,3 +1,4 @@
+import { workspaceFeatures } from "./features";
 import React, {
   useCallback,
   useEffect,
@@ -13,7 +14,8 @@ import "./design.css";
 import { Tutorial } from "./TutorialGuide";
 import {
   emptyWorkspace,
-  tutorialSteps,
+  visibleTutorialSteps as tutorialSteps,
+  tutorialStepIndex,
   tutorialWorkspace,
   tutorialClaim,
   addTutorialReview,
@@ -21,6 +23,9 @@ import {
   REVIEW_NOTE,
 } from "./tutorial";
 import { Assistant } from "./Assistant";
+import { SourceForm } from "./SourceForm";
+import { PipelineExplorer, PassageMethods } from "./PipelineExplorer";
+import { emptyPassageFilters, matchesPassage } from "./pipeline";
 import { ContextHelp, HelpHint } from "./ContextHelp";
 import { helpLabels } from "./help-content";
 import { WorkspaceDialog, WorkspaceEntry } from "./WorkspaceDialog";
@@ -50,7 +55,7 @@ const isServer =
   !__HOSTED_DEMO__ &&
   (location.protocol === "http:" || location.protocol === "https:");
 const exampleWorkspace = () =>
-  tutorialWorkspace(demo, tutorialSteps.length - 1);
+  tutorialWorkspace(demo, tutorialStepIndex(tutorialSteps.length - 1));
 const categories = [
   "breaking",
   "deprecation",
@@ -105,6 +110,7 @@ function Icon({ name = "grid" }: { name?: string }) {
       </>
     ),
     arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
+    delete: <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" />,
   };
   return (
     <svg
@@ -228,16 +234,25 @@ function Workbench({
   const [tab, setTab] = useState<Tab>("Overview");
   const [user, setUser] = useState("");
   const [login, setLogin] = useState(false);
+  const [authEnabled, setAuthEnabled] = useState(true);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState("");
   const [connected, setConnected] = useState(false);
-  const [provider, setProvider] = useState("gpt-oss:20b");
+  const [provider, setProvider] = useState("gpt-6-luna");
   const [selected, setSelected] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [scope, setScope] = useState("all");
+  const [passageFilters, setPassageFilters] = useState(emptyPassageFilters);
+  useEffect(() => {
+    setPassageFilters(emptyPassageFilters());
+  }, [activeId, viewKey, workspace.analysis?.created_at]);
   const [sourceId, setSourceId] = useState("");
+  const [pendingSourceDelete, setPendingSourceDelete] = useState<{
+    id: string;
+    revision: number;
+  } | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
   const revision = useRef(workspace.revision);
   const live = !tutorial && isServer && !!user;
@@ -248,10 +263,16 @@ function Workbench({
     setWorkspace(state);
   };
 
-  async function api(path: string, body?: unknown, method = "POST") {
+  async function api(
+    path: string,
+    body?: unknown,
+    method = "POST",
+    signal?: AbortSignal,
+  ) {
     if (tutorial || !isServer)
       throw new Error("This view cannot contact the workspace service.");
     const response = await fetch("/api/" + path, {
+      signal,
       method: body === undefined ? "GET" : method,
       headers: body === undefined ? {} : { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -283,6 +304,7 @@ function Workbench({
           setViewKey((k) => k + 1);
           setSelected("");
           setSourceId("");
+          setPendingSourceDelete(null);
           setTab("Overview");
           setNotice(
             "Active workspace changed. Your previous saved review is available in Workspaces.",
@@ -291,6 +313,8 @@ function Workbench({
         activeRef.current = value.active_id;
       }
       setUser(value.user);
+      setAuthEnabled(value.auth_enabled !== false);
+      setLogin(false);
       setProvider(value.provider.model);
       return value.workspace as Workspace;
     } catch (e) {
@@ -375,7 +399,7 @@ function Workbench({
   ) {
     if (tutorial) {
       if (path === "analyze") {
-        adopt(tutorialWorkspace(demo, tourStep));
+        adopt(tutorialWorkspace(demo, tutorialStepIndex(tourStep)));
         setNotice("Prepared tutorial analysis displayed.");
       } else if (path.startsWith("claims/")) {
         adopt(addTutorialReview(workspace));
@@ -437,6 +461,7 @@ function Workbench({
     });
   }
   function openClaim(id: string) {
+    setPassageFilters(emptyPassageFilters());
     setSelected(id);
     setSearch("");
     setCategory("all");
@@ -444,11 +469,12 @@ function Workbench({
     setTab("Evidence");
   }
   function moveTutorial(step: number) {
+    setPassageFilters(emptyPassageFilters());
     const item = tutorialSteps[step];
     if (!item) return;
     setTourStep(step);
     setTourRun((r) => r + 1);
-    adopt(tutorialWorkspace(demo, step));
+    adopt(tutorialWorkspace(demo, tutorialStepIndex(step)));
     setTab(item.tab);
     setSelected(tutorialClaim(demo).id);
     setSourceId("");
@@ -502,12 +528,19 @@ function Workbench({
   const applicable = workspace.claims.filter((c) => c.applicable).length;
   const filtered = workspace.claims.filter(
     (c) =>
+      matchesPassage(c, passageFilters) &&
       (category === "all" || c.category === category) &&
       (scope === "all" ||
         (scope === "used" && c.applicable) ||
         (scope === "conflicts" && c.conflicts.length) ||
         (scope === "unreviewed" && !c.review)) &&
-      (c.quote + " " + c.entities.join(" "))
+      (
+        c.quote +
+        " " +
+        c.entities.join(" ") +
+        " " +
+        (c.document?.headings.join(" ") || "")
+      )
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
@@ -564,44 +597,38 @@ function Workbench({
             </div>
           </div>
           <nav aria-label="Main navigation">
-            {tabs.map((item) => (
-              <button
-                key={item}
-                aria-label={item}
-                data-help={item}
-                data-tour={"nav-" + item}
-                className={tab === item ? "nav active" : "nav"}
-                aria-current={tab === item ? "page" : undefined}
-                onClick={() => setTab(item)}
-              >
-                <Icon name={item} />
-                <span>{item}</span>
-                {item === "Evidence" && (
-                  <span className="nav-count">{workspace.claims.length}</span>
-                )}
-              </button>
-            ))}
+            {tabs
+              .filter(
+                (item) => item !== "Questions" || workspaceFeatures.questions,
+              )
+              .map((item) => (
+                <button
+                  key={item}
+                  aria-label={item}
+                  data-help={item}
+                  data-tour={"nav-" + item}
+                  className={tab === item ? "nav active" : "nav"}
+                  aria-current={tab === item ? "page" : undefined}
+                  onClick={() => setTab(item)}
+                >
+                  <Icon name={item} />
+                  <span>{item}</span>
+                  {item === "Evidence" && (
+                    <span className="nav-count">{workspace.claims.length}</span>
+                  )}
+                </button>
+              ))}
           </nav>
           <div className="sidebar-bottom">
-            <div className="connection">
-              <span className={"dot " + (live && connected ? "green" : "")} />
-              {tutorial
-                ? "Tutorial example"
-                : live
-                  ? connected
-                    ? "Live workspace"
-                    : "Reconnecting"
-                  : __HOSTED_DEMO__
-                    ? "Demo workspace"
-                    : "Saved review"}
-            </div>
-            <p>
-              Evidence informs the decision.
-              <br />
-              Your team makes the call.
-            </p>
+            {live && !connected && (
+              <div className="connection" role="status">
+                Reconnecting
+              </div>
+            )}
             {tutorial ? (
               <p className="small">Temporary example review</p>
+            ) : live && !authEnabled ? (
+              <p className="small">{user}</p>
             ) : live ? (
               <button
                 className="identity"
@@ -670,21 +697,25 @@ function Workbench({
                   Workspaces
                 </button>
               )}
-              <button
-                className="button subtle"
-                onClick={() => importRef.current?.click()}
-                disabled={!!busy || tutorial}
-              >
-                Import
-              </button>
-              <button
-                className="button"
-                data-tour="export"
-                onClick={exportSnapshot}
-                disabled={tutorial}
-              >
-                Export snapshot <span aria-hidden="true">↗</span>
-              </button>
+              {workspaceFeatures.snapshotControls && (
+                <>
+                  <button
+                    className="button subtle"
+                    onClick={() => importRef.current?.click()}
+                    disabled={!!busy || tutorial}
+                  >
+                    Import
+                  </button>
+                  <button
+                    className="button"
+                    data-tour="export"
+                    onClick={exportSnapshot}
+                    disabled={tutorial}
+                  >
+                    Export snapshot <span aria-hidden="true">↗</span>
+                  </button>
+                </>
+              )}
               <input
                 ref={importRef}
                 type="file"
@@ -710,19 +741,22 @@ function Workbench({
               ) : live ? (
                 <>
                   <span>
-                    {user} · {connected ? "Live workspace" : "Reconnecting"}
+                    {user}
+                    {!connected ? " · Reconnecting" : ""}
                   </span>
-                  <button
-                    className="text-button"
-                    onClick={() =>
-                      void act("Signing out", async () => {
-                        await api("logout", {});
-                        setUser("");
-                      })
-                    }
-                  >
-                    Sign out
-                  </button>
+                  {authEnabled && (
+                    <button
+                      className="text-button"
+                      onClick={() =>
+                        void act("Signing out", async () => {
+                          await api("logout", {});
+                          setUser("");
+                        })
+                      }
+                    >
+                      Sign out
+                    </button>
+                  )}
                 </>
               ) : isServer ? (
                 <button className="text-button" onClick={() => setLogin(true)}>
@@ -752,14 +786,14 @@ function Workbench({
             <div className="page-heading">
               <div>
                 <div className="eyebrow">
-                  UPGRADE REVIEW <span className="tiny-rule" /> REVISION{" "}
+                  DOCUMENTATION REVIEW <span className="tiny-rule" /> REVISION{" "}
                   {workspace.revision}
                 </div>
                 <h1>
                   {tab === "Overview"
-                    ? "Know what changes. Decide together."
+                    ? "Understand the docs. Trace the evidence."
                     : tab === "Evidence"
-                      ? "Follow the evidence."
+                      ? "Explore the documentation."
                       : tab === "Sources"
                         ? "Keep the original in view."
                         : tab === "Graph"
@@ -771,8 +805,10 @@ function Workbench({
                 <p>
                   {workspace.title} <span className="separator">·</span>{" "}
                   {tab === "Overview"
-                    ? "A shared picture of changes, conflicts and next steps."
-                    : "Source snapshots stay attached to every finding."}
+                    ? "Documentation patterns, technical interfaces and shared review decisions."
+                    : tab === "Evidence"
+                      ? "An inspectable NLP pipeline with exact source passages."
+                      : "Source snapshots stay attached to every passage."}
                 </p>
               </div>
               {editable && (
@@ -781,7 +817,16 @@ function Workbench({
                   className="button primary"
                   disabled={!!busy || !workspace.sources.length}
                   onClick={() =>
-                    void act("Analyzing sources", () => mutate("analyze"))
+                    void act("Analyzing sources", async () => {
+                      await mutate("analyze");
+                      if (!tutorial) {
+                        setPassageFilters(emptyPassageFilters());
+                        setSearch("");
+                        setCategory("all");
+                        setScope("all");
+                        setTab("Evidence");
+                      }
+                    })
                   }
                 >
                   {busy === "Analyzing sources"
@@ -795,10 +840,10 @@ function Workbench({
               <section className="demo-notice" aria-label="About this demo">
                 <strong>Explore the sample review</strong>
                 <p>
-                  Browse prepared evidence, source documents, graphs and cited
-                  answers. Try the beginner tutorial for a guided walkthrough.
-                  Ask Atlas provides built-in App guide help. New analysis,
-                  shared edits and live AI answers require the full application.
+                  Browse prepared evidence, source documents and graphs. Try the
+                  beginner tutorial for a guided walkthrough. Ask Atlas provides
+                  built-in App guide help. New analysis, shared edits and live
+                  AI answers require the full application.
                 </p>
               </section>
             )}
@@ -863,9 +908,32 @@ function Workbench({
             )}
             {tab === "Overview" && (
               <>
+                <section className="panel nlp-overview">
+                  <span className="eyebrow">DOCUMENTATION NLP PIPELINE</span>
+                  <h2>Structure → Purpose → Topics → Technical entities</h2>
+                  <p>
+                    Explore document sections, embedding-based purpose labels,
+                    discovered subjects and technical interfaces. Inspect exact
+                    passages and the methods behind each result.
+                  </p>
+                  <button
+                    type="button"
+                    className="button primary"
+                    onClick={() => setTab("Evidence")}
+                  >
+                    Explore NLP analysis <Icon name="arrow" />
+                  </button>
+                  {workspace.analysis?.pipeline && (
+                    <p className="small muted">
+                      {workspace.analysis.pipeline.passages} passages ·{" "}
+                      {workspace.analysis.pipeline.unique_entities} technical
+                      entities · {workspace.topics.length} discovered topics
+                    </p>
+                  )}
+                </section>
                 <div className="stats">
                   <Stat
-                    label="Evidence cards"
+                    label="Analyzed passages"
                     value={workspace.claims.length}
                     note={`${workspace.sources.length} source snapshots`}
                   />
@@ -886,153 +954,187 @@ function Workbench({
                     note="Decisions recorded by the team"
                   />
                 </div>
-                <div className="overview-grid">
-                  <section className="panel attention">
-                    <div className="section-heading">
-                      <div>
-                        <span className="eyebrow">START HERE</span>
-                        <h2>
-                          What needs your attention{" "}
-                          <HelpHint topic="conflicts" />
-                        </h2>
-                      </div>
-                      <span className="badge amber">Human review</span>
-                    </div>
-                    {conflicts.length ? (
-                      <>
-                        <div className="conflict-feature">
-                          <span className="conflict-icon">!</span>
+                {workspaceFeatures.overviewDetails && (
+                  <>
+                    <div className="overview-grid">
+                      <section className="panel attention">
+                        <div className="section-heading">
                           <div>
-                            <h3>The sources disagree.</h3>
-                            <p>
-                              {conflicts.length} claims give competing guidance
-                              for the same version. Read both passages before
-                              marking an upgrade task complete.
-                            </p>
+                            <span className="eyebrow">START HERE</span>
+                            <h2>
+                              What needs your attention{" "}
+                              <HelpHint topic="conflicts" />
+                            </h2>
                           </div>
+                          <span className="badge amber">Human review</span>
                         </div>
-                        {conflicts.slice(0, 2).map((c) => (
-                          <button
-                            className="attention-row"
-                            key={c.id}
-                            onClick={() => openClaim(c.id)}
-                          >
-                            <div>
-                              <strong>
-                                {c.entities.join(", ") ||
-                                  "Conflicting guidance"}
-                              </strong>
-                              <p>{c.quote}</p>
+                        {conflicts.length ? (
+                          <>
+                            <div className="conflict-feature">
+                              <span className="conflict-icon">!</span>
+                              <div>
+                                <h3>The sources disagree.</h3>
+                                <p>
+                                  {conflicts.length} claims give competing
+                                  guidance for the same version. Read both
+                                  passages before marking an upgrade task
+                                  complete.
+                                </p>
+                              </div>
                             </div>
-                            <Icon name="arrow" />
-                          </button>
-                        ))}
-                      </>
-                    ) : (
-                      <div className="empty">
-                        <h3>
-                          {workspace.claims.length
-                            ? "No conflict candidates found"
-                            : "Start with a source"}
-                        </h3>
-                        <p>
-                          {workspace.claims.length
-                            ? "This is not proof the sources are consistent. Review important changes."
-                            : "Add release notes and versioned documentation, then analyze them."}
-                        </p>
-                        {!workspace.sources.length && !tutorial && (
-                          <div className="empty-actions">
-                            <button
-                              className="button primary"
-                              onClick={startTutorial}
-                            >
-                              Start beginner tutorial
-                            </button>
-                            {live && (
+                            {conflicts.slice(0, 2).map((c) => (
                               <button
-                                className="button"
-                                onClick={() => setTab("Sources")}
+                                className="attention-row"
+                                key={c.id}
+                                onClick={() => openClaim(c.id)}
                               >
-                                Add your first source
+                                <div>
+                                  <strong>
+                                    {c.entities.join(", ") ||
+                                      "Conflicting guidance"}
+                                  </strong>
+                                  {c.document && (
+                                    <>
+                                      <h3>{c.document.title}</h3>
+                                      <span className="small muted">
+                                        {c.document.headings.join(" › ") ||
+                                          "Document body"}
+                                      </span>
+                                    </>
+                                  )}
+                                  <p>{c.quote}</p>
+                                </div>
+                                <Icon name="arrow" />
                               </button>
+                            ))}
+                          </>
+                        ) : (
+                          <div className="empty">
+                            <h3>
+                              {workspace.claims.length
+                                ? "No conflict candidates found"
+                                : "Start with a source"}
+                            </h3>
+                            <p>
+                              {workspace.claims.length
+                                ? "This is not proof the sources are consistent. Review important changes."
+                                : "Add release notes and versioned documentation, then analyze them."}
+                            </p>
+                            {!workspace.sources.length && !tutorial && (
+                              <div className="empty-actions">
+                                <button
+                                  className="button primary"
+                                  onClick={startTutorial}
+                                >
+                                  Start beginner tutorial
+                                </button>
+                                {live && (
+                                  <button
+                                    className="button"
+                                    onClick={() => setTab("Sources")}
+                                  >
+                                    Add your first source
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
                         )}
-                      </div>
-                    )}
-                    <button
-                      className="text-button"
-                      onClick={() => {
-                        setTab("Evidence");
-                        setScope("unreviewed");
-                      }}
-                    >
-                      Review all open evidence <Icon name="arrow" />
-                    </button>
-                  </section>
-                  <section className="panel">
-                    <div className="section-heading">
-                      <div>
-                        <span className="eyebrow">IN YOUR APPLICATION</span>
-                        <h2>
-                          Usage profile <HelpHint topic="usage" />
-                        </h2>
-                      </div>
+                        <button
+                          className="text-button"
+                          onClick={() => {
+                            setTab("Evidence");
+                            setScope("unreviewed");
+                          }}
+                        >
+                          Review all open evidence <Icon name="arrow" />
+                        </button>
+                      </section>
+                      <section className="panel">
+                        <div className="section-heading">
+                          <div>
+                            <span className="eyebrow">IN YOUR APPLICATION</span>
+                            <h2>
+                              Usage profile <HelpHint topic="usage" />
+                            </h2>
+                          </div>
+                        </div>
+                        <p className="muted small">
+                          Declared features connect changes to your application.
+                          This is not a scan of your code.
+                        </p>
+                        <UsageForm
+                          usage={workspace.usage}
+                          revision={workspace.revision}
+                          disabled={locked}
+                          save={(usage, revision) =>
+                            act("Saving profile", () =>
+                              mutate("profile", { usage, revision }, "PUT"),
+                            )
+                          }
+                        />
+                      </section>
                     </div>
-                    <p className="muted small">
-                      Declared features connect changes to your application.
-                      This is not a scan of your code.
-                    </p>
-                    <UsageForm
-                      usage={workspace.usage}
-                      revision={workspace.revision}
-                      disabled={locked}
-                      save={(usage, revision) =>
-                        act("Saving profile", () =>
-                          mutate("profile", { usage, revision }, "PUT"),
-                        )
-                      }
-                    />
-                  </section>
-                </div>
-                <section className="panel topics">
-                  <div className="section-heading">
-                    <div>
-                      <span className="eyebrow">PATTERNS IN THE TEXT</span>
-                      <h2>
-                        Topics in this review <HelpHint topic="topics" />
-                      </h2>
-                    </div>
-                    <span className="small muted">
-                      Statistical grouping, not a risk score
-                    </span>
-                  </div>
-                  <div className="topic-grid">
-                    {workspace.topics.map((topic) => (
-                      <button
-                        key={topic.id}
-                        className="topic"
-                        onClick={() => {
-                          setSearch(topic.terms[0]);
-                          setTab("Evidence");
-                        }}
-                      >
-                        <span className="topic-index">0{topic.id + 1}</span>
-                        <strong>{topic.terms.slice(0, 3).join(" · ")}</strong>
-                        <span>
-                          {topic.count} passages <Icon name="arrow" />
+                    <section className="panel topics">
+                      <div className="section-heading">
+                        <div>
+                          <span className="eyebrow">PATTERNS IN THE TEXT</span>
+                          <h2>
+                            Topics in this review <HelpHint topic="topics" />
+                          </h2>
+                        </div>
+                        <span className="small muted">
+                          Statistical grouping, not a risk score
                         </span>
-                      </button>
-                    ))}
-                    {!workspace.topics.length && (
-                      <p className="muted">Topics appear after analysis.</p>
-                    )}
-                  </div>
-                </section>
+                      </div>
+                      <div className="topic-grid">
+                        {workspace.topics.map((topic) => (
+                          <button
+                            key={topic.id}
+                            className="topic"
+                            onClick={() => {
+                              setSearch("");
+                              setCategory("all");
+                              setScope("all");
+                              setPassageFilters({
+                                ...emptyPassageFilters(),
+                                topic: topic.id,
+                              });
+                              setTab("Evidence");
+                            }}
+                          >
+                            <span className="topic-index">
+                              TOPIC {topic.id}
+                            </span>
+                            <strong>
+                              {topic.terms.slice(0, 3).join(" · ")}
+                            </strong>
+                            <span>
+                              {topic.count} passages <Icon name="arrow" />
+                            </span>
+                          </button>
+                        ))}
+                        {!workspace.topics.length && (
+                          <p className="muted">
+                            Analyze varied prose to discover topics. Tiny or
+                            repetitive documents may have none.
+                          </p>
+                        )}
+                      </div>
+                    </section>
+                  </>
+                )}
               </>
             )}
             {tab === "Evidence" && (
               <>
+                <PipelineExplorer
+                  key={activeId + ":" + viewKey}
+                  workspace={workspace}
+                  filters={passageFilters}
+                  setFilters={setPassageFilters}
+                  openPassage={openClaim}
+                />
                 <div className="filterbar">
                   <label className="search">
                     <span className="sr-only">Search evidence</span>
@@ -1043,12 +1145,12 @@ function Workbench({
                     />
                   </label>
                   <label>
-                    <span className="sr-only">Category</span>
+                    <span className="sr-only">Release change signal</span>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                     >
-                      <option value="all">All change types</option>
+                      <option value="all">All release signals</option>
                       {categories.map((c) => (
                         <option key={c} value={c}>
                           {human(c)}
@@ -1070,6 +1172,11 @@ function Workbench({
                   </label>
                   <span className="small muted">{filtered.length} results</span>
                 </div>
+                <p className="small muted">
+                  Passages below combine your pipeline filters, text search and
+                  review scope. Release signals are an additional classifier
+                  intended for release notes.
+                </p>
                 <div className="evidence-grid">
                   <div className="evidence-list">
                     {filtered.map((c) => (
@@ -1082,9 +1189,15 @@ function Workbench({
                         onClick={() => setSelected(c.id)}
                       >
                         <div className="chips">
-                          <span className={"badge " + c.category}>
-                            {c.category}
+                          <span className="badge neutral">
+                            {c.document?.purpose.replaceAll("-", " ") ||
+                              c.category}
                           </span>
+                          {c.document && (
+                            <span className="small muted">
+                              {c.document.kind}
+                            </span>
+                          )}
                           {c.conflicts.length > 0 && (
                             <span className="badge amber">Conflict</span>
                           )}
@@ -1095,6 +1208,15 @@ function Workbench({
                             />
                           )}
                         </div>
+                        {c.document && (
+                          <>
+                            <h3>{c.document.title}</h3>
+                            <span className="small muted">
+                              {c.document.headings.join(" › ") ||
+                                "Document body"}
+                            </span>
+                          </>
+                        )}
                         <p>{c.quote}</p>
                         <div className="card-meta">
                           <span>
@@ -1125,7 +1247,9 @@ function Workbench({
                           : chosen.id
                       }
                       initialNote={
-                        tutorial && tourStep >= 7 ? REVIEW_NOTE : undefined
+                        tutorial && tutorialStepIndex(tourStep) >= 7
+                          ? REVIEW_NOTE
+                          : undefined
                       }
                       claim={chosen}
                       workspace={workspace}
@@ -1162,20 +1286,85 @@ function Workbench({
                   </div>
                   <div className="source-list">
                     {workspace.sources.map((s) => (
-                      <button
+                      <div
                         key={s.id}
                         className={
                           "source-item " +
                           (chosenSource?.id === s.id ? "selected" : "")
                         }
-                        onClick={() => setSourceId(s.id)}
                       >
-                        <Icon name="Sources" />
-                        <span>
-                          <strong>{s.title}</strong>
-                          <small>Version {s.version}</small>
-                        </span>
-                      </button>
+                        <button
+                          className="source-select"
+                          onClick={() => setSourceId(s.id)}
+                          aria-pressed={chosenSource?.id === s.id}
+                        >
+                          <Icon name="Sources" />
+                          <span>
+                            <strong>{s.title}</strong>
+                            <small>Version {s.version}</small>
+                          </span>
+                        </button>
+                        {live && (
+                          <button
+                            className="icon-button source-delete"
+                            disabled={locked}
+                            aria-label={`Delete source ${s.title}, version ${s.version}`}
+                            title="Delete source"
+                            aria-expanded={pendingSourceDelete?.id === s.id}
+                            aria-controls={`delete-source-${s.id}`}
+                            onClick={() =>
+                              setPendingSourceDelete({
+                                id: s.id,
+                                revision: revision.current,
+                              })
+                            }
+                          >
+                            <Icon name="delete" />
+                          </button>
+                        )}
+                        {live && pendingSourceDelete?.id === s.id && (
+                          <div
+                            className="source-delete-confirm"
+                            id={`delete-source-${s.id}`}
+                          >
+                            <p>
+                              Delete this source? Its findings, review decisions
+                              and saved answers citing them will be removed.
+                              Analyze remaining sources to refresh the graph and
+                              topics.
+                            </p>
+                            <button
+                              className="button subtle"
+                              disabled={locked}
+                              autoFocus
+                              onClick={() => setPendingSourceDelete(null)}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="button"
+                              disabled={locked}
+                              onClick={() =>
+                                void act("Deleting source", async () => {
+                                  await mutate(
+                                    "sources/" + encodeURIComponent(s.id),
+                                    { revision: pendingSourceDelete.revision },
+                                    "DELETE",
+                                  );
+                                  setPendingSourceDelete(null);
+                                  if (chosenSource?.id === s.id)
+                                    setSourceId("");
+                                  setNotice(
+                                    "Source deleted. Analyze remaining sources to refresh evidence.",
+                                  );
+                                })
+                              }
+                            >
+                              Delete source
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                   {chosenSource ? (
@@ -1209,15 +1398,31 @@ function Workbench({
                 </section>
                 <div>
                   <SourceForm
-                    disabled={locked || tutorial}
-                    save={(source) =>
-                      act("Adding source", async () => {
+                    key={live ? user + ":" + activeId : "saved:" + viewKey}
+                    revision={workspace.revision}
+                    disabled={locked || tutorial || suspended}
+                    fetchReadme={
+                      live && !suspended
+                        ? (url, revision, signal) =>
+                            api(
+                              "sources/readme",
+                              { url, revision },
+                              "POST",
+                              signal,
+                            )
+                        : undefined
+                    }
+                    save={async (source) => {
+                      let saved = false;
+                      await act("Adding source", async () => {
                         await mutate("sources", { source });
+                        saved = true;
                         setNotice(
                           "Source saved. Analyze sources to refresh evidence.",
                         );
-                      })
-                    }
+                      });
+                      return saved;
+                    }}
                   />
                   <FeedForm
                     disabled={locked || tutorial}
@@ -1246,7 +1451,7 @@ function Workbench({
                 }
               />
             )}
-            {tab === "Questions" && (
+            {workspaceFeatures.questions && tab === "Questions" && (
               <section className="questions-layout">
                 <div className="panel">
                   <span className="eyebrow">SOURCE-GROUNDED QUESTIONS</span>
@@ -1322,9 +1527,10 @@ function Workbench({
                   </span>
                 </div>
                 <p className="small muted">
-                  Display names identify shared-passcode sessions, not verified
-                  accounts. Names in imported snapshots are unverified
-                  provenance.
+                  {live && !authEnabled
+                    ? "Changes are recorded as Local reviewer while sign-in is disabled."
+                    : "Display names identify shared-passcode sessions, not verified accounts."}{" "}
+                  Names in imported snapshots are unverified provenance.
                 </p>
                 {[...workspace.audit].reverse().map((a, i) => (
                   <div className="activity-row" key={i}>
@@ -1346,18 +1552,6 @@ function Workbench({
                 )}
               </section>
             )}
-            <footer>
-              <span>
-                Release Atlas <span className="muted">/</span> Evidence before
-                action.
-              </span>
-              <span>
-                v0.1 ·{" "}
-                {workspace.analysis
-                  ? "Analysis saved " + stamp(workspace.analysis.created_at)
-                  : "Awaiting analysis"}
-              </span>
-            </footer>
           </main>
         </div>
       </div>
@@ -1370,8 +1564,15 @@ function Workbench({
           sourceId={tab === "Sources" ? chosenSource?.id || "" : ""}
           live={live}
           provider={provider}
-          navigate={setTab}
+          navigate={(page) => {
+            if (page !== "Questions" || workspaceFeatures.questions)
+              setTab(page);
+          }}
           openClaim={openClaim}
+          openSource={(id) => {
+            setSourceId(id);
+            setTab("Sources");
+          }}
           onAuthExpired={() => {
             setUser("");
             setLogin(true);
@@ -1638,8 +1839,24 @@ function ClaimDetail({
         <span className="eyebrow">EVIDENCE DETAIL</span>
         <span className="badge neutral">v{s.version}</span>
       </div>
-      <h2>{claim.entities.join(" · ") || "Source passage"}</h2>
-      <blockquote>{claim.quote}</blockquote>
+      <h2>
+        {claim.document?.title ||
+          claim.entities.join(" · ") ||
+          "Source passage"}
+      </h2>
+      {claim.document && (
+        <p className="small muted">
+          {claim.document.headings.join(" › ")} · {claim.document.kind}
+        </p>
+      )}
+      <blockquote
+        className={
+          claim.document?.kind === "code" ? "passage-code" : "passage-quote"
+        }
+      >
+        {claim.quote}
+      </blockquote>
+      <PassageMethods claim={claim} />
       <button className="source-link" onClick={source}>
         <Icon name="Sources" />
         {s.title}
@@ -1648,7 +1865,7 @@ function ClaimDetail({
       <dl>
         <div>
           <dt>
-            Change type <HelpHint topic="category" />
+            Release signal <HelpHint topic="category" />
           </dt>
           <dd>{human(claim.category)}</dd>
         </div>
@@ -1772,90 +1989,6 @@ function ClaimDetail({
           retained.
         </p>
       </details>
-    </section>
-  );
-}
-function SourceForm({
-  disabled,
-  save,
-}: {
-  disabled: boolean;
-  save: (source: Record<string, string>) => Promise<void>;
-}) {
-  return (
-    <section className="panel">
-      <span className="eyebrow">ADD EVIDENCE</span>
-      <h2>A versioned source.</h2>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const data = Object.fromEntries(
-            new FormData(e.currentTarget),
-          ) as Record<string, string>;
-          void save(data);
-        }}
-      >
-        <label>
-          Source title
-          <input
-            name="title"
-            required
-            maxLength={160}
-            placeholder="Library 2.0 release notes"
-            disabled={disabled}
-          />
-        </label>
-        <div className="form-columns">
-          <label>
-            Version
-            <input
-              name="version"
-              required
-              maxLength={80}
-              placeholder="2.0"
-              disabled={disabled}
-            />
-          </label>
-          <label>
-            Source URL (optional)
-            <input
-              name="url"
-              type="url"
-              maxLength={1000}
-              placeholder="https://…"
-              disabled={disabled}
-            />
-          </label>
-        </div>
-        <label>
-          License / permission
-          <input
-            name="license"
-            required
-            maxLength={300}
-            placeholder="MIT or your permission to use this text"
-            disabled={disabled}
-          />
-        </label>
-        <label>
-          Source text
-          <textarea
-            name="text"
-            required
-            maxLength={12000}
-            rows={7}
-            placeholder="Paste release notes or documentation. One passage per line; keep identifiers in backticks when possible."
-            disabled={disabled}
-          />
-        </label>
-        <button className="button primary full" disabled={disabled}>
-          Save source <Icon name="arrow" />
-        </button>
-        <p className="small muted">
-          Source text stays in this workspace and its exports. Limit: 12,000
-          characters per source.
-        </p>
-      </form>
     </section>
   );
 }

@@ -15,7 +15,7 @@ BASE = 'http://127.0.0.1:18877'
 
 async def main():
     with tempfile.TemporaryDirectory(prefix='atlas-http-') as temp:
-        env = {**os.environ, 'ATLAS_DATA_DIR':temp, 'ATLAS_PORT':'18877', 'ATLAS_ORIGINS':BASE, 'ATLAS_ACCESS_CODE':'isolated-integration-fixture', 'PYTHONDONTWRITEBYTECODE':'1'}
+        env = {**os.environ, 'ATLAS_AUTH_ENABLED':'1', 'ATLAS_DATA_DIR':temp, 'ATLAS_PORT':'18877', 'ATLAS_ORIGINS':BASE, 'ATLAS_ACCESS_CODE':'isolated-integration-fixture', 'PYTHONDONTWRITEBYTECODE':'1'}
         process = subprocess.Popen([sys.executable,'-m','backend'], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             async with httpx.AsyncClient(base_url=BASE, timeout=25, trust_env=False, headers={'Origin':BASE}) as a, httpx.AsyncClient(base_url=BASE, timeout=25, trust_env=False, headers={'Origin':BASE}) as b:

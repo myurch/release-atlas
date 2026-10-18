@@ -1,0 +1,23 @@
+{
+  "result": "PASS",
+  "python_tests": 53,
+  "frontend_tests": 9,
+  "checks": [
+    "Unanalyzed sources supply exact original text and provenance",
+    "Zero findings do not block source context",
+    "Stale findings excluded while current sources remain readable",
+    "Late-document lexical retrieval and Unicode offsets",
+    "Selected-source priority and bounded partial coverage",
+    "Source citation allowlist and exact browser quote validation",
+    "Raw-source citations preserve known conflict-pair checks",
+    "Read-only HTTP assistant route with an unanalyzed source",
+    "Visible UI source quote expansion and navigation from Overview to original Sources page"
+  ],
+  "visual_method": "Real Atlas service launched with run-release-atlas-macos-intel.sh, temporary data, clearly labeled local mock provider",
+  "real_model_calls": 0,
+  "limits": [
+    "No real Luna quality or latency claim",
+    "Lexical retrieval can omit relevant text; partial context is explicitly labeled",
+    "Full automated Chromium suite not run locally"
+  ]
+}

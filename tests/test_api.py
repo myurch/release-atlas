@@ -15,11 +15,56 @@ ORIGIN = {'Origin':'http://testserver'}
 
 @pytest.fixture
 def clients(tmp_path):
-    app = create_app(tmp_path,passcode='test-access-code',origins=['http://testserver'])
+    app = create_app(tmp_path,auth_enabled=True,passcode='test-access-code',origins=['http://testserver'])
     with TestClient(app) as a, TestClient(app) as b:
         for client,name in [(a,'Alex'),(b,'Blair')]:
             assert client.post('/api/login',json={'name':name,'passcode':'test-access-code'},headers=ORIGIN).status_code==200
         yield a,b,app
+
+
+
+def test_auth_disabled_by_default_keeps_write_guards(tmp_path, monkeypatch):
+    monkeypatch.delenv('ATLAS_AUTH_ENABLED', raising=False)
+    app = create_app(tmp_path, origins=['http://testserver'])
+    with TestClient(app) as client:
+        state = client.get('/api/state').json()
+        assert state['auth_enabled'] is False and state['user'] == 'Local reviewer'
+        assert not (tmp_path/'access-code').exists()
+        assert client.post('/api/login', json={'name':'Alex','passcode':'unused'}, headers=ORIGIN).status_code == 404
+        assert client.post('/api/demo', json={'revision':0}).status_code == 403
+        assert client.get('/api/state', headers={'Host':'evil.invalid'}).status_code == 400
+        assert client.post('/api/import', content='x'*2_000_001, headers=ORIGIN).status_code == 413
+        saved = client.post('/api/demo', json={'revision':0}, headers=ORIGIN)
+        assert saved.status_code == 200
+        assert saved.json()['audit'][-1]['by'] == 'Local reviewer'
+        assert client.post('/api/demo', json={'revision':0}, headers=ORIGIN).status_code == 409
+        assert client.get('/api/export').status_code == 200
+        assert client.post('/api/logout', headers=ORIGIN).status_code == 200
+        assert client.get('/api/state').status_code == 200
+
+
+def test_auth_can_be_enabled_from_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv('ATLAS_AUTH_ENABLED', '1')
+    app = create_app(tmp_path, origins=['http://testserver'])
+    code_path = tmp_path/'access-code'
+    code = code_path.read_text().strip()
+    assert code and code_path.stat().st_mode & 0o777 == 0o600
+    with TestClient(app) as client:
+        assert client.get('/api/state').status_code == 401
+        assert client.post('/api/login', json={'name':'Alex','passcode':'wrong'}, headers=ORIGIN).status_code == 401
+        assert client.post('/api/login', json={'name':'Alex','passcode':code}, headers=ORIGIN).status_code == 200
+        assert client.get('/api/state').json()['auth_enabled'] is True
+        assert client.get('/api/state').json()['user'] == 'Alex'
+        assert client.post('/api/logout', headers=ORIGIN).status_code == 200
+        assert client.get('/api/state').status_code == 401
+    assert create_app(tmp_path, origins=['http://testserver']).state.auth_enabled
+    assert code_path.read_text().strip() == code
+
+
+def test_invalid_auth_configuration_is_rejected(tmp_path, monkeypatch):
+    monkeypatch.setenv('ATLAS_AUTH_ENABLED', 'yes')
+    with pytest.raises(ValueError, match='ATLAS_AUTH_ENABLED must be 0 or 1'):
+        create_app(tmp_path)
 
 
 def test_two_reviewers_atomic_conflict_and_restart(clients,tmp_path):
@@ -36,6 +81,50 @@ def test_two_reviewers_atomic_conflict_and_restart(clients,tmp_path):
     reopened=Store(tmp_path/'workspace.sqlite3').read()
     assert reopened.revision==2 and reopened.claims[0].review.by=='Alex'
     assert [x.by for x in reopened.audit]==['Alex','Alex']
+
+
+def test_delete_source_cleans_references_and_preserves_other_reviews(clients, tmp_path):
+    a, b, _ = clients
+    state = a.post('/api/demo', json={'revision':0}, headers=ORIGIN).json()
+    result = a.post('/api/query', json={'revision':state['revision'], 'question':'legacy_auth', 'mode':'graph'}, headers=ORIGIN)
+    assert result.status_code == 200
+    state = a.get('/api/state').json()['workspace']
+    cited = result.json()['answer']['citations'][0]
+    source_id = next(c['source_id'] for c in state['claims'] if c['id'] == cited)
+    survivor = next(c for c in state['claims'] if c['source_id'] != source_id)
+    state = a.put(f"/api/claims/{survivor['id']}/review", json={'revision':state['revision'], 'status':'applicable', 'note':'Keep this review'}, headers=ORIGIN).json()
+    previous_revision = state['revision']
+    removed = {c['id'] for c in state['claims'] if c['source_id'] == source_id}
+    saved = a.request('DELETE', f'/api/sources/{source_id}', json={'revision':previous_revision}, headers=ORIGIN)
+    assert saved.status_code == 200
+    state = saved.json()
+    assert state['revision'] == previous_revision + 1
+    assert all(s['id'] != source_id for s in state['sources'])
+    assert all(c['id'] not in removed and not removed.intersection(c['conflicts']) for c in state['claims'])
+    assert not state['answers'] and not state['topics'] and not state['graph']['nodes'] and state['analysis'] is None
+    assert next(c for c in state['claims'] if c['id'] == survivor['id'])['review']['note'] == 'Keep this review'
+    assert state['audit'][-1]['action'].startswith('Deleted source: ')
+    assert state['audit'][-1]['by'] == 'Alex'
+    assert Workspace.model_validate(state)
+    assert Store(tmp_path/'workspace.sqlite3').read().model_dump() == state
+    stale = b.request('DELETE', f'/api/sources/{state["sources"][0]["id"]}', json={'revision':previous_revision}, headers=ORIGIN)
+    assert stale.status_code == 409
+    assert a.post('/api/analyze', json={'revision':state['revision']}, headers=ORIGIN).status_code == 200
+
+
+def test_delete_last_unanalyzed_source_and_write_guards(clients):
+    a, _, _ = clients
+    state = a.post('/api/sources', json={'revision':0, 'source':{'title':'Temporary notes','version':'1','text':'Added an example API.'}}, headers=ORIGIN).json()
+    path = '/api/sources/' + state['sources'][0]['id']
+    assert a.request('DELETE', path, json={'revision':1}).status_code == 403
+    assert a.request('DELETE', path, json={'revision':0}, headers=ORIGIN).status_code == 409
+    assert a.request('DELETE', '/api/sources/missing', json={'revision':1}, headers=ORIGIN).status_code == 404
+    saved = a.request('DELETE', path, json={'revision':1}, headers=ORIGIN)
+    assert saved.status_code == 200 and not saved.json()['sources']
+    assert saved.json()['revision'] == 2
+    assert a.request('DELETE', path, json={'revision':2}, headers=ORIGIN).status_code == 404
+    a.post('/api/logout', headers=ORIGIN)
+    assert a.request('DELETE', path, json={'revision':2}, headers=ORIGIN).status_code == 401
 
 
 def test_auth_origin_host_body_and_logout(clients):
@@ -84,7 +173,7 @@ async def test_bounded_provider_contracts_and_citation_rejection():
         payload=json.loads(request.content)
         assert payload['model']=='test-model'
         return httpx.Response(200,json={'message':{'content':json.dumps({'answer':'A change.','citations':['c-one'],'uncertainty':'Review required'})}})
-    config=ProviderConfig(model='test-model')
+    config=ProviderConfig(kind='ollama',base='http://localhost:11434',model='test-model')
     answer=await generate(config,'what changed?',evidence,httpx.MockTransport(response))
     assert answer.citations==['c-one']
     for content in ['not json',json.dumps({'answer':'wrong','citations':['invented'],'uncertainty':''})]:

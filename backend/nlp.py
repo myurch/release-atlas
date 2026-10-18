@@ -13,7 +13,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import normalize
 
-from .models import Analysis, Claim, Edge, Graph, Node, Topic, Workspace, digest, now
+from .models import Analysis, Claim, Edge, Graph, Node, Topic, Workspace, PassageAnalysis, PipelineSummary, PipelineEvaluation, digest, now
+from .document_parser import parse_document
+from .document_classifier import classify_documents, document_classifier, document_evaluation
+from .technical_entities import extract_entities
 
 DATA = Path(__file__).resolve().parents[1] / 'data'
 TOKEN_PATTERN = r'(?u)\b[a-zA-Z_][a-zA-Z0-9_.-]*\b'
@@ -85,42 +88,75 @@ def make_graph(state: Workspace) -> Graph:
     )
 
 
+def discover_topics(claims):
+    """NMF over prose only. Code/URLs must not manufacture dominant subjects."""
+    texts = [re.sub(r'https?://\S+|`_?|[*#|]' , ' ', c.quote) if c.document.kind != 'code' else '' for c in claims]
+    eligible = [i for i,t in enumerate(texts) if len(re.findall(r'\b[a-zA-Z]{3,}\b',t)) >= 4]
+    if len(eligible) < 4 or len({texts[i].lower() for i in eligible}) < 4:
+        return [], ['Too little varied prose to discover topics. Add more documentation; no topics were forced.']
+    try:
+        vectorizer = TfidfVectorizer(stop_words='english',max_features=3000,token_pattern=r'(?u)\b[a-zA-Z][a-zA-Z0-9_.-]*\b',
+                                    max_df=.90,ngram_range=(1,2))
+        matrix = vectorizer.fit_transform([texts[i] for i in eligible])
+        count = min(4,max(1,len(eligible)//3),matrix.shape[1],len(eligible)-1)
+        nmf = NMF(n_components=count,init='nndsvda',max_iter=1000,random_state=11)
+        weights = nmf.fit_transform(matrix)
+        vocabulary = vectorizer.get_feature_names_out()
+        totals = weights.sum(axis=1,keepdims=True)
+        membership = np.divide(weights,totals,out=np.zeros_like(weights),where=totals > 0)
+        topics = []
+        for i,index in enumerate(eligible):
+            if totals[i,0] > 0:
+                claims[index].topic = int(weights[i].argmax())+1
+                claims[index].document.topic_strength = round(float(membership[i].max()),4)
+        for i,component in enumerate(nmf.components_):
+            members = [index for index in eligible if claims[index].topic == i+1]
+            if not members or component.max() <= 0:
+                continue
+            top = [j for j in component.argsort()[::-1] if component[j] > 0][:6]
+            representatives = sorted(members,key=lambda index:(-float(weights[eligible.index(index),i]),index))[:3]
+            topics.append(Topic(id=i+1,terms=[str(vocabulary[j]) for j in top],
+                weights=[round(float(component[j]/component.max()),4) for j in top],count=len(members),
+                representatives=[claims[j].id for j in representatives],source_count=len({claims[j].source_id for j in members})))
+        return topics, ['Topic terms are learned from prose in this workspace; code blocks remain outside topic modeling.']
+    except ValueError:
+        return [], ['Not enough usable vocabulary to discover topics. No topics were forced.']
+
+
 def analyze(state: Workspace) -> Workspace:
     state = state.model_copy(deep=True)
     previous = {c.id: c.review for c in state.claims}
     claims = []
     used = {u.entity.lower() for u in state.usage}
     for source in state.sources:
-        for match in re.finditer(r'[^\r\n]+', source.text):
-            text = match.group().strip()
-            if not text or text.startswith('#'):
-                continue
-            start = match.start()+len(match.group())-len(match.group().lstrip())
-            identifier = 'c-'+digest(source.id+'\0'+str(start)+'\0'+text)[:20]
-            extracted = entities(text)
-            claims.append(Claim(id=identifier, source_id=source.id, quote=text, start=start, end=start+len(text), entities=extracted, category='other', score=0, topic=0, applicable=bool(used.intersection(extracted)), review=previous.get(identifier)))
+        for block in parse_document(source.text):
+            text = source.text[block.start:block.end]
+            identifier = 'c-'+digest(source.id+'\0'+str(block.start)+'\0'+text)[:20]
+            mentions = extract_entities(text,block.start)
+            extracted = sorted(set(entities(text)) | {m.normalized for m in mentions})[:30]
+            excerpt = re.sub(r'^\s*(?:[-+*]|\d+[.)])\s+', '', text)
+            excerpt = re.sub(r'\s+', ' ', excerpt).replace('`','').strip()
+            title = re.split(r'(?<=[.!?])\s+',excerpt,maxsplit=1)[0][:120]
+            if block.kind in ('code','table'):
+                title = (block.headings[-1] if block.headings else 'Source')+' · '+block.kind
+            document = PassageAnalysis(title=title[:160] or 'Source passage',headings=list(block.headings),kind=block.kind,
+                words=len(re.findall(r'\b\w+\b',text)),sentences=len(re.findall(r'[.!?](?:\s|$)',text)),mentions=mentions)
+            claims.append(Claim(id=identifier, source_id=source.id, quote=text, start=block.start, end=block.end,
+                entities=extracted,category='other',score=0,topic=0,applicable=bool(used.intersection(extracted)),
+                review=previous.get(identifier),document=document))
     if not claims:
-        raise ValueError('No analyzable text. Add non-heading source lines.')
+        raise ValueError('No analyzable text. Add paragraphs, lists or code below your headings.')
     if len(claims) > 200:
-        raise ValueError('Analysis exceeds 200 claims. Split the review into smaller workspaces.')
-    predictions = classify([c.quote for c in claims])
-    for claim, (label, score) in zip(claims, predictions):
-        claim.category, claim.score = label, score
-    texts = [c.quote for c in claims]
-    topics = []
-    try:
-        vectorizer = TfidfVectorizer(stop_words='english', max_features=3000, token_pattern=TOKEN_PATTERN)
-        matrix = vectorizer.fit_transform(texts)
-        count = min(4, len(claims), matrix.shape[1])
-        nmf = NMF(n_components=count, init='nndsvda', max_iter=600, random_state=11)
-        weights = nmf.fit_transform(matrix)
-        vocabulary = vectorizer.get_feature_names_out()
-        assignments = weights.argmax(axis=1)
-        for claim, topic in zip(claims, assignments):
-            claim.topic = int(topic)
-        topics = [Topic(id=i, terms=[str(vocabulary[j]) for j in component.argsort()[-4:][::-1]], count=int((assignments == i).sum())) for i, component in enumerate(nmf.components_)]
-    except ValueError:
-        topics = [Topic(id=0, terms=['unassigned'], count=len(claims))]
+        raise ValueError('Analysis exceeds 200 claims/passages. Split the review into smaller workspaces.')
+    # Preserve release signals as a separate compatibility layer, never as purpose labels.
+    for claim,(label,score) in zip(claims,classify([c.quote for c in claims])):
+        claim.category,claim.score = label,score
+    inputs = [' > '.join(c.document.headings)+'\n'+c.quote for c in claims]
+    for claim,result in zip(claims,classify_documents(inputs)):
+        claim.document.purpose = result['purpose']
+        claim.document.alternatives = result['alternatives']
+        claim.document.examples = result['examples']
+    topics,notices = discover_topics(claims)
     sources = {s.id: s for s in state.sources}
     for i, left in enumerate(claims):
         for right in claims[i+1:]:
@@ -135,7 +171,18 @@ def analyze(state: Workspace) -> Workspace:
                     break
     state.claims, state.topics, state.answers = claims, topics, []
     state.graph = make_graph(state)
-    state.analysis = Analysis(method='TF-IDF + LSA/logistic classification; NMF topics; technical identifier extraction', embedding_model='local-lsa-v1', training_hash=classifier()[3], source_digest=source_digest(state), created_at=now())
+    model = document_classifier()
+    notices += ['Purpose scores are uncalibrated suggestions from synthetic training examples, not confidence or risk probabilities.',
+                'Entity types come from explicit syntax rules. Documentation is not executed and application code is not inspected.',
+                'Extraction keeps up to 60 typed mentions and 30 graph identifiers per passage. Full source text remains available.']
+    evaluation = document_evaluation()
+    pipeline = PipelineSummary(evaluation=PipelineEvaluation(**{key:evaluation[key] for key in ('held_out_examples','macro_f1','keyword_macro_f1','evaluation_hash')}),sources=len(state.sources),passages=len(claims),words=sum(c.document.words for c in claims),
+        sections=len({(c.source_id,tuple(c.document.headings)) for c in claims}),code_blocks=sum(c.document.kind == 'code' for c in claims),
+        entity_mentions=sum(len(c.document.mentions) for c in claims),
+        unique_entities=len({(m.kind,m.normalized) for c in claims for m in c.document.mentions}),
+        embedding_dimensions=model[1].n_components,training_examples=len(model[4]),notices=notices)
+    state.analysis = Analysis(method='Structural Markdown/RST passages; TF-IDF + LSA/logistic purpose classification; NMF topics; typed entity rules',
+        embedding_model='local-document-lsa-v1',training_hash=model[6],source_digest=source_digest(state),created_at=now(),pipeline=pipeline)
     return Workspace.model_validate(state.model_dump())
 
 

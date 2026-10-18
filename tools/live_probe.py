@@ -17,7 +17,7 @@ async def main():
     results=[]
     for kind,base in [('ollama','http://localhost:11434'),('compatible','http://localhost:11434/v1')]:
         start=time.monotonic()
-        answer=await generate(ProviderConfig(kind=kind,base=base),'Do the sources agree about retry_limit in 2.0? Explain only what the evidence supports.',evidence)
+        answer=await generate(ProviderConfig(kind=kind,base=base,model='gpt-oss:20b'),'Do the sources agree about retry_limit in 2.0? Explain only what the evidence supports.',evidence)
         assert set(answer.citations).issubset({r['claim']['id'] for r in evidence})
         results.append({'kind':kind,'base':base,'model':'gpt-oss:20b','elapsed_seconds':round(time.monotonic()-start,3),'answer':answer.model_dump(),'citation_allowlist':'PASS','scope':'Actual generation, not a mock; semantic grounding still needs human review'})
     (ROOT/'validation/live-provider-results.json').write_text(json.dumps({'result':'PASS','runs':results,'limitations':['One small synthetic question per adapter is not a quality or latency benchmark','Remote paid providers and external embedding models not tested']},indent=2)+'\n')

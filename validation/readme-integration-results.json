@@ -1,0 +1,12 @@
+{
+  "saved_source_text": false,
+  "workspace_modified": false,
+  "browser_tested": false,
+  "result": "PASS",
+  "repository": "octocat/Hello-World",
+  "commit": "7fd1a60b01f91b314f59955a4e4d4e80d8edf11d",
+  "path": "README",
+  "origin": "https://github.com/octocat/Hello-World/blob/7fd1a60b01f91b314f59955a4e4d4e80d8edf11d/README",
+  "characters": 13,
+  "sha256": "03ba204e50d126e4674c005e04d82e84c21366780af1f43bd54a37816b6ab340"
+}

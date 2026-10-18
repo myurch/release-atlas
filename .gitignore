@@ -10,3 +10,7 @@ node_modules/
 .atlas/
 .pytest_cache/
 *.egg-info/
+
+# Optional local semantic model, Python runtime and cache
+.tools/semantic/
+.idea

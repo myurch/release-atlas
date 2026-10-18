@@ -1,3 +1,4 @@
+import { workspaceFeatures } from "./features";
 import { Workspace } from "./types";
 
 export type TutorialStep = {
@@ -93,7 +94,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "3. Turn documents into evidence cards",
     goal: "Find changes worth reviewing.",
     explanation:
-      "Analyze sources extracts cited passages called claims, suggests change categories, groups related words into topics and links named settings. The cards count findings, usage matches, conflict candidates and recorded reviews.",
+      "Analyze sources runs a documentation NLP pipeline: structural passages, embedding-based purpose classification, discovered topics and typed technical entities. Release-change signals remain an additional review aid. The cards count findings, usage matches, conflict candidates and recorded reviews.",
     takeaway:
       "This demonstration replays prepared analysis. In your workspace, Analyze sources processes your current documents and usage profile. Reanalyze after either changes.",
     how: {
@@ -112,14 +113,14 @@ export const tutorialSteps: TutorialStep[] = [
     title: "4. Investigate what affects you",
     goal: "Open a finding linked to Checkout service.",
     explanation:
-      "This evidence card preserves the exact quote and links back to its source. Breaking means an existing use may stop working. Usage match means retry_limit appears in our declared profile. Neither label proves an upgrade is unsafe.",
+      "This passage preserves the exact quote and links back to its source. Its purpose label describes the kind of guidance. The separate breaking release signal suggests an existing use may stop working. Usage match means retry_limit appears in our declared profile. These labels do not prove an upgrade is unsafe.",
     takeaway:
       "The conflict flag asks you to compare documents. Both passages concern version 2.0, so this is more than an ordinary difference between old and new releases.",
     how: {
       concept: "Embedding-based text classification",
       tools: "scikit-learn · TF-IDF · Truncated SVD · Logistic regression",
       explanation:
-        "TF-IDF gives distinctive words more weight. Truncated SVD compresses those features into statistical embeddings, which are number vectors representing text. A trained logistic regression model suggests the change category. These are statistical text models; the displayed score is not a probability of upgrade failure.",
+        "TF-IDF gives distinctive words more weight. Truncated SVD compresses those features into statistical embeddings, which are number vectors representing text. A trained logistic regression model suggests documentation purpose, with competing labels and nearby examples available for inspection. The release-change classifier remains separate. These are statistical text models; scores are uncalibrated and do not predict upgrade failure.",
     },
     tab: "Overview",
     target: ".attention-row",
@@ -295,6 +296,46 @@ export const tutorialSteps: TutorialStep[] = [
     action: "Review what you accomplished",
   },
 ];
+
+// Preserve the complete walkthrough while omitting currently hidden controls.
+const visibleTutorialStepIndices = tutorialSteps.flatMap((step, index) =>
+  (workspaceFeatures.questions ||
+    (step.tab !== "Questions" && !step.target.includes("nav-Questions"))) &&
+  (workspaceFeatures.overviewDetails || !step.target.includes("edit-usage"))
+    ? [index]
+    : [],
+);
+export const visibleTutorialSteps = visibleTutorialStepIndices.map((index) => {
+  const step = tutorialSteps[index];
+  if (
+    !workspaceFeatures.snapshotControls &&
+    step.target.includes("nav-Activity")
+  )
+    return {
+      ...step,
+      title: "7. Check the review history",
+      goal: "See the decisions recorded in this review.",
+      explanation:
+        "Activity records saved workspace changes and review decisions. Open it to inspect who recorded a change and when.",
+      takeaway:
+        "Review history preserves the reasoning behind a decision. It does not prove an upgrade is safe.",
+      after: ".activity-row",
+      action: "Open Activity and inspect the review history",
+    };
+  if (
+    !workspaceFeatures.overviewDetails &&
+    step.title === "Your first review has a clear next action"
+  )
+    return {
+      ...step,
+      takeaway:
+        "For your own review: create a workspace, add versioned sources, analyze, inspect the passages and save review decisions. Finish returns to your work.",
+    };
+  return step;
+});
+export function tutorialStepIndex(step: number): number {
+  return visibleTutorialStepIndices[step] ?? -1;
+}
 
 export function emptyWorkspace(title = "Untitled review"): Workspace {
   return {

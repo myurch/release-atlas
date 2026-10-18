@@ -63,7 +63,60 @@
       "conflicts": [
         "c-7f97e6a33c7ef1da0ec0"
       ],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "Removed retry_limit; configure retry_policy instead.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 5,
+        "sentences": 1,
+        "purpose": "migration",
+        "alternatives": [
+          {
+            "label": "migration",
+            "score": 0.5926
+          },
+          {
+            "label": "configuration",
+            "score": 0.2519
+          },
+          {
+            "label": "resources",
+            "score": 0.0395
+          }
+        ],
+        "examples": [
+          {
+            "label": "migration",
+            "text": "Release notes: removed the legacy API and introduced an incompatible return type.",
+            "similarity": 0.5868
+          },
+          {
+            "label": "migration",
+            "text": "The legacy setting was removed. Update the configuration before upgrading.",
+            "similarity": 0.5724
+          }
+        ],
+        "mentions": [
+          {
+            "name": "retry_limit",
+            "normalized": "retry_limit",
+            "kind": "identifier",
+            "start": 9,
+            "end": 20,
+            "rule": "quoted-identifier"
+          },
+          {
+            "name": "retry_policy",
+            "normalized": "retry_policy",
+            "kind": "identifier",
+            "start": 34,
+            "end": 46,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 0.0
+      }
     },
     {
       "id": "c-62c2ae4cd75021fa42de",
@@ -76,10 +129,55 @@
       ],
       "category": "deprecation",
       "score": 0.9399,
-      "topic": 1,
+      "topic": 2,
       "applicable": true,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "Deprecated legacy_auth; it remains available until version 3.0.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 9,
+        "sentences": 1,
+        "purpose": "migration",
+        "alternatives": [
+          {
+            "label": "migration",
+            "score": 0.5588
+          },
+          {
+            "label": "resources",
+            "score": 0.0999
+          },
+          {
+            "label": "overview",
+            "score": 0.0994
+          }
+        ],
+        "examples": [
+          {
+            "label": "migration",
+            "text": "Deprecated methods still work but will be removed in the next major release.",
+            "similarity": 0.4881
+          },
+          {
+            "label": "resources",
+            "text": "License and copyright information is available in the LICENSE file.",
+            "similarity": 0.4705
+          }
+        ],
+        "mentions": [
+          {
+            "name": "legacy_auth",
+            "normalized": "legacy_auth",
+            "kind": "identifier",
+            "start": 69,
+            "end": 80,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 0.778
+      }
     },
     {
       "id": "c-041017e7d1eb6b9e1b8a",
@@ -95,7 +193,52 @@
       "topic": 3,
       "applicable": true,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "Added export_batch for bulk report exports.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 6,
+        "sentences": 1,
+        "purpose": "other",
+        "alternatives": [
+          {
+            "label": "installation",
+            "score": 0.2641
+          },
+          {
+            "label": "resources",
+            "score": 0.1923
+          },
+          {
+            "label": "overview",
+            "score": 0.1505
+          }
+        ],
+        "examples": [
+          {
+            "label": "security",
+            "text": "Vulnerability disclosure: report security issues privately to the maintainers.",
+            "similarity": 0.5172
+          },
+          {
+            "label": "overview",
+            "text": "The project is a comprehensive toolkit for HTTP and WSGI applications.",
+            "similarity": 0.4967
+          }
+        ],
+        "mentions": [
+          {
+            "name": "export_batch",
+            "normalized": "export_batch",
+            "kind": "identifier",
+            "start": 130,
+            "end": 142,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 1.0
+      }
     },
     {
       "id": "c-50766ffb8246b84b5462",
@@ -108,10 +251,55 @@
       ],
       "category": "security",
       "score": 0.7409,
-      "topic": 3,
+      "topic": 0,
       "applicable": false,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "Fixed an authentication bypass in session_check.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 6,
+        "sentences": 1,
+        "purpose": "security",
+        "alternatives": [
+          {
+            "label": "security",
+            "score": 0.4088
+          },
+          {
+            "label": "configuration",
+            "score": 0.2167
+          },
+          {
+            "label": "overview",
+            "score": 0.0951
+          }
+        ],
+        "examples": [
+          {
+            "label": "overview",
+            "text": "An interactive debugger allows inspecting stack traces and source code in a browser.",
+            "similarity": 0.5206
+          },
+          {
+            "label": "security",
+            "text": "Authentication requires a valid token and authorization checks before accessing private records.",
+            "similarity": 0.4893
+          }
+        ],
+        "mentions": [
+          {
+            "name": "session_check",
+            "normalized": "session_check",
+            "kind": "identifier",
+            "start": 204,
+            "end": 217,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 0.0
+      }
     },
     {
       "id": "c-9623aa0cf5f49ca900cb",
@@ -124,10 +312,55 @@
       ],
       "category": "fix",
       "score": 0.837,
-      "topic": 2,
+      "topic": 0,
       "applicable": false,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "Corrected a sorting bug in list_orders.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 6,
+        "sentences": 1,
+        "purpose": "configuration",
+        "alternatives": [
+          {
+            "label": "configuration",
+            "score": 0.4468
+          },
+          {
+            "label": "security",
+            "score": 0.2443
+          },
+          {
+            "label": "resources",
+            "score": 0.1058
+          }
+        ],
+        "examples": [
+          {
+            "label": "resources",
+            "text": "License and copyright information is available in the LICENSE file.",
+            "similarity": 0.5357
+          },
+          {
+            "label": "configuration",
+            "text": "Set logging options and connection parameters in the application configuration.",
+            "similarity": 0.4442
+          }
+        ],
+        "mentions": [
+          {
+            "name": "list_orders",
+            "normalized": "list_orders",
+            "kind": "identifier",
+            "start": 248,
+            "end": 259,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 0.0
+      }
     },
     {
       "id": "c-7f97e6a33c7ef1da0ec0",
@@ -140,12 +373,57 @@
       ],
       "category": "other",
       "score": 0.6184,
-      "topic": 0,
+      "topic": 1,
       "applicable": true,
       "conflicts": [
         "c-aefd00a45ab49749cf02"
       ],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "The retry_limit setting remains supported in version 2.0.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 9,
+        "sentences": 1,
+        "purpose": "configuration",
+        "alternatives": [
+          {
+            "label": "configuration",
+            "score": 0.4947
+          },
+          {
+            "label": "migration",
+            "score": 0.2002
+          },
+          {
+            "label": "troubleshooting",
+            "score": 0.1242
+          }
+        ],
+        "examples": [
+          {
+            "label": "configuration",
+            "text": "The default value of retry_limit is three. Override it in the settings file.",
+            "similarity": 0.5588
+          },
+          {
+            "label": "configuration",
+            "text": "The cache_size setting controls the maximum number of cached items.",
+            "similarity": 0.4583
+          }
+        ],
+        "mentions": [
+          {
+            "name": "retry_limit",
+            "normalized": "retry_limit",
+            "kind": "configuration",
+            "start": 5,
+            "end": 16,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 1.0
+      }
     },
     {
       "id": "c-fa9ba15d3fdcf8f6732b",
@@ -158,10 +436,55 @@
       ],
       "category": "other",
       "score": 0.5404,
-      "topic": 0,
+      "topic": 1,
       "applicable": false,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "The retry_policy setting controls retry delays and maximum attempts.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 9,
+        "sentences": 1,
+        "purpose": "configuration",
+        "alternatives": [
+          {
+            "label": "configuration",
+            "score": 0.6238
+          },
+          {
+            "label": "migration",
+            "score": 0.0769
+          },
+          {
+            "label": "troubleshooting",
+            "score": 0.0609
+          }
+        ],
+        "examples": [
+          {
+            "label": "configuration",
+            "text": "The cache_size setting controls the maximum number of cached items.",
+            "similarity": 0.9582
+          },
+          {
+            "label": "migration",
+            "text": "The legacy setting was removed. Update the configuration before upgrading.",
+            "similarity": 0.3798
+          }
+        ],
+        "mentions": [
+          {
+            "name": "retry_policy",
+            "normalized": "retry_policy",
+            "kind": "configuration",
+            "start": 65,
+            "end": 77,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 0.9974
+      }
     },
     {
       "id": "c-9a96f5b5370e0076f8a4",
@@ -170,14 +493,77 @@
       "start": 131,
       "end": 183,
       "entities": [
-        "export_batch"
+        "csv",
+        "export_batch",
+        "json"
       ],
       "category": "feature",
       "score": 0.6401,
       "topic": 3,
       "applicable": true,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "The export_batch API supports JSON and CSV output.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 8,
+        "sentences": 1,
+        "purpose": "other",
+        "alternatives": [
+          {
+            "label": "api-reference",
+            "score": 0.3885
+          },
+          {
+            "label": "migration",
+            "score": 0.3791
+          },
+          {
+            "label": "troubleshooting",
+            "score": 0.0595
+          }
+        ],
+        "examples": [
+          {
+            "label": "example",
+            "text": "An example of streaming output with a Python generator and response wrapper.",
+            "similarity": 0.499
+          },
+          {
+            "label": "migration",
+            "text": "Breaking change: this release no longer supports Python 3.8.",
+            "similarity": 0.4444
+          }
+        ],
+        "mentions": [
+          {
+            "name": "export_batch",
+            "normalized": "export_batch",
+            "kind": "identifier",
+            "start": 136,
+            "end": 148,
+            "rule": "quoted-identifier"
+          },
+          {
+            "name": "JSON",
+            "normalized": "json",
+            "kind": "protocol",
+            "start": 163,
+            "end": 167,
+            "rule": "known-protocol-or-format"
+          },
+          {
+            "name": "CSV",
+            "normalized": "csv",
+            "kind": "protocol",
+            "start": 172,
+            "end": 175,
+            "rule": "known-protocol-or-format"
+          }
+        ],
+        "topic_strength": 1.0
+      }
     },
     {
       "id": "c-37e7025f389f7442a77f",
@@ -190,10 +576,55 @@
       ],
       "category": "deprecation",
       "score": 0.954,
-      "topic": 1,
+      "topic": 2,
       "applicable": true,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "The legacy_auth adapter is deprecated but still works.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 8,
+        "sentences": 1,
+        "purpose": "migration",
+        "alternatives": [
+          {
+            "label": "migration",
+            "score": 0.5588
+          },
+          {
+            "label": "resources",
+            "score": 0.1007
+          },
+          {
+            "label": "overview",
+            "score": 0.097
+          }
+        ],
+        "examples": [
+          {
+            "label": "migration",
+            "text": "Deprecated methods still work but will be removed in the next major release.",
+            "similarity": 0.8327
+          },
+          {
+            "label": "migration",
+            "text": "Migration guide: replace the deprecated old_client API with Client.",
+            "similarity": 0.4538
+          }
+        ],
+        "mentions": [
+          {
+            "name": "legacy_auth",
+            "normalized": "legacy_auth",
+            "kind": "identifier",
+            "start": 189,
+            "end": 200,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 1.0
+      }
     },
     {
       "id": "c-997cffe46e3f4498fb16",
@@ -206,10 +637,55 @@
       ],
       "category": "other",
       "score": 0.4768,
-      "topic": 0,
+      "topic": 1,
       "applicable": true,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "The retry_limit setting is supported in version 1.8.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 9,
+        "sentences": 1,
+        "purpose": "configuration",
+        "alternatives": [
+          {
+            "label": "configuration",
+            "score": 0.4351
+          },
+          {
+            "label": "troubleshooting",
+            "score": 0.2276
+          },
+          {
+            "label": "migration",
+            "score": 0.1171
+          }
+        ],
+        "examples": [
+          {
+            "label": "configuration",
+            "text": "The default value of retry_limit is three. Override it in the settings file.",
+            "similarity": 0.6872
+          },
+          {
+            "label": "resources",
+            "text": "License and copyright information is available in the LICENSE file.",
+            "similarity": 0.5327
+          }
+        ],
+        "mentions": [
+          {
+            "name": "retry_limit",
+            "normalized": "retry_limit",
+            "kind": "configuration",
+            "start": 5,
+            "end": 16,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 1.0
+      }
     },
     {
       "id": "c-edd4f8dbd7526f49dac3",
@@ -222,10 +698,55 @@
       ],
       "category": "deprecation",
       "score": 0.5787,
-      "topic": 1,
+      "topic": 2,
       "applicable": true,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "The legacy_auth adapter is available for existing applications.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 8,
+        "sentences": 1,
+        "purpose": "overview",
+        "alternatives": [
+          {
+            "label": "overview",
+            "score": 0.4651
+          },
+          {
+            "label": "resources",
+            "score": 0.1266
+          },
+          {
+            "label": "migration",
+            "score": 0.1195
+          }
+        ],
+        "examples": [
+          {
+            "label": "overview",
+            "text": "The project is a comprehensive toolkit for HTTP and WSGI applications.",
+            "similarity": 0.5956
+          },
+          {
+            "label": "resources",
+            "text": "License and copyright information is available in the LICENSE file.",
+            "similarity": 0.5709
+          }
+        ],
+        "mentions": [
+          {
+            "name": "legacy_auth",
+            "normalized": "legacy_auth",
+            "kind": "identifier",
+            "start": 60,
+            "end": 71,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 1.0
+      }
     },
     {
       "id": "c-6890f9a6d053f4640bdb",
@@ -238,52 +759,135 @@
       ],
       "category": "other",
       "score": 0.3615,
-      "topic": 2,
+      "topic": 3,
       "applicable": false,
       "conflicts": [],
-      "review": null
+      "review": null,
+      "document": {
+        "title": "Use list_orders to fetch customer order history.",
+        "headings": [],
+        "kind": "paragraph",
+        "words": 7,
+        "sentences": 1,
+        "purpose": "security",
+        "alternatives": [
+          {
+            "label": "security",
+            "score": 0.4926
+          },
+          {
+            "label": "api-reference",
+            "score": 0.1734
+          },
+          {
+            "label": "troubleshooting",
+            "score": 0.1021
+          }
+        ],
+        "examples": [
+          {
+            "label": "security",
+            "text": "Use secure cookies and restrict allowed origins to prevent unauthorized access.",
+            "similarity": 0.6223
+          },
+          {
+            "label": "troubleshooting",
+            "text": "Troubleshooting: if the server fails to start, check whether the port is in use.",
+            "similarity": 0.541
+          }
+        ],
+        "mentions": [
+          {
+            "name": "list_orders",
+            "normalized": "list_orders",
+            "kind": "identifier",
+            "start": 126,
+            "end": 137,
+            "rule": "quoted-identifier"
+          }
+        ],
+        "topic_strength": 1.0
+      }
     }
   ],
   "topics": [
     {
-      "id": 0,
-      "terms": [
-        "retry_limit",
-        "supported",
-        "setting",
-        "version"
-      ],
-      "count": 4
-    },
-    {
       "id": 1,
       "terms": [
-        "legacy_auth",
-        "adapter",
-        "deprecated",
-        "available"
+        "supported version",
+        "retry_limit setting",
+        "retry_limit",
+        "supported",
+        "version",
+        "setting"
       ],
-      "count": 3
+      "count": 3,
+      "weights": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.9298,
+        0.9215
+      ],
+      "representatives": [
+        "c-7f97e6a33c7ef1da0ec0",
+        "c-997cffe46e3f4498fb16",
+        "c-fa9ba15d3fdcf8f6732b"
+      ],
+      "source_count": 2
     },
     {
       "id": 2,
       "terms": [
-        "list_orders",
-        "corrected",
-        "sorting",
-        "bug"
+        "legacy_auth",
+        "legacy_auth adapter",
+        "adapter",
+        "deprecated",
+        "available",
+        "works"
       ],
-      "count": 2
+      "count": 3,
+      "weights": [
+        1.0,
+        0.8546,
+        0.8546,
+        0.7594,
+        0.6832,
+        0.5509
+      ],
+      "representatives": [
+        "c-37e7025f389f7442a77f",
+        "c-edd4f8dbd7526f49dac3",
+        "c-62c2ae4cd75021fa42de"
+      ],
+      "source_count": 3
     },
     {
       "id": 3,
       "terms": [
         "export_batch",
+        "report",
         "added",
-        "exports",
-        "bulk"
+        "report exports",
+        "bulk",
+        "bulk report"
       ],
-      "count": 3
+      "count": 3,
+      "weights": [
+        1.0,
+        0.6225,
+        0.6225,
+        0.6225,
+        0.6225,
+        0.6225
+      ],
+      "representatives": [
+        "c-9a96f5b5370e0076f8a4",
+        "c-041017e7d1eb6b9e1b8a",
+        "c-6890f9a6d053f4640bdb"
+      ],
+      "source_count": 3
     }
   ],
   "graph": {
@@ -340,7 +944,7 @@
         "id": "c-9a96f5b5370e0076f8a4",
         "label": "The `export_batch` API supports JSON and CSV output.",
         "kind": "claim",
-        "degree": 2
+        "degree": 4
       },
       {
         "id": "c-aefd00a45ab49749cf02",
@@ -361,10 +965,22 @@
         "degree": 2
       },
       {
+        "id": "e:csv",
+        "label": "csv",
+        "kind": "entity",
+        "degree": 1
+      },
+      {
         "id": "e:export_batch",
         "label": "export_batch",
         "kind": "entity",
         "degree": 3
+      },
+      {
+        "id": "e:json",
+        "label": "json",
+        "kind": "entity",
+        "degree": 1
       },
       {
         "id": "e:legacy_auth",
@@ -452,6 +1068,16 @@
       {
         "source": "c-9623aa0cf5f49ca900cb",
         "target": "e:list_orders",
+        "relation": "mentions"
+      },
+      {
+        "source": "c-9a96f5b5370e0076f8a4",
+        "target": "e:csv",
+        "relation": "mentions"
+      },
+      {
+        "source": "c-9a96f5b5370e0076f8a4",
+        "target": "e:json",
         "relation": "mentions"
       },
       {
@@ -582,11 +1208,35 @@
     ]
   },
   "analysis": {
-    "method": "TF-IDF + LSA/logistic classification; NMF topics; technical identifier extraction",
-    "embedding_model": "local-lsa-v1",
-    "training_hash": "bfb72050c0ee46188d12a6f8c117617f0655e1f6c0940e12c1896596027f6e2d",
+    "method": "Structural Markdown/RST passages; TF-IDF + LSA/logistic purpose classification; NMF topics; typed entity rules",
+    "embedding_model": "local-document-lsa-v1",
+    "training_hash": "a8549c221aee77a6b0b95d1c2f072d12a654fffb73108a304af8a1315413704a",
     "source_digest": "9a71ead02ceb4232b263e0f71575d8c4e611cfaca6eb0f98fb5ceb47ffb346ea",
-    "created_at": "2026-10-06T00:00:00+00:00"
+    "created_at": "2026-10-06T00:00:00+00:00",
+    "pipeline": {
+      "version": "documentation-v1",
+      "evaluation": {
+        "held_out_examples": 27,
+        "macro_f1": 0.88,
+        "keyword_macro_f1": 0.8457,
+        "evaluation_hash": "fe5ac154ac0127ba38a3f153777aa6a4da4025119423bfcad1532938b46bf6f7"
+      },
+      "sources": 3,
+      "passages": 12,
+      "words": 90,
+      "sections": 3,
+      "code_blocks": 0,
+      "entity_mentions": 15,
+      "unique_entities": 10,
+      "embedding_dimensions": 48,
+      "training_examples": 72,
+      "notices": [
+        "Topic terms are learned from prose in this workspace; code blocks remain outside topic modeling.",
+        "Purpose scores are uncalibrated suggestions from synthetic training examples, not confidence or risk probabilities.",
+        "Entity types come from explicit syntax rules. Documentation is not executed and application code is not inspected.",
+        "Extraction keeps up to 60 typed mentions and 30 graph identifiers per passage. Full source text remains available."
+      ]
+    }
   },
   "answers": [],
   "audit": []

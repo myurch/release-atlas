@@ -1,0 +1,41 @@
+{
+  "result": "PASS",
+  "real_api_regression": {
+    "cases": 44,
+    "repetitions": 2,
+    "passed": 88,
+    "total": 88,
+    "report": "validation/assistant-eval-clarification-final.json"
+  },
+  "new_cases": [
+    "unlinked-event",
+    "same-batch-clarification",
+    "explicit-event-assumption",
+    "carry-user-premise-forward",
+    "withdraw-event-assumption",
+    "configuration-delta-clarification"
+  ],
+  "baseline": {
+    "passed": 6,
+    "total": 6,
+    "note": "The simplified reproduction already passed before this adjustment; the exact reported refusal was not reproduced. This update makes premise handling explicit and adds regression coverage."
+  },
+  "checks": {
+    "python_tests": 67,
+    "frontend_tests": 9,
+    "typecheck": "PASS",
+    "format": "PASS",
+    "build": "PASS",
+    "synthetic_nlp_evaluation": "PASS",
+    "diff_check": "PASS",
+    "real_chat_and_saved_answer_probe": "PASS",
+    "actual_browser_conversation": "PASS"
+  },
+  "metered_eval_requests": 94,
+  "estimated_metered_cost_usd": 0.025786,
+  "additional_unmetered_real_requests": 4,
+  "limitations": [
+    "Finite synthetic cases and heuristic grading do not guarantee arbitrary future answers",
+    "Supported visible browser used; automated headless Chromium suite not executed"
+  ]
+}

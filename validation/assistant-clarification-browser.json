@@ -1,0 +1,17 @@
+{
+  "result": "PASS",
+  "material": "Original synthetic 15-bagel initial count and Bob-ate-5 event; temporary workspace only",
+  "launcher": "sh run-release-atlas-macos-intel.sh",
+  "port": 8774,
+  "checks": {
+    "initial_question": "10 only under an explicit same-batch assumption",
+    "actual_user_clarification": "10 bagels remain; 15 minus 5; no renewed demand for proof",
+    "source_citations": "both saved sources returned and rendered",
+    "browser_model_requests": 2
+  },
+  "screenshot": "/tmp/release-atlas-clarification.png",
+  "saved_user_workspaces": "untouched",
+  "limits": [
+    "Supported in-app browser checked; full automated headless Chromium suite not run"
+  ]
+}

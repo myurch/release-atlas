@@ -1,13 +1,25 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Workspace } from "./types";
 import { guideReply } from "./guide";
+import { RetrievalReport, validatedRetrieval } from "./retrieval";
+import { RetrievedContext } from "./RetrievedContext";
+import { SourcePassage, validatedSourcePassages } from "./source-citations";
+import {
+  SourceAction,
+  sourceActionItems,
+  sourceActionLabel,
+  validatedSourceAction,
+} from "./source-actions";
 
 export type ChatTurn = {
   role: "user" | "assistant";
   content: string;
   citations?: string[];
+  sourcePassages?: SourcePassage[];
   uncertainty?: string;
   guide?: boolean;
+  sourceAction?: SourceAction;
+  retrieval?: RetrievalReport;
 };
 export function Assistant({
   workspace,
@@ -18,6 +30,7 @@ export function Assistant({
   provider,
   navigate,
   openClaim,
+  openSource,
   onAuthExpired,
   refresh,
   blocked = false,
@@ -33,6 +46,7 @@ export function Assistant({
       "Overview" | "Sources" | "Evidence" | "Graph" | "Questions" | "Activity",
   ) => void;
   openClaim: (id: string) => void;
+  openSource: (id: string) => void;
   onAuthExpired: () => void;
   refresh: () => Promise<unknown>;
   blocked?: boolean;
@@ -42,6 +56,8 @@ export function Assistant({
   const [draft, setDraft] = useState("");
   const [mode, setMode] = useState(live ? "model" : "guide");
   const [pending, setPending] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const actionInFlight = useRef(false);
   const [error, setError] = useState("");
   const abort = useRef<AbortController | null>(null);
   const sequence = useRef(0);
@@ -99,7 +115,8 @@ export function Assistant({
   }, [turns, pending]);
   async function send(text = draft) {
     const message = text.trim();
-    if (!message || pending || message.length > 2000) return;
+    if (!message || pending || actionInFlight.current || message.length > 2000)
+      return;
     setError("");
     const previous = turns
       .slice(-10)
@@ -166,13 +183,26 @@ export function Assistant({
         throw new Error(
           "The assistant response could not be verified. Try again.",
         );
+      const sourcePassages = validatedSourcePassages(
+        value.source_passages ?? [],
+        value.source_citations ?? [],
+        workspace.sources,
+      );
+      const retrieval = validatedRetrieval(value.retrieval, workspace.sources);
+      const sourceAction = validatedSourceAction(
+        value.source_action,
+        workspace,
+      );
       setTurns((t) => [
         ...t,
         {
           role: "assistant",
           content: value.answer,
           citations: value.citations,
+          sourcePassages,
           uncertainty: value.uncertainty,
+          sourceAction,
+          retrieval,
         },
       ]);
       setDraft("");
@@ -186,26 +216,90 @@ export function Assistant({
       }
     }
   }
-  const chosen = workspace.claims.find((c) => c.id === claimId);
-  const selectedSource = workspace.sources.find((s) => s.id === sourceId);
+  async function applySourceAction(index: number, action: SourceAction) {
+    if (
+      actionInFlight.current ||
+      pending ||
+      !live ||
+      blocked ||
+      current.current.revision !== action.revision
+    )
+      return;
+    actionInFlight.current = true;
+    setApplying(true);
+    setError("");
+    try {
+      const response = await fetch("/api/assistant/source-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          revision: action.revision,
+          token: action.token,
+          source_ids: sourceActionItems(action).map((item) => item.source_id),
+        }),
+      });
+      const value = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) onAuthExpired();
+        if (response.status === 409) void refresh();
+        throw new Error(
+          typeof value.detail === "string"
+            ? value.detail
+            : "Source action failed. Refresh the workspace before trying again.",
+        );
+      }
+      if (
+        !current.current.live ||
+        current.current.blocked ||
+        current.current.revision > value.revision
+      )
+        return;
+      if (
+        value.revision !== action.revision + 1 ||
+        value.action !== action.action ||
+        value.source_id !== action.source_id ||
+        JSON.stringify(value.source_ids) !==
+          JSON.stringify(
+            sourceActionItems(action).map((item) => item.source_id),
+          ) ||
+        typeof value.message !== "string"
+      )
+        throw new Error(
+          "Refresh the workspace to verify the source action result.",
+        );
+      setTurns((items) =>
+        items.map((turn, i) =>
+          i === index
+            ? {
+                ...turn,
+                content: value.message,
+                sourceAction: undefined,
+              }
+            : turn,
+        ),
+      );
+      await refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      actionInFlight.current = false;
+      setApplying(false);
+    }
+  }
   return (
     <div className="assistant-host" hidden={blocked}>
       {open && (
         <section className="assistant-panel" aria-label="Atlas assistant">
           <header className="assistant-heading">
-            <div className="assistant-emblem" aria-hidden="true">
-              ✦
-            </div>
             <div>
               <h2>Ask Atlas</h2>
-              <span>Your review companion</span>
             </div>
             <button
               type="button"
               className="icon-button"
               data-help="clearChat"
               aria-label="Clear conversation"
-              disabled={pending || !turns.length}
+              disabled={pending || applying || !turns.length}
               onClick={() => {
                 setTurns([]);
                 setError("");
@@ -222,20 +316,6 @@ export function Assistant({
               ×
             </button>
           </header>
-          <div className="assistant-context">
-            <span className="context-dot" />
-            {page}
-            <span>·</span>
-            <strong title={workspace.title}>{workspace.title}</strong>
-            {chosen && (
-              <small>
-                Selected: {chosen.entities.join(", ") || "Evidence card"}
-              </small>
-            )}
-            {selectedSource && !chosen && (
-              <small>Source: {selectedSource.title}</small>
-            )}
-          </div>
           <div
             className="assistant-transcript"
             ref={transcript}
@@ -247,14 +327,7 @@ export function Assistant({
           >
             {!turns.length && (
               <div className="assistant-welcome">
-                <span className="assistant-welcome-mark" aria-hidden="true">
-                  ✦
-                </span>
-                <h3>
-                  A little clarity,
-                  <br />
-                  right when you need it.
-                </h3>
+                <h3>Ask about your sources</h3>
                 <p>
                   Ask about this page, trace a finding, or get a practical next
                   step.
@@ -288,6 +361,80 @@ export function Assistant({
                       : "Atlas · Model answer"}
                 </span>
                 <p>{turn.content}</p>
+                {turn.sourceAction && live && !blocked && (
+                  <div className="chat-source-action">
+                    <strong>{sourceActionLabel(turn.sourceAction)}</strong>
+                    {turn.sourceAction.match_text && (
+                      <p>
+                        Literal match in full source titles or text, ignoring
+                        case: {JSON.stringify(turn.sourceAction.match_text)}
+                      </p>
+                    )}
+                    {sourceActionItems(turn.sourceAction).map((item, index) => (
+                      <details key={item.source_id}>
+                        <summary>
+                          {index + 1}. {item.source.title} (version{" "}
+                          {item.source.version})
+                        </summary>
+                        <p>
+                          License / permission: {item.source.license}
+                          <br />
+                          Source URL: {item.source.url || "None"}
+                        </p>
+                        <blockquote>{item.source.text}</blockquote>
+                      </details>
+                    ))}
+                    {turn.sourceAction.action === "delete_source" && (
+                      <p>
+                        Removes {turn.sourceAction.removed_findings} findings
+                        and {turn.sourceAction.removed_answers} saved answers.
+                        Graph and topics will be cleared. Analyze sources again
+                        afterward.
+                      </p>
+                    )}
+                    <p>
+                      {turn.sourceAction.revision !== workspace.revision
+                        ? "Workspace changed. Ask Atlas again for a current proposal."
+                        : "Review these details before applying. This proposal expires after 10 minutes."}
+                    </p>
+                    <button
+                      type="button"
+                      className="primary"
+                      disabled={
+                        pending ||
+                        applying ||
+                        turn.sourceAction.revision !== workspace.revision
+                      }
+                      onClick={() =>
+                        void applySourceAction(i, turn.sourceAction!)
+                      }
+                    >
+                      {applying
+                        ? "Applying…"
+                        : sourceActionLabel(turn.sourceAction)}
+                    </button>{" "}
+                    <button
+                      type="button"
+                      disabled={applying}
+                      onClick={() =>
+                        setTurns((items) =>
+                          items.map((item, index) =>
+                            index === i
+                              ? {
+                                  ...item,
+                                  content:
+                                    "Source proposal canceled. No changes saved.",
+                                  sourceAction: undefined,
+                                }
+                              : item,
+                          ),
+                        )
+                      }
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
                 {!!turn.citations?.length && (
                   <div className="citation-row">
                     {turn.citations.map((id, index) => (
@@ -308,6 +455,43 @@ export function Assistant({
                       </button>
                     ))}
                   </div>
+                )}
+                {turn.sourcePassages?.map((passage, index) => {
+                  const source = workspace.sources.find(
+                    (s) =>
+                      s.id === passage.source_id && s.sha256 === passage.sha256,
+                  );
+                  return (
+                    <details className="chat-source" key={passage.id}>
+                      <summary>
+                        Source {index + 1}:{" "}
+                        {source?.title || "Source no longer current"}
+                        {source ? ` (${source.version})` : ""}
+                      </summary>
+                      <blockquote>{passage.quote}</blockquote>
+                      <button
+                        className="citation"
+                        type="button"
+                        disabled={!source}
+                        onClick={() => {
+                          openSource(passage.source_id);
+                          if (innerWidth < 800) close();
+                        }}
+                      >
+                        Open source ↗
+                      </button>
+                    </details>
+                  );
+                })}
+                {turn.retrieval && (
+                  <RetrievedContext
+                    report={turn.retrieval}
+                    sources={workspace.sources}
+                    openSource={(id) => {
+                      openSource(id);
+                      if (innerWidth < 800) close();
+                    }}
+                  />
                 )}
                 {turn.uncertainty && (
                   <small className="chat-caution">{turn.uncertainty}</small>
@@ -353,7 +537,7 @@ export function Assistant({
               ref={input}
               value={draft}
               maxLength={2000}
-              rows={3}
+              rows={2}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Ask a question about your review…"
               disabled={pending}
@@ -400,12 +584,8 @@ export function Assistant({
             </div>
             <p className="assistant-disclosure">
               {live && mode === "model"
-                ? `Uses ${provider} with this page and relevant workspace text. Verify model answers against sources.`
-                : live
-                  ? "Built-in workflow help. Switch to Model chat for a generated answer."
-                  : "Built-in workflow help. Live AI answers are not enabled in this viewer."}{" "}
-              Conversation stays in this open view; it is not saved with the
-              review.
+                ? `Excerpts sent to ${provider}. Verify answers. Chat is not saved.`
+                : "Built-in app help. Chat is not saved."}
             </p>
           </form>
           {!turns.length && (

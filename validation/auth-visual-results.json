@@ -1,0 +1,22 @@
+{
+  "result": "PASS",
+  "date": "2026-10-17",
+  "method": "Visible in-app browser interactions against real loopback services launched with sh run-release-atlas-macos-intel.sh",
+  "data": "Isolated temporary workspaces; saved user reviews untouched",
+  "checks": [
+    "Default mode opens the live workspace without a login dialog or sign-out controls",
+    "Workspace creation succeeds without sign-in",
+    "Refresh preserves the created workspace without requesting sign-in",
+    "Activity attributes the saved change to Local reviewer",
+    "ATLAS_AUTH_ENABLED=1 restores the sign-in dialog",
+    "Incorrect access code is rejected visibly",
+    "Configured test access code signs in with the supplied display name",
+    "Sign-out followed by refresh restores the sign-in dialog",
+    "Updated Intel Mac launcher prints direct-access guidance when authentication is disabled",
+    "Server restart retains the saved temporary workspace and direct access"
+  ],
+  "limits": [
+    "Focused visual authentication checks, not a full automated Chromium suite",
+    "Safari and Firefox not tested"
+  ]
+}

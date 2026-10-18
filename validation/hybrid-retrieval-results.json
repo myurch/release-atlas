@@ -1,0 +1,497 @@
+{
+  "result": "PASS",
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+  "checks": [
+    {
+      "case": "Authentication keyword",
+      "question": "How does authentication work?",
+      "expected": [
+        "Authentication API",
+        "Identity guide"
+      ],
+      "excluded": [
+        "Report printing"
+      ],
+      "required": [
+        "Authentication API",
+        "Identity guide"
+      ],
+      "found": [
+        "Identity guide",
+        "Authentication API",
+        "Client settings",
+        "Session recovery"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Identity guide": [
+          "semantic match",
+          "terminology match",
+          "related topic",
+          "purpose match"
+        ],
+        "Authentication API": [
+          "lexical match",
+          "semantic match",
+          "related topic"
+        ],
+        "Client settings": [
+          "semantic match",
+          "related topic",
+          "purpose match"
+        ],
+        "Session recovery": [
+          "semantic match"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 0.5,
+      "seconds": 5.093,
+      "exact_quotes": true
+    },
+    {
+      "case": "Identity paraphrase",
+      "question": "How does the server establish who a caller is?",
+      "expected": [
+        "Authentication API",
+        "Identity guide"
+      ],
+      "excluded": [
+        "Report printing"
+      ],
+      "required": [
+        "Authentication API"
+      ],
+      "found": [
+        "Authentication API"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Authentication API": [
+          "lexical match",
+          "semantic match",
+          "purpose match"
+        ]
+      },
+      "recall_at_3": 0.5,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.0772,
+      "exact_quotes": true
+    },
+    {
+      "case": "Credential configuration",
+      "question": "How do I configure authentication?",
+      "expected": [
+        "Client settings"
+      ],
+      "excluded": [
+        "SQL storage"
+      ],
+      "required": [
+        "Client settings"
+      ],
+      "found": [
+        "Identity guide",
+        "Authentication API",
+        "Client settings",
+        "Session recovery"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Identity guide": [
+          "semantic match",
+          "terminology match",
+          "related topic"
+        ],
+        "Authentication API": [
+          "lexical match",
+          "semantic match",
+          "related topic"
+        ],
+        "Client settings": [
+          "semantic match",
+          "related topic"
+        ],
+        "Session recovery": [
+          "semantic match"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.0743,
+      "exact_quotes": true
+    },
+    {
+      "case": "Exact setting",
+      "question": "Explain IDENTITY_KEY",
+      "expected": [
+        "Client settings"
+      ],
+      "excluded": [
+        "Report printing"
+      ],
+      "required": [
+        "Client settings"
+      ],
+      "found": [
+        "Client settings",
+        "Identity guide",
+        "Authentication API"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Client settings": [
+          "lexical match",
+          "semantic match",
+          "exact entity",
+          "related topic"
+        ],
+        "Identity guide": [
+          "semantic match",
+          "related topic"
+        ],
+        "Authentication API": [
+          "semantic match",
+          "related topic"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.0726,
+      "exact_quotes": true
+    },
+    {
+      "case": "API function",
+      "question": "How do I use verify_token()?",
+      "expected": [
+        "Authentication API"
+      ],
+      "excluded": [
+        "Report printing"
+      ],
+      "required": [
+        "Authentication API"
+      ],
+      "found": [
+        "Authentication API",
+        "Client settings",
+        "Identity guide"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Authentication API": [
+          "lexical match",
+          "semantic match",
+          "exact entity",
+          "related topic"
+        ],
+        "Client settings": [
+          "semantic match",
+          "related topic"
+        ],
+        "Identity guide": [
+          "semantic match",
+          "related topic"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.0766,
+      "exact_quotes": true
+    },
+    {
+      "case": "Expired sign-in",
+      "question": "Why do visitors have to log in again after the cookie expires?",
+      "expected": [
+        "Session recovery"
+      ],
+      "excluded": [
+        "Report printing"
+      ],
+      "required": [
+        "Session recovery"
+      ],
+      "found": [
+        "Session recovery",
+        "Identity guide"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Session recovery": [
+          "lexical match",
+          "semantic match",
+          "related topic"
+        ],
+        "Identity guide": [
+          "semantic match"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.0858,
+      "exact_quotes": true
+    },
+    {
+      "case": "Installation",
+      "question": "How do I install the client in an isolated environment?",
+      "expected": [
+        "Installing"
+      ],
+      "excluded": [
+        "Report printing"
+      ],
+      "required": [
+        "Installing"
+      ],
+      "found": [
+        "Installing",
+        "Client settings"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Installing": [
+          "lexical match",
+          "semantic match",
+          "purpose match"
+        ],
+        "Client settings": [
+          "lexical match"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.0859,
+      "exact_quotes": true
+    },
+    {
+      "case": "Printing subject",
+      "question": "How do I print a report with charts?",
+      "expected": [
+        "Report printing"
+      ],
+      "excluded": [
+        "Identity guide"
+      ],
+      "required": [
+        "Report printing"
+      ],
+      "found": [
+        "Report printing",
+        "SQL storage"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Report printing": [
+          "lexical match",
+          "semantic match",
+          "related topic"
+        ],
+        "SQL storage": [
+          "semantic match"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.0785,
+      "exact_quotes": true
+    },
+    {
+      "case": "Follow-up",
+      "question": "How do I configure it?",
+      "expected": [
+        "Client settings"
+      ],
+      "excluded": [
+        "SQL storage"
+      ],
+      "required": [
+        "Client settings"
+      ],
+      "found": [
+        "Authentication API",
+        "Identity guide",
+        "Client settings",
+        "Session recovery"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Authentication API": [
+          "lexical match",
+          "semantic match",
+          "related topic",
+          "purpose match"
+        ],
+        "Identity guide": [
+          "semantic match",
+          "terminology match",
+          "related topic"
+        ],
+        "Client settings": [
+          "semantic match",
+          "related topic"
+        ],
+        "Session recovery": [
+          "semantic match"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.074,
+      "exact_quotes": true
+    },
+    {
+      "case": "Subject switch",
+      "question": "How do I print a report with charts?",
+      "expected": [
+        "Report printing"
+      ],
+      "excluded": [
+        "Identity guide"
+      ],
+      "required": [
+        "Report printing"
+      ],
+      "found": [
+        "Report printing",
+        "SQL storage"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {
+        "Report printing": [
+          "lexical match",
+          "semantic match",
+          "related topic"
+        ],
+        "SQL storage": [
+          "semantic match"
+        ]
+      },
+      "recall_at_3": 1.0,
+      "legacy_recall_at_3": 1.0,
+      "seconds": 0.0727,
+      "exact_quotes": true
+    },
+    {
+      "case": "No match",
+      "question": "What is quantum gravity?",
+      "expected": [],
+      "excluded": [],
+      "required": [],
+      "found": [],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": true,
+      "reasons": {},
+      "recall_at_3": null,
+      "legacy_recall_at_3": null,
+      "seconds": 0.0734,
+      "exact_quotes": true
+    },
+    {
+      "case": "All-source overview",
+      "question": "Summarize all sources.",
+      "expected": [
+        "Authentication API",
+        "Client settings",
+        "Identity guide",
+        "Installing",
+        "Logging",
+        "Report printing",
+        "SQL storage",
+        "Session recovery"
+      ],
+      "excluded": [],
+      "required": [
+        "Authentication API",
+        "Client settings",
+        "Identity guide",
+        "Installing",
+        "Logging",
+        "Report printing",
+        "SQL storage",
+        "Session recovery"
+      ],
+      "found": [
+        "Report printing",
+        "SQL storage",
+        "Logging",
+        "Identity guide",
+        "Authentication API",
+        "Client settings",
+        "Session recovery",
+        "Installing"
+      ],
+      "pass": true,
+      "encoder": "neural-minilm",
+      "partial": false,
+      "reasons": {
+        "Report printing": [
+          "source overview"
+        ],
+        "SQL storage": [
+          "source overview"
+        ],
+        "Logging": [
+          "source overview"
+        ],
+        "Identity guide": [
+          "source overview"
+        ],
+        "Authentication API": [
+          "source overview"
+        ],
+        "Client settings": [
+          "source overview"
+        ],
+        "Session recovery": [
+          "source overview"
+        ],
+        "Installing": [
+          "source overview"
+        ]
+      },
+      "recall_at_3": null,
+      "legacy_recall_at_3": null,
+      "seconds": 0.0734,
+      "exact_quotes": true
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "workspace_modified": false,
+  "generation_api_calls": 0,
+  "browser_tested": false,
+  "mean_recall_at_3": 0.95,
+  "legacy_mean_recall_at_3": 0.95,
+  "limitations": [
+    "Small original synthetic corpus and relevance judgments, not a production benchmark.",
+    "Retrieval success does not establish generation correctness.",
+    "No LLM answers were generated."
+  ],
+  "neural_only_wordless_match": true,
+  "worker_shutdown_verified": true,
+  "worker_shutdown_seconds": 0.0337,
+  "in_flight_encoder_cancelled": true,
+  "judgment_note": "The identity paraphrase requires the direct Authentication API passage. A secondary password/session passage is still counted as relevant for recall and was missed; initial stricter grading is retained separately."
+}

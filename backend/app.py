@@ -8,6 +8,7 @@ import re
 import secrets
 import time
 from pathlib import Path
+from typing import Annotated
 from urllib.parse import urlsplit
 
 import httpx
@@ -17,11 +18,14 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import Field, ValidationError
 from starlette.concurrency import run_in_threadpool
 
-from .models import Answer, Review, Source, SourceInput, Strict, Usage, Workspace, digest, now
+from .models import MAX_REVISION, Answer, Graph, Review, Source, SourceInput, Strict, Usage, Workspace, digest, now
 from .nlp import analyze, retrieve, source_digest
 from .providers import ProviderConfig, ProviderError, embed, generate
 from .store import Conflict, Store
 from .assistant import AssistantRequest, assist
+from .source_actions import add_source as apply_add_source, delete_source as apply_delete_source
+from .input_validation import json_object
+from .readme import ReadmeError, fetch_readme
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -32,7 +36,7 @@ class Login(Strict):
 
 
 class Revision(Strict):
-    revision: int = Field(ge=0)
+    revision: int = Field(ge=0, le=MAX_REVISION-1, strict=True)
 
 
 class NewWorkspace(Revision):
@@ -46,6 +50,15 @@ class SwitchWorkspace(Revision):
 
 class AddSource(Revision):
     source: SourceInput
+
+
+class FetchReadme(Revision):
+    url: str = Field(min_length=1, max_length=1000)
+
+
+class ConfirmSourceAction(Revision):
+    token: str = Field(min_length=32, max_length=100)
+    source_ids: list[Annotated[str, Field(pattern=r'^s-[a-f0-9]{20}$')]] | None = Field(default=None, max_length=30)
 
 
 class Profile(Revision):
@@ -98,6 +111,11 @@ class Guard:
                     return await JSONResponse({'detail':'Request exceeds 2 MB'},status_code=413)(scope, receive, send)
                 if not message.get('more_body'):
                     break
+            if body:
+                try:
+                    json_object(body)
+                except ValueError:
+                    return await JSONResponse({'detail':'Invalid or ambiguous JSON input'},status_code=422)(scope, receive, send)
             sent = False
 
             async def replay():
@@ -112,11 +130,16 @@ class Guard:
             await self.app(scope, receive, send)
 
 
-def create_app(data_dir: Path | None = None, passcode: str | None = None, origins: list[str] | None = None, provider: ProviderConfig | None = None):
+def create_app(data_dir: Path | None = None, passcode: str | None = None, origins: list[str] | None = None, provider: ProviderConfig | None = None, auth_enabled: bool | None = None):
     data_dir = data_dir or Path(os.getenv('ATLAS_DATA_DIR', ROOT/'.atlas'))
     data_dir.mkdir(parents=True, exist_ok=True)
+    if auth_enabled is None:
+        auth_setting = os.getenv('ATLAS_AUTH_ENABLED', '0')
+        if auth_setting not in ('0', '1'):
+            raise ValueError('ATLAS_AUTH_ENABLED must be 0 or 1')
+        auth_enabled = auth_setting == '1'
     code_path = data_dir/'access-code'
-    if passcode is None:
+    if auth_enabled and passcode is None:
         passcode = os.getenv('ATLAS_ACCESS_CODE')
         if not passcode:
             if not code_path.exists():
@@ -124,7 +147,7 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
                 with os.fdopen(fd,'w') as file:
                     file.write(secrets.token_urlsafe(24))
             passcode = code_path.read_text().strip()
-    if not passcode:
+    if auth_enabled and not passcode:
         raise ValueError('An access code is required')
     origins = origins or os.getenv('ATLAS_ORIGINS', 'http://127.0.0.1:8765,http://localhost:8765').split(',')
     store = Store(data_dir/'workspace.sqlite3')
@@ -134,11 +157,16 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
     failures: dict[str,list[float]] = {}
     listeners: set[asyncio.Queue] = set()
     busy = asyncio.Lock()
+    readme_busy = asyncio.Lock()
+    source_proposals = {}
     app = FastAPI(title='Release Atlas', version='0.1.0', docs_url=None, redoc_url=None)
     app.add_middleware(Guard, origins=origins)
     app.state.store, app.state.listeners = store, listeners
+    app.state.auth_enabled = auth_enabled
 
     def actor(request: Request):
+        if not auth_enabled:
+            return 'Local reviewer'
         key = request.cookies.get('atlas_session', '')
         identity = sessions.get(key)
         if not identity or identity[1] < time.time():
@@ -184,6 +212,8 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
 
     @app.post('/api/login')
     async def login(data: Login, request: Request, response: Response):
+        if not auth_enabled:
+            raise HTTPException(404, 'Sign-in is disabled')
         ip = request.client.host if request.client else 'unknown'
         attempts = [t for t in failures.get(ip, []) if time.monotonic()-t < 60]
         failures[ip] = attempts
@@ -212,7 +242,7 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
     @app.get('/api/state')
     async def state(request: Request):
         user = actor(request)
-        return {**store.snapshot(),'user':user,'provider':{'kind':provider.kind,'model':provider.model,'embedding':embedding.model if embedding else 'local-lsa-v1'}}
+        return {**store.snapshot(),'user':user,'auth_enabled':auth_enabled,'provider':{'kind':provider.kind,'model':provider.model,'embedding':embedding.model if embedding else 'local-lsa-v1'}}
 
     @app.post('/api/workspaces')
     async def new_workspace(data: NewWorkspace, request: Request):
@@ -253,6 +283,8 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
                 while not await request.is_disconnected():
                     try:
                         revision = await asyncio.wait_for(queue.get(),timeout=10)
+                        if revision is None:
+                            break
                         actor(request)
                         yield 'data: '+json.dumps({'revision':revision})+'\n\n'
                     except asyncio.TimeoutError:
@@ -273,20 +305,43 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
     async def validation_error(request, exc):
         return JSONResponse({'detail':'Workspace exceeds supported limits or has inconsistent content; no changes saved'},status_code=422)
 
+    @app.post('/api/sources/readme')
+    async def readme_preview(data: FetchReadme, request: Request):
+        user = actor(request)
+        current(data.revision)
+        if readme_busy.locked():
+            raise HTTPException(409,'A README is already being fetched. Wait for it to finish, then try again.')
+        try:
+            async with readme_busy:
+                result = await fetch_readme(data.url)
+        except ReadmeError as exc:
+            raise HTTPException(exc.status,str(exc)) from exc
+        if actor(request) != user:
+            raise HTTPException(401,'Session changed. Fetch the README again.')
+        current(data.revision)
+        return {'revision':data.revision,**result.model_dump()}
+
     @app.post('/api/sources')
     async def add_source(data: AddSource, request: Request):
         user = actor(request)
         state = current(data.revision)
-        new = Source.create(data.source)
-        if any(s.id == new.id for s in state.sources):
-            raise HTTPException(409,'This version and source content already exist')
-        state.sources.append(new)
-        state.analysis = None
         try:
-            Workspace.model_validate(state.model_dump())
+            new = apply_add_source(state, data.source)
         except ValueError as exc:
+            if any(s.id == Source.create(data.source).id for s in current(data.revision).sources):
+                raise HTTPException(409,'This version and source content already exist') from exc
             raise HTTPException(422,'Workspace source limit exceeded') from exc
         return publish(state,data.revision,user,'Added source: '+new.title)
+
+    @app.delete('/api/sources/{source_id}')
+    async def delete_source(source_id: str, data: Revision, request: Request):
+        user = actor(request)
+        state = current(data.revision)
+        try:
+            source = apply_delete_source(state, source_id)
+        except ValueError as exc:
+            raise HTTPException(404, 'Source not found') from exc
+        return publish(state, data.revision, user, 'Deleted source: '+source.title)
 
     @app.put('/api/profile')
     async def profile(data: Profile, request: Request):
@@ -343,7 +398,7 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
 
     @app.post('/api/assistant')
     async def assistant_chat(data: AssistantRequest, request: Request):
-        actor(request)
+        user = actor(request)
         state = current(data.revision)
         if not data.message.strip():
             raise HTTPException(422, 'Enter a question for the assistant')
@@ -355,9 +410,53 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
             raise HTTPException(409, 'Another analysis or model request is running. Try again shortly.')
         async with busy:
             answer = await assist(provider, state, data)
-            actor(request)
+            if actor(request) != user:
+                raise HTTPException(401, 'Session changed. Send your question again.')
             current(data.revision)
-            return {'revision': data.revision, **answer.model_dump()}
+            result = {'revision': data.revision, **answer.model_dump()}
+            prepared = getattr(answer, 'source_action', None)
+            if prepared is not None:
+                # Tokens never enter the model context. Bound memory, lifetime, revision and session.
+                for token, entry in list(source_proposals.items()):
+                    if entry['expires'] <= time.monotonic():
+                        del source_proposals[token]
+                if len(source_proposals) >= 128:
+                    del source_proposals[next(iter(source_proposals))]
+                token = secrets.token_urlsafe(32)
+                source_proposals[token] = {'action': prepared.model_copy(deep=True), 'user': user,
+                    'session': request.cookies.get('atlas_session', ''), 'revision': data.revision,
+                    'expires': time.monotonic()+600}
+                result['source_action'] = {**prepared.model_dump(), 'token': token, 'revision': data.revision}
+            return result
+
+    @app.post('/api/assistant/source-action')
+    async def confirm_source_action(data: ConfirmSourceAction, request: Request):
+        user = actor(request)
+        state = current(data.revision)
+        entry = source_proposals.get(data.token)
+        if (entry is None or entry['expires'] <= time.monotonic() or entry['user'] != user
+                or entry['session'] != request.cookies.get('atlas_session', '') or entry['revision'] != data.revision):
+            raise HTTPException(409, 'Source proposal expired or belongs to another session. Ask Atlas again.')
+        plan = entry['action']
+        expected_ids = [item.source_id for item in plan.items]
+        if (len(expected_ids) > 1 or data.source_ids is not None) and data.source_ids != expected_ids:
+            raise HTTPException(409, 'Confirm the complete current source list. Refresh the page to load the batch preview.')
+        try:
+            for item in plan.items:
+                if plan.action == 'add_source':
+                    apply_add_source(state, item.source)
+                else:
+                    apply_delete_source(state, item.source_id)
+            verb = 'Added' if plan.action == 'add_source' else 'Deleted'
+            action = (verb+' source: '+plan.source.title if len(plan.items) == 1
+                      else f'{verb} {len(plan.items)} sources through chat')
+        except ValueError as exc:
+            raise HTTPException(422, 'Source action is no longer valid. Ask Atlas again.') from exc
+        saved = publish(state, data.revision, user, action)
+        del source_proposals[data.token]
+        return {'revision': saved.revision, 'action': plan.action, 'source_id': plan.source_id,
+                'source_ids':[item.source_id for item in plan.items],
+                'message': action+'. Analyze sources to refresh findings.'}
 
     @app.post('/api/query')
     async def query(data: Query, request: Request):

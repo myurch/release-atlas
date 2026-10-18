@@ -3,16 +3,16 @@ export const help: Record<string, HelpText> = {
   Overview: {
     title: "Your review at a glance",
     what: "Start here to see the evidence, possible conflicts and review progress.",
-    why: "Add what your application uses, then analyze sources to connect documented changes to your work.",
+    why: "Add versioned sources, analyze them, then inspect the passages in Evidence.",
   },
   Evidence: {
-    title: "Evidence cards",
-    what: "Each card is an exact passage from a saved source, with a suggested category and related identifiers.",
+    title: "Documentation NLP pipeline",
+    what: "Explore structural passages, embedding-based purpose labels, NMF topics and typed technical entities. Every card retains exact source text.",
     why: "Open a card to check its context, compare conflicting guidance and record a human decision.",
   },
   Sources: {
     title: "Original documents",
-    what: "Keep versioned release notes and reference text together. Paste text or import public GitHub release notes. PDF, Word and source-folder uploads are not supported.",
+    what: "Keep versioned release notes and reference text together. Paste text, fetch a public GitHub README into a draft, or import public GitHub release notes. PDF, Word and source-folder uploads are not supported.",
     why: "Every finding and citation points back here. Adding a source requires fresh analysis.",
   },
   Graph: {
@@ -32,7 +32,7 @@ export const help: Record<string, HelpText> = {
   },
   analysis: {
     title: "Analyze sources",
-    what: "Creates evidence cards, suggested categories, topics, entity links and possible conflicts from your saved text.",
+    what: "Parses Markdown/reStructuredText into meaningful blocks, classifies purpose with local LSA embeddings, discovers NMF topics and extracts typed technical mentions. Release signals and conflict rules remain separate review aids.",
     why: "Run again after changing sources or application usage. Suggestions support review; they do not prove upgrade safety.",
   },
   usage: {
@@ -42,7 +42,7 @@ export const help: Record<string, HelpText> = {
   },
   topics: {
     title: "Topics in this review",
-    what: "NMF topic modeling groups similar passages and displays representative words.",
+    what: "NMF learns subjects from the prose corpus and shows weighted terms and representative passages. Selecting a topic filters actual members, not a keyword search. Small or repetitive corpora may have no topics.",
     why: "Use a topic as a starting point for exploration. It is a text pattern, not a risk or priority score.",
   },
   conflicts: {
@@ -78,7 +78,7 @@ export const help: Record<string, HelpText> = {
   import: {
     title: "Import a saved review",
     what: "Open a validated Release Atlas JSON snapshot, not a PDF, Word file or source folder.",
-    why: "When signed in, the import creates a separate workspace. In a saved-file view it replaces the current view.",
+    why: "In a live workspace, the import creates a separate workspace. In a saved-file view it replaces the current view.",
   },
   sourceTitle: {
     title: "Source title",
@@ -93,7 +93,12 @@ export const help: Record<string, HelpText> = {
   url: {
     title: "Source reference link",
     what: "An optional link to the original publication for a reviewer to open.",
-    why: "This is a reference only. Paste the document into Source text; the URL does not fetch its content.",
+    why: "This is a reference only. Paste the document into Source text or explicitly use Fetch README for a public GitHub repository.",
+  },
+  fetchReadme: {
+    title: "Fetch a public README",
+    what: "Enter a public GitHub repository URL to load its README into the source draft. Review the text, then Save source.",
+    why: "Fetching does not save, execute content or overwrite an existing text draft without your choice. The origin is pinned to a commit. Missing, unavailable and oversized READMEs produce a message.",
   },
   rights: {
     title: "Permission to use the text",
@@ -102,7 +107,7 @@ export const help: Record<string, HelpText> = {
   },
   sourceText: {
     title: "Documentation text",
-    what: "Paste release notes or reference text, with one passage per line and exact identifier spellings.",
+    what: "Paste Markdown, reStructuredText, release notes or reference text. Keep headings, paragraphs, lists, code and exact identifier spellings intact.",
     why: "Analysis quotes this text directly. Keep the version and wording intact so reviewers can verify every finding.",
   },
   saveSource: {
@@ -162,7 +167,7 @@ export const help: Record<string, HelpText> = {
   },
   retrieval: {
     title: "How evidence is found",
-    what: "Lexical uses word overlap. Vector uses statistical text similarity. Graph adds paths through entities and application components.",
+    what: "Questions compares lexical word overlap, statistical text similarity through vectors and graph paths through entities/components. Ask Atlas separately uses hybrid source retrieval with local neural embeddings when installed, topic and purpose preferences, and technical entity matches. Open Retrieved context below a model answer to inspect the selected passages and active encoder.",
     why: "Compare methods to understand why a passage was retrieved. A high score is not proof of relevance or truth.",
   },
   generation: {
@@ -198,12 +203,12 @@ export const help: Record<string, HelpText> = {
   assistant: {
     title: "Ask Atlas",
     what: "Get explanations, workflow guidance, or answers about the page and selected evidence.",
-    why: "The chat follows your workspace but does not change it. Conversation stays in this open view and is not exported.",
+    why: "OpenAI Model chat can propose adding or deleting a source with your confirmation. Other edits are unavailable. Conversation stays in this open view and is not exported.",
   },
   assistantMode: {
     title: "Choose how Atlas helps",
     what: "Model chat can answer open-ended questions using the configured language model and relevant workspace context. App guide uses built-in help.",
-    why: "App guide works without a model. Neither mode changes your review or saves shared decisions.",
+    why: "App guide works without a model and never writes. OpenAI Model chat supports confirmed source additions and deletions only; it cannot save shared decisions.",
   },
   chatPrompt: {
     title: "Start a conversation",
@@ -275,6 +280,7 @@ export const helpLabels: Record<string, string> = {
   "Source title": "sourceTitle",
   Version: "version",
   "Source URL (optional)": "url",
+  "Public GitHub repository URL": "fetchReadme",
   "License / permission": "rights",
   "License or permission for the release text": "rights",
   "Source text": "sourceText",
@@ -305,6 +311,8 @@ export const helpLabels: Record<string, string> = {
   "Close sign in": "close",
   "Close workspaces": "close",
   "Evidence cards": "Evidence",
+  "Analyzed passages": "Evidence",
+  "Release change signal": "category",
   "Match your usage": "usage",
   "Conflicting claims": "conflicts",
   Reviewed: "reviewed",

@@ -65,7 +65,7 @@ async def test_provider_contract_citations_and_text_limits(kind):
 
 @pytest.fixture
 def client(tmp_path):
-    app = create_app(tmp_path, passcode='test-code', origins=['http://testserver'])
+    app = create_app(tmp_path, auth_enabled=True, passcode='test-code', origins=['http://testserver'])
     with TestClient(app) as client:
         assert client.post('/api/login', json={'name': 'Reviewer', 'passcode': 'test-code'}, headers=ORIGIN).status_code == 200
         yield client, app
@@ -124,16 +124,16 @@ async def test_model_cannot_silently_cite_only_one_side_of_a_known_conflict():
         transport = httpx.MockTransport(lambda r: httpx.Response(200, json={'message': {'content': json.dumps({'answer': 'The documents disagree.', 'citations': citations})}}))
         if rejected:
             with pytest.raises(ProviderError, match='opposing evidence'):
-                await assist(ProviderConfig(), state, request, transport)
+                await assist(ProviderConfig(kind='ollama',base='http://localhost:11434'), state, request, transport)
         else:
-            answer = await assist(ProviderConfig(), state, request, transport)
+            answer = await assist(ProviderConfig(kind='ollama',base='http://localhost:11434'), state, request, transport)
             assert 'conflicting statements' in answer.uncertainty
 
 
 @pytest.mark.asyncio
 async def test_inflight_chat_rechecks_auth_and_prevents_overlapping_model_calls(tmp_path, monkeypatch):
     import asyncio
-    app = create_app(tmp_path, passcode='test-code', origins=['http://testserver'])
+    app = create_app(tmp_path, auth_enabled=True, passcode='test-code', origins=['http://testserver'])
     started, finish = asyncio.Event(), asyncio.Event()
     async def held(*args):
         started.set()

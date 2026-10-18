@@ -9,3 +9,6 @@ validation
 releases
 __pycache__
 .pytest_cache
+
+# Optional local embedding interpreter and model stay outside container builds.
+.tools/semantic

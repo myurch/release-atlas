@@ -1,0 +1,48 @@
+{
+  "result": "PASS",
+  "synthetic_only": true,
+  "browser_tested": false,
+  "chat": {
+    "answer": "1 \u00f7 3 = 0.333333333333. This result is rounded to 12 decimal places.",
+    "citations": [],
+    "uncertainty": "",
+    "source_citations": [],
+    "source_passages": []
+  },
+  "saved_answer": {
+    "answer": "12 bagels remain. Using your assumption, 15 bagels \u2212 3 eaten = 12 bagels.",
+    "citations": [
+      "c-start",
+      "c-event"
+    ],
+    "uncertainty": ""
+  },
+  "backend_tool_results": [
+    {
+      "result": "0.333333333333",
+      "equation": "1 / 3 = 0.333333333333",
+      "unit": "",
+      "assumption": "Direct arithmetic requested; express the repeating decimal to a reasonable number of decimal places.",
+      "rounded": true,
+      "precision": "up to 12 decimal places",
+      "citations": []
+    },
+    {
+      "result": "12",
+      "equation": "15 - 3 = 12",
+      "unit": "bagels",
+      "assumption": "The stated event that Bob ate 3 bagels applies to the same batch, with no other changes, as the user specifies.",
+      "rounded": false,
+      "precision": "up to 12 decimal places",
+      "citations": [
+        "c-start",
+        "c-event"
+      ]
+    }
+  ],
+  "requests": 4,
+  "usage": {
+    "input_tokens": 8912,
+    "output_tokens": 230
+  }
+}

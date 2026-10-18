@@ -2,15 +2,34 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+import re
 import secrets
 import sqlite3
 from pathlib import Path
 
-from .models import Audit, Workspace, now
+from .models import MAX_REVISION, Audit, Workspace, now
 
 
 class Conflict(Exception):
     pass
+
+
+def database_authorizer(bootstrap=False):
+    """Runtime SQL capabilities, independent of HTTP/model input validation."""
+    def authorize(operation, table, column, database, origin):
+        # Atlas never uses triggers, views, attached databases or schema-supplied code.
+        if origin is not None or database not in (None, 'main'):
+            return sqlite3.SQLITE_DENY
+        if bootstrap:
+            return sqlite3.SQLITE_OK  # Only fixed startup migrations use this connection.
+        if operation in (sqlite3.SQLITE_SELECT, sqlite3.SQLITE_TRANSACTION):
+            return sqlite3.SQLITE_OK
+        if operation == sqlite3.SQLITE_FUNCTION and column in {'json_extract','json_array_length','count'}:
+            return sqlite3.SQLITE_OK
+        if operation in (sqlite3.SQLITE_READ, sqlite3.SQLITE_INSERT, sqlite3.SQLITE_UPDATE) and table in {'workspace','saved_workspaces'}:
+            return sqlite3.SQLITE_OK
+        return sqlite3.SQLITE_DENY
+    return authorize
 
 
 class Store:
@@ -19,7 +38,7 @@ class Store:
     def __init__(self, path: Path):
         self.path = path
         path.parent.mkdir(parents=True, exist_ok=True)
-        with self.connection() as db:
+        with self.connection(_bootstrap=True) as db:
             db.execute('PRAGMA journal_mode=WAL')
             db.execute('BEGIN IMMEDIATE')
             db.execute('CREATE TABLE IF NOT EXISTS workspace (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL, payload TEXT NOT NULL)')
@@ -36,9 +55,17 @@ class Store:
             db.execute('PRAGMA user_version=2')
 
     @contextmanager
-    def connection(self):
+    def connection(self, *, _bootstrap=False):
         db = sqlite3.connect(self.path, timeout=5)
         try:
+            db.setconfig(sqlite3.SQLITE_DBCONFIG_DEFENSIVE, True)
+            db.setconfig(sqlite3.SQLITE_DBCONFIG_TRUSTED_SCHEMA, False)
+            db.setconfig(sqlite3.SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, False)
+            db.setlimit(sqlite3.SQLITE_LIMIT_ATTACHED, 0)
+            db.setlimit(sqlite3.SQLITE_LIMIT_LENGTH, 2_000_000)
+            db.setlimit(sqlite3.SQLITE_LIMIT_SQL_LENGTH, 10_000)
+            db.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 16)
+            db.set_authorizer(database_authorizer(_bootstrap))
             with db:
                 yield db
         finally:
@@ -61,6 +88,8 @@ class Store:
 
     @staticmethod
     def checked(db, expected):
+        if type(expected) is not int or not 0 <= expected < MAX_REVISION:
+            raise ValueError('Invalid workspace revision')
         row = db.execute('SELECT revision,payload,active_id FROM workspace WHERE id=1').fetchone()
         if row[0] != expected:
             raise Conflict('The shared workspace changed. Reload and retry; your input has been kept.')
@@ -94,6 +123,8 @@ class Store:
             return self.write(db,state,expected,secrets.token_hex(16),actor,action,[])
 
     def switch(self, identifier: str, expected: int, actor: str):
+        if not isinstance(identifier, str) or not re.fullmatch(r'[a-f0-9]{32}', identifier):
+            raise ValueError('Invalid workspace identifier')
         with self.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             _, payload, active = self.checked(db,expected)

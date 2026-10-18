@@ -1,5 +1,5 @@
 import React, { RefObject, useEffect, useRef, useState } from "react";
-import { tutorialSteps } from "./tutorial";
+import { visibleTutorialSteps as tutorialSteps } from "./tutorial";
 
 type Box = { left: number; top: number; width: number; height: number };
 export function Tutorial({

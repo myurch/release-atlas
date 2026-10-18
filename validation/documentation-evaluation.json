@@ -1,0 +1,318 @@
+{
+  "classification": {
+    "held_out_examples": 27,
+    "macro_f1": 0.88,
+    "keyword_macro_f1": 0.8457,
+    "evaluation_hash": "fe5ac154ac0127ba38a3f153777aa6a4da4025119423bfcad1532938b46bf6f7",
+    "training_hash": "a8549c221aee77a6b0b95d1c2f072d12a654fffb73108a304af8a1315413704a",
+    "per_label": {
+      "api-reference": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "configuration": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "example": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "installation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "migration": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "other": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 0.0
+      },
+      "overview": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "resources": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "security": {
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.8,
+        "support": 3.0
+      },
+      "troubleshooting": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "accuracy": 0.9629629629629629,
+      "macro avg": {
+        "precision": 0.9,
+        "recall": 0.8666666666666668,
+        "f1-score": 0.8800000000000001,
+        "support": 27.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 0.9629629629629629,
+        "f1-score": 0.9777777777777777,
+        "support": 27.0
+      }
+    },
+    "cases": [
+      {
+        "expected": "installation",
+        "predicted": "installation",
+        "baseline": "overview"
+      },
+      {
+        "expected": "installation",
+        "predicted": "installation",
+        "baseline": "installation"
+      },
+      {
+        "expected": "installation",
+        "predicted": "installation",
+        "baseline": "installation"
+      },
+      {
+        "expected": "configuration",
+        "predicted": "configuration",
+        "baseline": "configuration"
+      },
+      {
+        "expected": "configuration",
+        "predicted": "configuration",
+        "baseline": "configuration"
+      },
+      {
+        "expected": "configuration",
+        "predicted": "configuration",
+        "baseline": "configuration"
+      },
+      {
+        "expected": "api-reference",
+        "predicted": "api-reference",
+        "baseline": "api-reference"
+      },
+      {
+        "expected": "api-reference",
+        "predicted": "api-reference",
+        "baseline": "api-reference"
+      },
+      {
+        "expected": "api-reference",
+        "predicted": "api-reference",
+        "baseline": "api-reference"
+      },
+      {
+        "expected": "example",
+        "predicted": "example",
+        "baseline": "example"
+      },
+      {
+        "expected": "example",
+        "predicted": "example",
+        "baseline": "example"
+      },
+      {
+        "expected": "example",
+        "predicted": "example",
+        "baseline": "example"
+      },
+      {
+        "expected": "troubleshooting",
+        "predicted": "troubleshooting",
+        "baseline": "troubleshooting"
+      },
+      {
+        "expected": "troubleshooting",
+        "predicted": "troubleshooting",
+        "baseline": "troubleshooting"
+      },
+      {
+        "expected": "troubleshooting",
+        "predicted": "troubleshooting",
+        "baseline": "troubleshooting"
+      },
+      {
+        "expected": "security",
+        "predicted": "other",
+        "baseline": "other"
+      },
+      {
+        "expected": "security",
+        "predicted": "security",
+        "baseline": "security"
+      },
+      {
+        "expected": "security",
+        "predicted": "security",
+        "baseline": "security"
+      },
+      {
+        "expected": "migration",
+        "predicted": "migration",
+        "baseline": "migration"
+      },
+      {
+        "expected": "migration",
+        "predicted": "migration",
+        "baseline": "migration"
+      },
+      {
+        "expected": "migration",
+        "predicted": "migration",
+        "baseline": "migration"
+      },
+      {
+        "expected": "overview",
+        "predicted": "overview",
+        "baseline": "overview"
+      },
+      {
+        "expected": "overview",
+        "predicted": "overview",
+        "baseline": "overview"
+      },
+      {
+        "expected": "overview",
+        "predicted": "overview",
+        "baseline": "overview"
+      },
+      {
+        "expected": "resources",
+        "predicted": "resources",
+        "baseline": "resources"
+      },
+      {
+        "expected": "resources",
+        "predicted": "resources",
+        "baseline": "resources"
+      },
+      {
+        "expected": "resources",
+        "predicted": "resources",
+        "baseline": "resources"
+      }
+    ]
+  },
+  "limitations": [
+    "Original synthetic training/evaluation share an author and domain; this is not a production accuracy estimate.",
+    "LSA is a statistical embedding baseline, not a pretrained neural embedding model.",
+    "Nearest training examples explain similarity, not causal feature attribution.",
+    "NMF topics and syntax-based entity types require human inspection."
+  ],
+  "browser_tested": false,
+  "workspace_modified": false,
+  "model_api_calls": 0,
+  "reference": {
+    "source_hash": "4781ca3cfaac44845bec454a6d9491b675aac596375ac337381283623f0583fd",
+    "characters": 2450,
+    "pipeline": {
+      "version": "documentation-v1",
+      "evaluation": {
+        "held_out_examples": 27,
+        "macro_f1": 0.88,
+        "keyword_macro_f1": 0.8457,
+        "evaluation_hash": "fe5ac154ac0127ba38a3f153777aa6a4da4025119423bfcad1532938b46bf6f7"
+      },
+      "sources": 1,
+      "passages": 22,
+      "words": 316,
+      "sections": 4,
+      "code_blocks": 2,
+      "entity_mentions": 20,
+      "unique_entities": 12,
+      "embedding_dimensions": 48,
+      "training_examples": 72,
+      "notices": [
+        "Topic terms are learned from prose in this workspace; code blocks remain outside topic modeling.",
+        "Purpose scores are uncalibrated suggestions from synthetic training examples, not confidence or risk probabilities.",
+        "Entity types come from explicit syntax rules. Documentation is not executed and application code is not inspected.",
+        "Extraction keeps up to 60 typed mentions and 30 graph identifiers per passage. Full source text remains available."
+      ]
+    },
+    "sections": [
+      "Werkzeug",
+      "Werkzeug > Installing",
+      "Werkzeug > A Simple Example",
+      "Werkzeug > Links"
+    ],
+    "purposes": {
+      "api-reference": 3,
+      "example": 1,
+      "installation": 2,
+      "overview": 8,
+      "resources": 8
+    },
+    "entity_types": {
+      "api": 5,
+      "command": 1,
+      "identifier": 2,
+      "package": 2,
+      "protocol": 2
+    },
+    "exact_passages": true,
+    "exact_mentions": true,
+    "topics": [
+      {
+        "terms": [
+          "wsgi",
+          "applications",
+          "wsgi applications",
+          "handle",
+          "werkzeug",
+          "response object"
+        ],
+        "passages": 5,
+        "sources": 1
+      },
+      {
+        "terms": [
+          "cookies",
+          "files",
+          "request object",
+          "request",
+          "objects",
+          "interact"
+        ],
+        "passages": 4,
+        "sources": 1
+      },
+      {
+        "terms": [
+          "requests",
+          "requests testing",
+          "requiring running",
+          "requiring",
+          "testing requiring",
+          "simulating http"
+        ],
+        "passages": 2,
+        "sources": 1
+      }
+    ]
+  }
+}

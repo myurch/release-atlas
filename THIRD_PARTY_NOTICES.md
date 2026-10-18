@@ -76,3 +76,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+
+## Optional local semantic encoder
+
+Ask Atlas can use the Sentence Transformers [all-MiniLM-L6-v2 model](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2), revision `1110a243fdf4706b3f48f1d95db1a4f5529b4d41`, under Apache License 2.0. The model is a third-party pretrained artifact, not original Release Atlas training data. It is downloaded only by the optional setup script, verified against pinned hashes and stored outside Git and the standalone HTML. The setup preserves the [Apache-2.0 license](https://www.apache.org/licenses/LICENSE-2.0.txt) next to the weights. ONNX Runtime, Tokenizers and their dependencies retain their installed distribution licenses. These optional dependencies are pinned in `requirements-semantic.txt` and are not vendored.

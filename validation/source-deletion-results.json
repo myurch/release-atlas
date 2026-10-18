@@ -1,0 +1,37 @@
+{
+  "result": "PASS",
+  "checks": {
+    "python_tests": 62,
+    "frontend_tests": 9,
+    "typecheck": "PASS",
+    "format": "PASS",
+    "build": "PASS",
+    "synthetic_evaluation": "PASS",
+    "diff_check": "PASS"
+  },
+  "source_deletion": {
+    "revision_and_origin_guards": "PASS",
+    "dependent_citation_cleanup": "PASS",
+    "unrelated_reviews_preserved": "PASS",
+    "persistence": "PASS",
+    "last_source_deletion": "PASS"
+  },
+  "browser": {
+    "launcher": "sh run-release-atlas-macos-intel.sh",
+    "port": 8772,
+    "data": "isolated synthetic demo",
+    "initial_source_icons": "observed",
+    "final_inline_confirmation": "PASS",
+    "cancel_preserves_source": "PASS",
+    "confirmed_deletion": "PASS",
+    "fallback_source_selection": "PASS",
+    "refresh_persistence": "PASS",
+    "remaining_source_count": 2,
+    "narrow_viewport_icons": "PASS",
+    "screenshot": "/tmp/release-atlas-source-deletion.png"
+  },
+  "limitations": [
+    "Full automated Chromium suite not run locally; supported browser interaction verified",
+    "No model requests made"
+  ]
+}

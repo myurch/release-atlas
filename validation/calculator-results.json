@@ -1,0 +1,57 @@
+{
+  "result": "PASS",
+  "feature": "OpenAI read-only calculate function for chat and saved answers",
+  "browser_tested": false,
+  "browser_skip_reason": "Explicit user instruction; browser testing left to user",
+  "regression": {
+    "scenarios": 49,
+    "repetitions": 2,
+    "passed": 98,
+    "total": 98,
+    "api_requests": 142,
+    "estimated_text_token_cost_usd": 0.050603,
+    "report": "validation/assistant-eval-calculation-final.json"
+  },
+  "smoke": {
+    "passed": 5,
+    "total": 5,
+    "requests": 10
+  },
+  "additional_integration": {
+    "result": "PASS",
+    "requests": 4,
+    "scope": "User-only rounded division and saved evidence answer"
+  },
+  "checks": {
+    "python_tests": 104,
+    "frontend_tests": 9,
+    "typecheck": "PASS",
+    "format": "PASS",
+    "build": "PASS",
+    "synthetic_nlp_evaluation": "PASS",
+    "diff_check": "PASS"
+  },
+  "corrected_tool_errors": [
+    {
+      "name": "date-versions",
+      "run": 1,
+      "error": "Invalid calculation. Check numeric bounds, event amounts, operand count, division by zero and available quantities. Use only the documented schema."
+    },
+    {
+      "name": "holdout-user-rule-history",
+      "run": 1,
+      "error": "Invalid calculation. Check numeric bounds, event amounts, operand count, division by zero and available quantities. Use only the documented schema."
+    },
+    {
+      "name": "correct-stale-conversation",
+      "run": 2,
+      "error": "Invalid calculation. Check numeric bounds, event amounts, operand count, division by zero and available quantities. Use only the documented schema."
+    }
+  ],
+  "limits": [
+    "The model still interprets inputs, units, events and assumptions and composes the final answer",
+    "Finite synthetic checks do not guarantee general accuracy",
+    "Non-OpenAI adapters retain their existing text-only behavior"
+  ],
+  "saved_user_workspaces": "untouched"
+}

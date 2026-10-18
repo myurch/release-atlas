@@ -1,0 +1,31 @@
+{
+  "result": "PASS",
+  "runs": [
+    {
+      "signal": "SIGINT",
+      "elapsed_seconds": 0.434,
+      "open_sse_client": true,
+      "port_released": true,
+      "forced_cancellation": false,
+      "launcher": [
+        "sh",
+        "run-release-atlas-macos-intel.sh"
+      ]
+    },
+    {
+      "signal": "SIGTERM",
+      "elapsed_seconds": 0.202,
+      "open_sse_client": true,
+      "port_released": true,
+      "forced_cancellation": false,
+      "launcher": [
+        "sh",
+        "run-release-atlas-macos-intel.sh"
+      ]
+    }
+  ],
+  "scope": "Real processes and HTTP/SSE; temporary data; no model calls or credentials",
+  "limits": [
+    "Idle SSE shutdown tested; model requests retain a five-second cancellation fallback"
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "license": "Original synthetic held-out documentation examples, MIT. Same author/domain as training, not a production benchmark.",
+  "examples": [
+    [
+      "installation",
+      "Prepare a clean Python environment, activate it and run pip to obtain the toolkit."
+    ],
+    [
+      "installation",
+      "Setup prerequisites include a supported interpreter and the package manager."
+    ],
+    [
+      "installation",
+      "To get started, download and install the client library."
+    ],
+    [
+      "configuration",
+      "Tune the connection timeout and number of attempts in the settings file."
+    ],
+    [
+      "configuration",
+      "Configure the service with environment variables for its database and listening port."
+    ],
+    [
+      "configuration",
+      "The configuration option sets the maximum cache capacity; its default is 256."
+    ],
+    [
+      "api-reference",
+      "The Request object exposes headers, arguments and cookies through its attributes."
+    ],
+    [
+      "api-reference",
+      "Function reference: send(message, destination) returns a delivery receipt."
+    ],
+    [
+      "api-reference",
+      "Endpoint GET /widgets takes a page parameter and returns a collection."
+    ],
+    [
+      "example",
+      "Usage example: create the client, call its send method, and display the result."
+    ],
+    [
+      "example",
+      "A complete sample application follows, demonstrating request handling and responses."
+    ],
+    [
+      "example",
+      "Example code: from demo import Client\nclient = Client()\nclient.send(\"sample\")"
+    ],
+    [
+      "troubleshooting",
+      "If the connection fails, inspect the logs and verify the remote address."
+    ],
+    [
+      "troubleshooting",
+      "Troubleshooting startup errors: another process may already occupy the listening port."
+    ],
+    [
+      "troubleshooting",
+      "To diagnose an unexpected exception, inspect the traceback and reproduce the failure."
+    ],
+    [
+      "security",
+      "Do not enable the interactive console on public networks; it permits code execution."
+    ],
+    [
+      "security",
+      "Security recommendations require TLS and careful handling of secret tokens."
+    ],
+    [
+      "security",
+      "Reject untrusted input and check authorization before returning confidential records."
+    ],
+    [
+      "migration",
+      "When upgrading, replace obsolete imports with the new module paths."
+    ],
+    [
+      "migration",
+      "Migration notes: deprecated interfaces will disappear in the next release."
+    ],
+    [
+      "migration",
+      "This incompatible update removes the former timeout parameter. Update existing applications."
+    ],
+    [
+      "overview",
+      "The toolkit offers HTTP utilities for building web services without prescribing a database."
+    ],
+    [
+      "overview",
+      "Features include a development server, request handling and Unicode support."
+    ],
+    [
+      "overview",
+      "This library combines flexible routing with response streaming for web applications."
+    ],
+    [
+      "resources",
+      "Project links include the bug tracker, release downloads and contributor documentation."
+    ],
+    [
+      "resources",
+      "Read the license file and contribution guidelines before submitting a pull request."
+    ],
+    [
+      "resources",
+      "For community assistance, visit the discussion forum linked on the website."
+    ]
+  ]
+}

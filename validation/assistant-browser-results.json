@@ -1,0 +1,16 @@
+{
+  "result": "PASS",
+  "launcher": "sh run-release-atlas-macos-intel.sh",
+  "isolated_port": 8773,
+  "material": "Two original synthetic bakery snapshots, no analysis or findings",
+  "checks": {
+    "highest_version": "8 bagels with valid source citations",
+    "older_version_hypothetical_followup": "4 bagels with valid source citations",
+    "real_api_requests": 2,
+    "saved_user_workspaces": "untouched"
+  },
+  "screenshot": "/tmp/release-atlas-luna-prompt.png",
+  "limits": [
+    "Supported in-app browser checked; full headless browser suite not executed"
+  ]
+}

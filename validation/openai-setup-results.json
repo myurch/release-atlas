@@ -1,0 +1,32 @@
+{
+  "result": "ACCOUNT_BILLING_READY_CREDENTIAL_REJECTED",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "python_tests": 45,
+  "frontend_tests": 8,
+  "static_checks": [
+    "typecheck",
+    "format:check",
+    "build",
+    "evaluation",
+    "git diff --check",
+    "Intel launcher shell syntax"
+  ],
+  "visual_checks": [
+    "Launched isolated live app through run-release-atlas-macos-intel.sh",
+    "Ask Atlas identifies gpt-6-luna",
+    "Missing API key produces actionable guidance without changing workspace",
+    "App guide answers without a model credential"
+  ],
+  "real_api_calls": 1,
+  "pending": [
+    "Re-enter a valid project API credential through the hidden launcher prompt",
+    "Repeat the real synthetic API and citation checks"
+  ],
+  "limits": [
+    "OpenAI wire-contract tests use HTTP mocks",
+    "No real Luna quality or latency result yet",
+    "Full Chromium suite not rerun; visible browser used as requested"
+  ],
+  "real_api_result": "OpenAI returned HTTP 401 during an empty synthetic workspace chat. No generated answer was returned."
+}

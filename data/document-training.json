@@ -1,0 +1,293 @@
+{
+  "license": "Original synthetic documentation examples, MIT. Created for Release Atlas.",
+  "examples": [
+    [
+      "installation",
+      "Install the package with pip install package_name inside a virtual environment."
+    ],
+    [
+      "installation",
+      "Getting started: create a virtual environment and install the required dependencies."
+    ],
+    [
+      "installation",
+      "Installation requires Python 3.10 or later. Upgrade using pip install -U package_name."
+    ],
+    [
+      "installation",
+      "Run npm install before starting the application for the first time."
+    ],
+    [
+      "installation",
+      "Download the distribution and follow the setup instructions for your platform."
+    ],
+    [
+      "installation",
+      "Activate the virtualenv, install dependencies, then verify the installed version."
+    ],
+    [
+      "installation",
+      "Build from source by cloning the repository and installing the package."
+    ],
+    [
+      "installation",
+      "Install and update using pip. Python version requirements and system prerequisites."
+    ],
+    [
+      "configuration",
+      "Configuration: set the timeout option to control request duration."
+    ],
+    [
+      "configuration",
+      "Configure the database URL with an environment variable before starting the server."
+    ],
+    [
+      "configuration",
+      "The default value of retry_limit is three. Override it in the settings file."
+    ],
+    [
+      "configuration",
+      "Settings can be loaded from a configuration file or environment variables."
+    ],
+    [
+      "configuration",
+      "Choose a port and hostname using the HOST and PORT environment variables."
+    ],
+    [
+      "configuration",
+      "The cache_size setting controls the maximum number of cached items."
+    ],
+    [
+      "configuration",
+      "Enable the feature flag in config.toml to customize application behavior."
+    ],
+    [
+      "configuration",
+      "Set logging options and connection parameters in the application configuration."
+    ],
+    [
+      "api-reference",
+      "API reference: Request.headers provides the incoming HTTP request headers."
+    ],
+    [
+      "api-reference",
+      "The Response object wraps the response body and exposes status_code and headers."
+    ],
+    [
+      "api-reference",
+      "The connect method accepts a hostname parameter and returns a connection object."
+    ],
+    [
+      "api-reference",
+      "Call Client.fetch with a record identifier. The method returns a JSON response."
+    ],
+    [
+      "api-reference",
+      "The endpoint GET /records accepts query parameters for pagination."
+    ],
+    [
+      "api-reference",
+      "Function signature: open_session(user, timeout) returns a Session instance."
+    ],
+    [
+      "api-reference",
+      "The routing API maps URL patterns to endpoints and generates matching URLs."
+    ],
+    [
+      "api-reference",
+      "The request.files attribute contains uploaded files and request.cookies contains cookies."
+    ],
+    [
+      "example",
+      "A simple example: from package.client import Client\nclient = Client()\nclient.connect()"
+    ],
+    [
+      "example",
+      "Example application: def application(request): return Response(\"Hello, World!\")"
+    ],
+    [
+      "example",
+      "This example demonstrates how to create a server and handle a request."
+    ],
+    [
+      "example",
+      "Quickstart example: import Client\nwith Client() as client:\n    client.send(\"hello\")"
+    ],
+    [
+      "example",
+      "The following code sample shows a complete working application."
+    ],
+    [
+      "example",
+      "Tutorial: create a request, call the application, then print the response."
+    ],
+    [
+      "example",
+      "Usage example: from library import Request, Response\nresponse = Response(\"Hello\")"
+    ],
+    [
+      "example",
+      "An example of streaming output with a Python generator and response wrapper."
+    ],
+    [
+      "troubleshooting",
+      "Troubleshooting: if the server fails to start, check whether the port is in use."
+    ],
+    [
+      "troubleshooting",
+      "To resolve a connection error, verify the hostname and network access."
+    ],
+    [
+      "troubleshooting",
+      "If installation fails, check the Python version and reinstall dependencies."
+    ],
+    [
+      "troubleshooting",
+      "Common errors and solutions: permission denied indicates invalid file permissions."
+    ],
+    [
+      "troubleshooting",
+      "Debug unexpected exceptions by enabling logs and inspecting the stack trace."
+    ],
+    [
+      "troubleshooting",
+      "When a request times out, inspect server logs and check the timeout setting."
+    ],
+    [
+      "troubleshooting",
+      "The application crashes on startup if the configuration file is missing."
+    ],
+    [
+      "troubleshooting",
+      "Debugging guide: reproduce the failure and inspect the error message."
+    ],
+    [
+      "security",
+      "Security guidance: never expose the interactive debugger to untrusted users."
+    ],
+    [
+      "security",
+      "Protect credentials and avoid logging passwords or secret access tokens."
+    ],
+    [
+      "security",
+      "Validate untrusted input to prevent SQL injection and cross site scripting."
+    ],
+    [
+      "security",
+      "TLS encryption protects sensitive data in transit. Verify certificates."
+    ],
+    [
+      "security",
+      "Authentication requires a valid token and authorization checks before accessing private records."
+    ],
+    [
+      "security",
+      "Use secure cookies and restrict allowed origins to prevent unauthorized access."
+    ],
+    [
+      "security",
+      "Vulnerability disclosure: report security issues privately to the maintainers."
+    ],
+    [
+      "security",
+      "Disable debug mode in production because the console can execute arbitrary code."
+    ],
+    [
+      "migration",
+      "Migration guide: replace the deprecated old_client API with Client."
+    ],
+    [
+      "migration",
+      "Upgrading to version 2 requires changes to renamed parameters."
+    ],
+    [
+      "migration",
+      "The legacy setting was removed. Update the configuration before upgrading."
+    ],
+    [
+      "migration",
+      "Breaking change: this release no longer supports Python 3.8."
+    ],
+    [
+      "migration",
+      "Deprecated methods still work but will be removed in the next major release."
+    ],
+    [
+      "migration",
+      "To migrate from the previous version, change the import path and update call sites."
+    ],
+    [
+      "migration",
+      "Release notes: removed the legacy API and introduced an incompatible return type."
+    ],
+    [
+      "migration",
+      "Compatibility notes describe changes required when upgrading existing applications."
+    ],
+    [
+      "overview",
+      "This library provides utilities for building web applications and services."
+    ],
+    [
+      "overview",
+      "The project is a comprehensive toolkit for HTTP and WSGI applications."
+    ],
+    [
+      "overview",
+      "It includes a request object, routing system, debugger and development server."
+    ],
+    [
+      "overview",
+      "This package does not enforce dependencies. Choose your own database adapter."
+    ],
+    [
+      "overview",
+      "Features include streaming responses, Unicode support and a flexible architecture."
+    ],
+    [
+      "overview",
+      "The framework can be used to build blogs, wikis and other end user applications."
+    ],
+    [
+      "overview",
+      "An interactive debugger allows inspecting stack traces and source code in a browser."
+    ],
+    [
+      "overview",
+      "A test client simulates HTTP requests without running a server."
+    ],
+    [
+      "resources",
+      "Links: website, documentation, source code, releases and issue tracker."
+    ],
+    [
+      "resources",
+      "Report bugs using the issue tracker on GitHub and read the contribution guide."
+    ],
+    [
+      "resources",
+      "License and copyright information is available in the LICENSE file."
+    ],
+    [
+      "resources",
+      "Community support: join the discussion forum or contact the maintainers."
+    ],
+    [
+      "resources",
+      "Test status and coverage reports are linked from the project website."
+    ],
+    [
+      "resources",
+      "Contributing: submit pull requests and follow the code of conduct."
+    ],
+    [
+      "resources",
+      "Project resources include documentation, changelog and download links."
+    ],
+    [
+      "resources",
+      "Website: https://example.invalid/\nCode: https://github.com/example/project"
+    ]
+  ]
+}

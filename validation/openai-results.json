@@ -1,0 +1,51 @@
+{
+  "result": "PASS",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "elapsed_seconds": 5.145,
+  "chat": {
+    "answer": "The 2.0 release notes say `retry_limit` was removed and recommend configuring `retry_policy` instead. The 2.0 configuration reference says `retry_limit` remains supported. These are opposing statements about the same version, so the supplied sources do not resolve whether it is supported in 2.0.",
+    "citations": [
+      "c-aefd00a45ab49749cf02",
+      "c-7f97e6a33c7ef1da0ec0"
+    ],
+    "uncertainty": "The cited sources contain conflicting statements. A conclusion under a stated assumption does not establish which source is correct. The two version 2.0 sources directly disagree; neither establishes which statement is authoritative.",
+    "source_citations": [
+      "p-s-b8afaff518dc06ad62e6-0-261",
+      "p-s-6fb3f1a904da22b9fc24-0-240"
+    ],
+    "source_passages": [
+      {
+        "id": "p-s-b8afaff518dc06ad62e6-0-261",
+        "source_id": "s-b8afaff518dc06ad62e6",
+        "sha256": "28af8500206828d470525af437e0b553b958eeab9826d0b3b8062041472bd057",
+        "start": 0,
+        "end": 261,
+        "quote": "Removed `retry_limit`; configure `retry_policy` instead.\nDeprecated `legacy_auth`; it remains available until version 3.0.\nAdded `export_batch` for bulk report exports.\nFixed an authentication bypass in `session_check`.\nCorrected a sorting bug in `list_orders`."
+      },
+      {
+        "id": "p-s-6fb3f1a904da22b9fc24-0-240",
+        "source_id": "s-6fb3f1a904da22b9fc24",
+        "sha256": "dbb86c775d5231ecfca450dc657bc24328f55cd67a21a50c812184936d014d6c",
+        "start": 0,
+        "end": 240,
+        "quote": "The `retry_limit` setting remains supported in version 2.0.\nThe `retry_policy` setting controls retry delays and maximum attempts.\nThe `export_batch` API supports JSON and CSV output.\nThe `legacy_auth` adapter is deprecated but still works."
+      }
+    ]
+  },
+  "answer": {
+    "answer": "Before upgrading Checkout service, investigate whether it relies on `retry_limit` and how to migrate to `retry_policy`. The supplied Harbor 2.0 references conflict: one says `retry_limit` remains supported, while the release notes say it was removed. The 1.8 snapshot confirms the setting was supported there.",
+    "citations": [
+      "c-7f97e6a33c7ef1da0ec0",
+      "c-aefd00a45ab49749cf02",
+      "c-997cffe46e3f4498fb16"
+    ],
+    "uncertainty": "The evidence does not establish which Harbor 2.0 statement applies to Checkout service or whether its configuration uses `retry_limit`."
+  },
+  "requests": 2,
+  "material": "Original synthetic Harbor SDK fixture only",
+  "limits": [
+    "Real API calls, not a representative quality or latency benchmark",
+    "Citation validation does not establish semantic accuracy"
+  ]
+}

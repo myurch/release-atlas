@@ -27,6 +27,7 @@ const server = spawn(path.join(root, ".venv/bin/python"), ["-m", "backend"], {
     ATLAS_PORT: String(port),
     ATLAS_ORIGINS: base,
     ATLAS_ACCESS_CODE: code,
+    ATLAS_AUTH_ENABLED: "1",
   },
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -35,6 +36,7 @@ server.stdout.on("data", (b) => (serverLog += b));
 server.stderr.on("data", (b) => (serverLog += b));
 let browser;
 let demoServer;
+let directServer;
 const checks = [];
 const errors = [];
 function observe(page) {
@@ -83,7 +85,9 @@ try {
   await page
     .getByRole("button", { name: "Beginner tutorial", exact: true })
     .click();
-  for (let i = 0; i < 14; i++) {
+  while (
+    await page.getByRole("button", { name: "Next", exact: true }).count()
+  ) {
     await page.getByRole("button", { name: "Next", exact: true }).click();
   }
   await page.getByRole("button", { name: "Finish tutorial" }).click();
@@ -99,7 +103,12 @@ try {
     headers: { Origin: base },
   });
   await page.reload();
-  await page.getByText("The sources disagree.", { exact: true }).waitFor();
+  await page
+    .getByRole("heading", {
+      name: "Understand the docs. Trace the evidence.",
+      exact: true,
+    })
+    .waitFor();
   mkdirSync("validation/screenshots", { recursive: true });
   await page.screenshot({
     path: "validation/screenshots/desktop.png",
@@ -111,7 +120,7 @@ try {
     () => getComputedStyle(document.body).backgroundColor === "rgb(9, 9, 11)",
   );
   const hint = page.getByRole("button", {
-    name: "About Evidence cards",
+    name: "About Analyzed passages",
     exact: true,
   });
   await hint.focus();
@@ -154,16 +163,12 @@ try {
   for (const title of [
     "Sources",
     "Graph",
-    "Questions",
     "Activity",
     "Evidence",
     "Overview",
   ]) {
     await page.getByRole("button", { name: title, exact: true }).click();
-    assert.match(
-      await page.locator(".assistant-context").innerText(),
-      new RegExp(title),
-    );
+    assert.equal(await page.locator(".assistant-panel").isVisible(), true);
     assert.equal(await page.locator(".chat-turn").count(), 2);
   }
   assert.deepEqual(
@@ -218,7 +223,9 @@ try {
   assert.equal(chatRequest.history.length, 2);
   assert(!(await page.evaluate(() => window.hacked)));
   await page.locator(".assistant-panel .citation").click();
-  await page.getByRole("heading", { name: "Follow the evidence." }).waitFor();
+  await page
+    .getByRole("heading", { name: "Explore the documentation." })
+    .waitFor();
   assert.equal(await page.locator(".assistant-panel .chat-turn").count(), 4);
   await page
     .getByRole("button", { name: "Close assistant", exact: true })
@@ -238,20 +245,18 @@ try {
   checks.push(
     "Two authenticated browser contexts observe a saved review through live revision events",
   );
-  await page.getByRole("button", { name: "Questions", exact: true }).click();
-  await page.getByRole("button", { name: "Ask the evidence" }).click();
-  await page.locator(".answer").first().waitFor();
-  assert((await page.locator(".citation").count()) > 0);
-  checks.push("Graph-assisted question produces source-linked evidence");
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export snapshot" }).click();
-  const download = await downloadPromise;
+  for (const label of ["Questions", "Import", "Export snapshot"])
+    assert.equal(
+      await page.getByRole("button", { name: label, exact: true }).count(),
+      0,
+    );
+  const snapshot = (await (await page.request.get(base + "/api/state")).json())
+    .workspace;
+  assert(snapshot.audit.some((a) => a.by === "Alex"));
   const exportPath = path.join(temp, "snapshot.json");
-  await download.saveAs(exportPath);
-  const snapshot = JSON.parse(readFileSync(exportPath, "utf8"));
-  assert(
-    snapshot.answers.length === 1 &&
-      snapshot.audit.some((a) => a.by === "Alex"),
+  writeFileSync(exportPath, JSON.stringify(snapshot));
+  checks.push(
+    "Questions and snapshot buttons stay hidden; saved state retains review data",
   );
   const offline = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -266,7 +271,7 @@ try {
   });
   await mobile.goto("file://" + path.join(root, "dist/release-atlas.html"));
   await mobile
-    .getByText("Know what changes. Decide together.", { exact: true })
+    .getByText("Understand the docs. Trace the evidence.", { exact: true })
     .waitFor();
   assert(
     await mobile.evaluate(
@@ -283,18 +288,14 @@ try {
   await mobile
     .getByText("Imported saved analysis.", { exact: false })
     .waitFor();
-  await mobile.getByRole("button", { name: "Questions", exact: true }).click();
-  await mobile.locator(".answer").first().waitFor();
-  assert(await mobile.locator(".answer-text").innerText());
-  await mobile.locator(".citation").first().click();
-  await mobile.getByRole("heading", { name: "Follow the evidence." }).waitFor();
+  await mobile.getByRole("button", { name: "Evidence", exact: true }).click();
   assert(
     await mobile
       .getByRole("button", { name: "Save review", exact: true })
       .isDisabled(),
   );
   checks.push(
-    "Single HTML file works offline, imports saved analysis and follows saved citations without a backend",
+    "Single HTML file works offline and retained import validation opens saved evidence without a backend",
   );
   assert.equal(
     remoteRequests.length,
@@ -314,13 +315,7 @@ try {
   checks.push(
     "Invalid citation snapshot rejected; imported text never executed",
   );
-  for (const title of [
-    "Overview",
-    "Sources",
-    "Graph",
-    "Questions",
-    "Activity",
-  ]) {
+  for (const title of ["Overview", "Sources", "Graph", "Activity"]) {
     await mobile.getByRole("button", { name: title, exact: true }).click();
     assert(
       await mobile.evaluate(
@@ -445,7 +440,12 @@ try {
       if (/^https?:/.test(request.url())) hostedRequests.push(request.url());
     });
     await hosted.goto(demoBase);
-    await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
+    await hosted
+      .getByRole("heading", {
+        name: "Understand the docs. Trace the evidence.",
+        exact: true,
+      })
+      .waitFor();
     assert.equal(await hosted.getByRole("dialog").count(), 0);
     assert.equal(
       await hosted
@@ -465,17 +465,13 @@ try {
       "e:legacy_auth",
     );
     await hosted.getByText("4 direct connections", { exact: true }).waitFor();
-    await hosted
-      .getByRole("button", { name: "Questions", exact: true })
-      .click();
-    await hosted
-      .getByText("Prepared tutorial example with source citations", {
-        exact: true,
-      })
-      .waitFor();
-    await hosted
-      .getByRole("button", { name: "Source 1 ↗", exact: true })
-      .click();
+    assert.equal(
+      await hosted
+        .getByRole("button", { name: "Questions", exact: true })
+        .count(),
+      0,
+    );
+    await hosted.getByRole("button", { name: "Evidence", exact: true }).click();
     await hosted
       .getByRole("button", { name: "Save review", exact: true })
       .waitFor();
@@ -508,34 +504,33 @@ try {
     await hosted
       .getByRole("button", { name: "Close assistant", exact: true })
       .click();
-    for (const name of [
-      "Sources",
-      "Evidence",
-      "Graph",
-      "Questions",
-      "Activity",
-      "Overview",
-    ])
+    for (const name of ["Sources", "Evidence", "Graph", "Activity", "Overview"])
       await hosted.getByRole("button", { name, exact: true }).click();
     await hosted
       .getByRole("button", { name: "Beginner tutorial", exact: true })
       .click();
-    for (let i = 0; i < 14; i++)
+    while (
+      await hosted.getByRole("button", { name: "Next", exact: true }).count()
+    )
       await hosted.getByRole("button", { name: "Next", exact: true }).click();
     await hosted
       .getByRole("button", { name: "Finish tutorial", exact: true })
       .click();
-    await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
-    const downloadPromise = hosted.waitForEvent("download");
     await hosted
-      .getByRole("button", { name: "Export snapshot", exact: false })
-      .click();
-    const exported = JSON.parse(
-      readFileSync(await (await downloadPromise).path(), "utf8"),
+      .getByRole("heading", {
+        name: "Understand the docs. Trace the evidence.",
+        exact: true,
+      })
+      .waitFor();
+    assert.equal(
+      await hosted
+        .getByRole("button", { name: "Export snapshot", exact: false })
+        .count(),
+      0,
     );
-    assert.equal(exported.claims.length, 12);
-    assert.equal(exported.sources.length, 3);
-    assert.equal(exported.answers.length, 1);
+    const exported = JSON.parse(
+      readFileSync(path.join(root, "data/demo-snapshot.json"), "utf8"),
+    );
     const importedPath = path.join(temp, "hosted-review.json");
     writeFileSync(
       importedPath,
@@ -547,7 +542,7 @@ try {
       .setInputFiles(importedPath);
     await hosted
       .getByRole("heading", {
-        name: "Know what changes. Decide together.",
+        name: "Understand the docs. Trace the evidence.",
         exact: true,
       })
       .waitFor();
@@ -574,7 +569,6 @@ try {
       "Sources",
       "Evidence",
       "Graph",
-      "Questions",
       "Activity",
       "Overview",
     ]) {
@@ -587,16 +581,124 @@ try {
       );
     }
     await hosted.reload();
-    await hosted.getByText("The sources disagree.", { exact: true }).waitFor();
+    await hosted
+      .getByRole("heading", {
+        name: "Understand the docs. Trace the evidence.",
+        exact: true,
+      })
+      .waitFor();
     assert.deepEqual(
       hostedRequests.filter((url) => url !== demoBase + "/"),
       [],
       "Hosted demo must not request APIs, models or external runtime assets",
     );
     checks.push(
-      "Hosted HTTP demo preloads the example, supports all pages/tutorial/citations/import/export/reset and mobile layout without API or model requests",
+      "Hosted HTTP demo preloads the example, supports visible pages/tutorial/evidence/retained import/reset and mobile layout without API or model requests",
     );
   }
+  // Exercise direct access separately so the existing suite still checks authentication.
+  const directBase = "http://127.0.0.1:18878";
+  const directData = path.join(temp, "direct");
+  directServer = spawn(path.join(root, ".venv/bin/python"), ["-m", "backend"], {
+    cwd: root,
+    env: {
+      ...process.env,
+      PYTHONDONTWRITEBYTECODE: "1",
+      ATLAS_AUTH_ENABLED: "0",
+      ATLAS_DATA_DIR: directData,
+      ATLAS_PORT: "18878",
+      ATLAS_ORIGINS: directBase,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  directServer.stdout.on("data", (b) => (serverLog += b));
+  directServer.stderr.on("data", (b) => (serverLog += b));
+  let directReady = false;
+  for (let i = 0; i < 100; i++) {
+    try {
+      if ((await fetch(directBase + "/api/health")).ok) {
+        directReady = true;
+        break;
+      }
+    } catch {}
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  assert(directReady, "Direct-access server failed to start: " + serverLog);
+  const direct = await a.newPage();
+  observe(direct);
+  await direct.goto(directBase);
+  await direct.getByText("Local reviewer", { exact: true }).first().waitFor();
+  assert.equal(await direct.getByRole("dialog").count(), 0);
+  assert.equal(
+    await direct.getByRole("button", { name: /Sign in|Sign out/ }).count(),
+    0,
+  );
+  await direct.getByRole("button", { name: "Workspaces", exact: true }).click();
+  await direct
+    .getByLabel("New workspace name", { exact: true })
+    .fill("Direct access review");
+  await direct
+    .getByRole("button", { name: "New empty workspace", exact: true })
+    .click();
+  await direct.getByRole("dialog").waitFor({ state: "hidden" });
+  const directState = await (
+    await direct.request.get(directBase + "/api/state")
+  ).json();
+  assert.equal(directState.workspace.title, "Direct access review");
+  assert.equal(directState.workspace.audit.at(-1).by, "Local reviewer");
+  await direct.reload();
+  await direct.getByText("Local reviewer", { exact: true }).first().waitFor();
+  await direct.setViewportSize({ width: 390, height: 844 });
+  assert.equal(
+    await direct.getByRole("button", { name: /Sign in|Sign out/ }).count(),
+    0,
+  );
+  assert(!existsSync(path.join(directData, "access-code")));
+  checks.push(
+    "Sign-in disabled opens directly, saves a workspace as Local reviewer, survives reload and hides authentication controls on desktop/mobile",
+  );
+  await direct.getByRole("button", { name: "Sources", exact: true }).click();
+  await direct
+    .getByLabel("Source title", { exact: true })
+    .fill("Disposable source");
+  await direct.getByLabel("Version", { exact: true }).fill("1.0");
+  await direct
+    .getByLabel("License / permission", { exact: true })
+    .fill("Synthetic test, MIT");
+  await direct
+    .getByLabel("Source text", { exact: true })
+    .fill("Added `example_api` for synthetic source deletion testing.");
+  await direct
+    .getByRole("button", { name: "Save source", exact: true })
+    .click();
+  const deleteSource = direct.getByRole("button", {
+    name: "Delete source Disposable source, version 1.0",
+    exact: true,
+  });
+  await deleteSource.waitFor();
+  await deleteSource.click();
+  await direct.getByRole("button", { name: "Cancel", exact: true }).click();
+  assert(await deleteSource.isVisible());
+  await deleteSource.click();
+  await direct
+    .getByRole("button", { name: "Delete source", exact: true })
+    .click();
+  await deleteSource.waitFor({ state: "hidden" });
+  await direct.getByText("No source snapshots yet.", { exact: true }).waitFor();
+  await direct.reload();
+  await direct.getByRole("button", { name: "Sources", exact: true }).click();
+  await direct.getByText("No source snapshots yet.", { exact: true }).waitFor();
+  const deletedState = await (
+    await direct.request.get(directBase + "/api/state")
+  ).json();
+  assert.equal(deletedState.workspace.sources.length, 0);
+  assert.equal(
+    deletedState.workspace.audit.at(-1).action,
+    "Deleted source: Disposable source",
+  );
+  checks.push(
+    "Source trash icon supports cancelling and confirming deletion on mobile; removal survives reload and is audited",
+  );
   assert.deepEqual(errors, []);
   writeFileSync(
     "validation/browser-results.json",
@@ -633,4 +735,5 @@ try {
   if (browser) await browser.close();
   if (demoServer) await new Promise((resolve) => demoServer.close(resolve));
   server.kill("SIGTERM");
+  if (directServer) directServer.kill("SIGTERM");
 }
