@@ -1,11 +1,11 @@
+import { RelationshipGraph } from "./RelationshipGraph";
+import {
+  QuestionGraph,
+  advanceQuestionGraph,
+  visibleQuestionGraph,
+} from "./question-graph";
 import { workspaceFeatures } from "./features";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Claim, Workspace } from "./types";
 import { validateSnapshot } from "./import";
@@ -232,6 +232,9 @@ function Workbench({
   const managerRevision = useRef(0);
 
   const [tab, setTab] = useState<Tab>("Overview");
+  const [questionGraph, setQuestionGraph] = useState<QuestionGraph | null>(
+    null,
+  );
   const [user, setUser] = useState("");
   const [login, setLogin] = useState(false);
   const [authEnabled, setAuthEnabled] = useState(true);
@@ -257,6 +260,17 @@ function Workbench({
   const revision = useRef(workspace.revision);
   const live = !tutorial && isServer && !!user;
   const editable = live || tutorial;
+  const graphScopeKey = `${user}:${activeId}:${viewKey}`;
+  const currentQuestionGraph = visibleQuestionGraph(questionGraph, {
+    key: graphScopeKey,
+    revision: workspace.revision,
+    page: tab,
+    enabled: live && !suspended && !manager && !login,
+  });
+  useEffect(() => {
+    setQuestionGraph(null);
+  }, [workspace.revision, activeId, user, viewKey, suspended, manager, login]);
+
   const adopt = (state: Workspace) => {
     if (live && state.revision < revision.current) return;
     revision.current = state.revision;
@@ -1412,6 +1426,37 @@ function Workbench({
                             )
                         : undefined
                     }
+                    importDemo={
+                      live && !suspended && !tutorial
+                        ? () =>
+                            act("Importing demo documents", async () => {
+                              const result: {
+                                workspace: Workspace;
+                                imported: string[];
+                                skipped: string[];
+                                failed: {
+                                  repository: string;
+                                  message: string;
+                                }[];
+                              } = await api("sources/demo-documents", {
+                                revision: revision.current,
+                              });
+                              adopt(result.workspace);
+                              setNotice(
+                                `${result.imported.length} bundled sources imported; ${result.skipped.length} already present. ${result.imported.length ? "Analyze sources to refresh evidence." : ""}`,
+                              );
+                              if (result.failed.length)
+                                setError(
+                                  result.failed
+                                    .map(
+                                      (item) =>
+                                        `${item.repository}: ${item.message}`,
+                                    )
+                                    .join(" "),
+                                );
+                            })
+                        : undefined
+                    }
                     save={async (source) => {
                       let saved = false;
                       await act("Adding source", async () => {
@@ -1424,31 +1469,20 @@ function Workbench({
                       return saved;
                     }}
                   />
-                  <FeedForm
-                    disabled={locked || tutorial}
-                    save={(data) =>
-                      act("Fetching releases", async () => {
-                        await mutate("feeds/github", data);
-                        setNotice(
-                          "Release snapshots imported. Analyze sources to refresh evidence.",
-                        );
-                      })
-                    }
-                  />
                 </div>
               </div>
             )}
             {tab === "Graph" && (
-              <GraphView
-                workspace={workspace}
-                openClaim={openClaim}
-                initialFocus={
-                  tutorial
-                    ? "u:Checkout service"
-                    : __HOSTED_DEMO__
-                      ? "e:legacy_auth"
-                      : undefined
-                }
+              <RelationshipGraph
+                key={currentQuestionGraph?.requestId ?? "overview"}
+                canAsk={live && !suspended && !tutorial}
+                graph={currentQuestionGraph}
+                sources={workspace.sources}
+                openSource={(id) => {
+                  setSourceId(id);
+                  setTab("Sources");
+                }}
+                reset={() => setQuestionGraph(null)}
               />
             )}
             {workspaceFeatures.questions && tab === "Questions" && (
@@ -1578,6 +1612,16 @@ function Workbench({
             setLogin(true);
           }}
           refresh={refresh}
+          onQuestionGraph={(event) =>
+            setQuestionGraph((previous) =>
+              advanceQuestionGraph(previous, event, {
+                key: graphScopeKey,
+                revision: workspace.revision,
+                page: tab,
+                enabled: live && !manager && !login && !suspended,
+              }),
+            )
+          }
           blocked={manager || login || suspended}
         />
       )}
@@ -1992,60 +2036,6 @@ function ClaimDetail({
     </section>
   );
 }
-function FeedForm({
-  disabled,
-  save,
-}: {
-  disabled: boolean;
-  save: (data: Record<string, string>) => Promise<void>;
-}) {
-  return (
-    <section className="panel feed">
-      <details>
-        <summary>Import a public GitHub release feed</summary>
-        <p className="small muted">
-          Fetch up to three releases. Confirm the content’s redistribution
-          rights. No repository is changed.
-        </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void save(
-              Object.fromEntries(new FormData(e.currentTarget)) as Record<
-                string,
-                string
-              >,
-            );
-          }}
-        >
-          <label>
-            Repository
-            <input
-              name="repository"
-              required
-              placeholder="owner/repository"
-              pattern="[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"
-              disabled={disabled}
-            />
-          </label>
-          <label>
-            License or permission for the release text
-            <input
-              name="rights"
-              required
-              minLength={3}
-              maxLength={300}
-              disabled={disabled}
-            />
-          </label>
-          <button className="button" disabled={disabled}>
-            Fetch release snapshots
-          </button>
-        </form>
-      </details>
-    </section>
-  );
-}
 function QuestionForm({
   disabled,
   provider,
@@ -2106,148 +2096,4 @@ function QuestionForm({
     </form>
   );
 }
-function GraphView({
-  workspace,
-  openClaim,
-  initialFocus,
-}: {
-  workspace: Workspace;
-  openClaim: (id: string) => void;
-  initialFocus?: string;
-}) {
-  const nodes = workspace.graph.nodes;
-  const [focus, setFocus] = useState(initialFocus || "");
-  const center =
-    nodes.find((n) => n.id === focus) ||
-    nodes.find((n) => n.kind === "entity") ||
-    nodes[0];
-  const related = useMemo(() => {
-    if (!center) return [];
-    const neighbors = new Set(
-      workspace.graph.edges.flatMap((e) =>
-        e.source === center.id
-          ? [e.target]
-          : e.target === center.id
-            ? [e.source]
-            : [],
-      ),
-    );
-    return nodes.filter((n) => neighbors.has(n.id));
-  }, [center, nodes, workspace.graph.edges]);
-  const displayed = related.slice(0, 16);
-  return (
-    <div className="graph-layout">
-      <section className="panel graph-panel">
-        <div className="section-heading">
-          <h2>Evidence neighborhood</h2>
-          <span className="small muted">
-            {nodes.length} nodes · {workspace.graph.edges.length} links
-          </span>
-        </div>
-        <label>
-          Focus on an entity or component
-          <select
-            value={center?.id || ""}
-            onChange={(e) => setFocus(e.target.value)}
-          >
-            {nodes
-              .filter((n) => n.kind === "entity" || n.kind === "component")
-              .map((n) => (
-                <option key={n.id} value={n.id}>
-                  {n.label} ({n.kind})
-                </option>
-              ))}
-          </select>
-        </label>
-        {center && (
-          <svg
-            className="graph-canvas"
-            viewBox="0 0 620 420"
-            role="img"
-            aria-label={`Evidence connections for ${center.label}. The accessible list follows.`}
-          >
-            {displayed.map((n, i) => {
-              const a = (i * 2 * Math.PI) / displayed.length;
-              const x = 310 + 220 * Math.cos(a),
-                y = 210 + 150 * Math.sin(a);
-              return (
-                <g key={n.id}>
-                  <line x1="310" y1="210" x2={x} y2={y} stroke="#c8d5ce" />
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r="12"
-                    fill={
-                      n.kind === "claim"
-                        ? "#e5b975"
-                        : n.kind === "component"
-                          ? "#223d36"
-                          : "#8ba998"
-                    }
-                  />
-                  <text
-                    x={x}
-                    y={y + 29}
-                    textAnchor="middle"
-                    fill="#3b514a"
-                    fontSize="11"
-                  >
-                    {n.label.slice(0, 24)}
-                  </text>
-                </g>
-              );
-            })}
-            <circle cx="310" cy="210" r="42" fill="#1c5a49" />
-            <text
-              x="310"
-              y="213"
-              textAnchor="middle"
-              fill="white"
-              fontSize="12"
-            >
-              {center.label.slice(0, 20)}
-            </text>
-          </svg>
-        )}
-        <div className="graph-legend">
-          <span>
-            <i className="legend-claim" />
-            Evidence
-          </span>
-          <span>
-            <i className="legend-entity" />
-            Entity / source
-          </span>
-          <span>
-            <i className="legend-component" />
-            Component
-          </span>
-        </div>
-        <p className="small muted">
-          The diagram shows up to 16 immediate neighbors. All neighbors appear
-          in the list. A connection identifies cited evidence, not causation.
-        </p>
-      </section>
-      <section className="panel">
-        <span className="eyebrow">CONNECTED EVIDENCE</span>
-        <h2>{center?.label || "No graph yet"}</h2>
-        <p className="small muted">{related.length} direct connections</p>
-        {related.map((n) => (
-          <button
-            className="graph-row"
-            key={n.id}
-            onClick={() =>
-              n.kind === "claim" ? openClaim(n.id) : setFocus(n.id)
-            }
-          >
-            <span className="badge neutral">{n.kind}</span>
-            <span>{n.label}</span>
-            <Icon name="arrow" />
-          </button>
-        ))}
-      </section>
-    </div>
-  );
-}
-
 createRoot(document.getElementById("root")!).render(<App />);

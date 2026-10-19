@@ -219,11 +219,33 @@ test("README controls appear only when live fetching is provided and never fetch
   assert.match(html, /Fetch a public GitHub README/);
   assert.match(html, /Public GitHub repository URL/);
   assert.match(html, /Fetching does not save/);
+  const demoImport = render({
+    disabled: false,
+    revision: 0,
+    save: async () => {},
+    importDemo: async () => {
+      calls++;
+    },
+  });
+  assert.match(demoImport, /Import mock data for demo purposes/);
+  assert.match(demoImport, /six fictional documents/);
+  const lockedImport = render({
+    disabled: true,
+    revision: 0,
+    save: async () => {},
+    importDemo: async () => {
+      calls++;
+    },
+  });
+  assert.match(
+    lockedImport,
+    /<button[^>]*disabled=""[^>]*>Import mock data for demo purposes/,
+  );
   assert.equal(calls, 0);
   const offline = render({ disabled: true, revision: 0, save: async () => {} });
   assert.doesNotMatch(
     offline,
-    /Public GitHub repository URL|Fetch a public GitHub README/,
+    /Public GitHub repository URL|Fetch a public GitHub README|Import mock data for demo purposes/,
   );
 });
 test("reject altered citations, source hashes, identities, graph references and unsafe URLs", async () => {
@@ -450,7 +472,7 @@ test("built-in guide handles empty, unanalyzed and ready reviews without inventi
   );
   assert.match(
     guideReply("Graph", demo, "Explain this page simply"),
-    /Connections in the evidence/,
+    /Documentation relationships/,
   );
   assert.match(
     guideReply("Questions", demo, "How does vector retrieval work?"),
@@ -774,6 +796,79 @@ test("retrieved context verifies all selected source spans, reason allowlists an
   };
   assert.deepEqual(validatedRetrieval(report, demo.sources), report);
   assert.equal(validatedRetrieval(undefined, demo.sources), undefined);
+  const graphSources = [
+    {
+      ...source,
+      id: "s-flask",
+      title: "Flask documentation",
+      text: "Render templates using Jinja.",
+    },
+    {
+      ...source,
+      id: "s-jinja",
+      title: "Jinja documentation",
+      text: "Templates render HTML with inheritance.",
+    },
+  ].map((s) => ({ ...s, sha256: hash(s.text) }));
+  const graphPassages = graphSources.map((s, i) => ({
+    id: `p-${s.id}-0-${Array.from(s.text).length}`,
+    source_id: s.id,
+    sha256: s.sha256,
+    start: 0,
+    end: Array.from(s.text).length,
+    quote: s.text,
+    reasons: i ? ["graph connection"] : ["semantic match"],
+  }));
+  const graphReport = {
+    ...report,
+    total_sources: 2,
+    included_sources: 2,
+    passages: graphPassages,
+    graph_paths: [
+      {
+        from_passage: graphPassages[0].id,
+        to_passage: graphPassages[1].id,
+        via: "jinja",
+        relation: "technology reference",
+      },
+    ],
+  };
+  assert.deepEqual(validatedRetrieval(graphReport, graphSources), graphReport);
+  const selectedReport = structuredClone(graphReport);
+  selectedReport.connections = selectedReport.graph_paths;
+  selectedReport.graph_paths = [];
+  selectedReport.passages[1].reasons = ["semantic match"];
+  assert.deepEqual(
+    validatedRetrieval(selectedReport, graphSources),
+    selectedReport,
+  );
+  for (const change of [
+    (r) => (r.connections[0].from_passage = "unselected"),
+    (r) => (r.connections[0].via = "unmentioned"),
+    (r) => r.connections.push(r.connections[0]),
+    (r) => (r.connections = Array(13).fill(r.connections[0])),
+  ]) {
+    const altered = structuredClone(selectedReport);
+    change(altered);
+    assert.throws(() => validatedRetrieval(altered, graphSources));
+  }
+
+  for (const change of [
+    (r) => (r.graph_paths[0].via = "jinja.extension"),
+    (r) => (r.graph_paths[0].via = "jinj"),
+    (r) => (r.graph_paths[0].via = ".*"),
+    (r) => (r.graph_paths[0].from_passage = "missing"),
+    (r) => (r.graph_paths[0].to_passage = r.graph_paths[0].from_passage),
+    (r) => (r.graph_paths[0].relation = "executes"),
+    (r) => (r.graph_paths = []),
+    (r) => delete r.graph_paths,
+    (r) => r.graph_paths.push(r.graph_paths[0]),
+  ]) {
+    const altered = structuredClone(graphReport);
+    change(altered);
+    assert.throws(() => validatedRetrieval(altered, graphSources));
+  }
+
   for (const change of [
     (r) => (r.passages[0].quote = "fabricated"),
     (r) => (r.passages[0].source_id = "other-workspace"),
@@ -857,6 +952,30 @@ test("retrieval disclosure renders selected context and fallback visibly as esca
   assert(html.includes("&lt;script&gt;") && html.includes("&lt;img"));
   assert(!html.includes("<script>") && !html.includes("<img src=x"));
   assert.equal(calls, 0);
+  const connectedHtml = module.exports.render({
+    report: {
+      ...report,
+      graph_paths: [
+        {
+          from_passage: "p",
+          to_passage: "p",
+          via: "<script>bad</script>",
+          relation: "technology reference",
+        },
+      ],
+    },
+    sources: [source],
+    openSource: () => calls++,
+  });
+  assert(
+    connectedHtml.includes("Connected from") &&
+      connectedHtml.includes("technology reference"),
+  );
+  assert(
+    connectedHtml.includes("&lt;script&gt;bad&lt;/script&gt;") &&
+      !connectedHtml.includes("<script>"),
+  );
+  assert.equal(calls, 0);
   assert(
     module.exports
       .render({
@@ -872,4 +991,792 @@ test("retrieval disclosure renders selected context and fallback visibly as esca
       })
       .includes("No sufficiently relevant passages"),
   );
+});
+
+test("assistant stream publishes retrieval before the final answer and rejects malformed or interrupted streams", async () => {
+  const bundled = await build({
+    entryPoints: ["frontend/assistant-stream.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { readAssistantReply, AssistantStreamError } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundled.outputFiles[0].text).toString("base64")
+  );
+  const encoder = new TextEncoder();
+  let controller;
+  const stream = new ReadableStream({
+    start(value) {
+      controller = value;
+    },
+  });
+  let complete = false;
+  const progress = [];
+  const pending = readAssistantReply(
+    new Response(stream, {
+      headers: { "Content-Type": "application/x-ndjson" },
+    }),
+    (event) => progress.push(event),
+  ).then((value) => {
+    complete = true;
+    return value;
+  });
+  controller.enqueue(
+    encoder.encode(
+      JSON.stringify({
+        type: "retrieval",
+        revision: 4,
+        retrieval: { graph_paths: [] },
+      }) + "\n",
+    ),
+  );
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(progress.length, 1);
+  assert.equal(complete, false);
+  const reply = { revision: 4, answer: "Résumé 🧭", citations: [] };
+  const final = encoder.encode(
+    JSON.stringify({ type: "answer", data: reply }) + "\n",
+  );
+  for (let i = 0; i < final.length; i += 3)
+    controller.enqueue(final.slice(i, i + 3));
+  controller.close();
+  assert.deepEqual(await pending, reply);
+  assert.deepEqual(
+    await readAssistantReply(Response.json(reply), () =>
+      assert.fail("JSON reply is not progress"),
+    ),
+    reply,
+  );
+  for (const body of [
+    '{"type":"retrieval","revision":4}\n',
+    '{"type":"answer","data":{}}\n',
+    '{"type":"unknown"}\n',
+    '{"type":"retrieval"}\n{"type":"retrieval"}\n',
+    "not JSON\n",
+    "x".repeat(4000001),
+  ])
+    await assert.rejects(
+      readAssistantReply(
+        new Response(body, {
+          headers: { "Content-Type": "application/x-ndjson" },
+        }),
+        () => {},
+      ),
+      AssistantStreamError,
+    );
+  await assert.rejects(
+    readAssistantReply(
+      new Response(
+        '{"type":"error","status":409,"detail":"Workspace changed"}\n',
+        { headers: { "Content-Type": "application/x-ndjson" } },
+      ),
+      () => {},
+    ),
+    (error) => error.status === 409 && /Workspace changed/.test(error.message),
+  );
+});
+
+test("question graph state accepts only the active Graph request and hides stale, switched or blocked context", async () => {
+  const bundled = await build({
+    entryPoints: ["frontend/question-graph.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { advanceQuestionGraph, visibleQuestionGraph } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundled.outputFiles[0].text).toString("base64")
+  );
+  const scope = {
+    key: "reviewer:workspace-a",
+    revision: 4,
+    page: "Graph",
+    enabled: true,
+  };
+  const start = {
+    requestId: 1,
+    revision: 4,
+    question: "How do Flask and Jinja connect?",
+    phase: "loading",
+  };
+  const state = advanceQuestionGraph(null, start, scope);
+  assert.equal(state.phase, "loading");
+  const report = { graph_paths: [], passages: [] };
+  const ready = advanceQuestionGraph(
+    state,
+    { ...start, phase: "ready", report },
+    scope,
+  );
+  assert.equal(ready.report, report);
+  assert.equal(visibleQuestionGraph(ready, scope), ready);
+  for (const change of [
+    { key: "reviewer:workspace-b" },
+    { revision: 5 },
+    { enabled: false },
+  ]) {
+    assert.equal(visibleQuestionGraph(ready, { ...scope, ...change }), null);
+    assert.equal(
+      advanceQuestionGraph(
+        ready,
+        { ...start, phase: "ready", report },
+        { ...scope, ...change },
+      ),
+      ready,
+    );
+  }
+  const awayScope = { ...scope, page: "Sources" };
+  assert.equal(visibleQuestionGraph(ready, awayScope), null);
+  assert.equal(advanceQuestionGraph(null, start, awayScope), null);
+  const finishedWhileAway = advanceQuestionGraph(
+    state,
+    { ...start, phase: "ready", report },
+    awayScope,
+  );
+  assert.equal(finishedWhileAway.phase, "ready");
+  assert.equal(finishedWhileAway.report, report);
+  assert.equal(
+    visibleQuestionGraph(finishedWhileAway, scope),
+    finishedWhileAway,
+  );
+  assert.equal(
+    advanceQuestionGraph(
+      ready,
+      { ...start, requestId: 99, phase: "ready", report },
+      awayScope,
+    ),
+    ready,
+  );
+  assert.equal(
+    advanceQuestionGraph(
+      ready,
+      { ...start, requestId: 99, phase: "ready", report },
+      scope,
+    ),
+    ready,
+  );
+  assert.equal(
+    advanceQuestionGraph(null, { ...start, phase: "ready", report }, scope),
+    null,
+  );
+  assert.equal(
+    advanceQuestionGraph(ready, { ...start, phase: "error" }, scope).report,
+    report,
+  );
+  assert.equal(advanceQuestionGraph(ready, null, scope), null);
+});
+
+test("independent project relationships explain the bundled docs with bounded, exact source evidence", async () => {
+  const bundle = await build({
+    entryPoints: ["frontend/document-relations.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { buildDocumentMap, circularProjects, relationCurve } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundle.outputFiles[0].text).toString("base64")
+  );
+  const sources = JSON.parse(
+    readFileSync("data/demo-readmes/snapshots.json", "utf8"),
+  ).map((row) => row.source);
+  const before = JSON.stringify(sources);
+  const question = "How do I make a backend and frontend?";
+  const map = buildDocumentMap(question, sources);
+  const byName = (name) =>
+    map.nodes.find((n) => n.name.toLowerCase() === name.toLowerCase());
+  for (const name of ["Flask", "Jinja", "Werkzeug", "Quart", "MarkupSafe"])
+    assert(byName(name), "missing " + name);
+  assert(!byName("Click"));
+  const pair = (a, b) =>
+    map.links.filter(
+      (l) =>
+        (l.from === byName(a)?.id && l.to === byName(b)?.id) ||
+        (l.from === byName(b)?.id && l.to === byName(a)?.id),
+    );
+  assert.equal(pair("Flask", "Jinja")[0].label, "Began as a wrapper around");
+  assert.equal(pair("Flask", "Werkzeug")[0].kind, "explicit");
+  assert.equal(
+    pair("Jinja", "MarkupSafe")[0].label,
+    "Both describe HTML escaping",
+  );
+  assert.equal(
+    pair("Jinja", "Quart")[0].label,
+    "Both describe template rendering",
+  );
+  assert(map.nodes.length <= 6 && map.links.length <= 8);
+  for (const evidence of [
+    ...map.links.flatMap((l) => l.evidence),
+    ...map.nodes.flatMap((n) => n.capabilities.map((c) => c.evidence)),
+  ]) {
+    const source = sources.find((s) => s.id === evidence.source_id);
+    assert.equal(evidence.sha256, source.sha256);
+    assert.equal(
+      Array.from(source.text).slice(evidence.start, evidence.end).join(""),
+      evidence.quote,
+    );
+  }
+  const cli = buildDocumentMap(
+    "How do I make a command line interface?",
+    sources,
+  );
+  assert(cli.nodes.some((n) => n.name === "Click"));
+  assert.equal(cli.links.length, 0);
+  assert.equal(
+    buildDocumentMap("astronomy telescope galaxies", sources).nodes.length,
+    0,
+  );
+  assert.deepEqual(buildDocumentMap(question, sources), map);
+  assert.equal(JSON.stringify(sources), before);
+  for (let count = 1; count <= 6; count++) {
+    const positioned = circularProjects(
+      Array.from({ length: count }, (_, i) => ({
+        ...map.nodes[0],
+        id: String(i),
+      })),
+    );
+    for (let i = 0; i < count; i++)
+      for (let j = i + 1; j < count; j++)
+        assert(
+          Math.abs(positioned[i].x - positioned[j].x) >= 212 ||
+            Math.abs(positioned[i].y - positioned[j].y) >= 76,
+        );
+    for (let i = 0; i < count; i++)
+      for (let j = i + 1; j < count; j++) {
+        const point = relationCurve(positioned[i], positioned[j]);
+        assert(
+          Math.abs(point.x - 450) > 122 || Math.abs(point.y - 340) > 70,
+          "center hides connection badge",
+        );
+      }
+    for (const n of positioned)
+      assert(n.x >= 106 && n.x <= 794 && n.y >= 38 && n.y <= 642);
+  }
+});
+
+test("relationship rules reject unsupported links, code, links, negation and ambiguous project identities", async () => {
+  const bundle = await build({
+    entryPoints: ["frontend/document-relations.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { buildDocumentMap } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundle.outputFiles[0].text).toString("base64")
+  );
+  const source = (id, name, text) => ({
+    id,
+    title: name + " documentation",
+    version: "1",
+    text,
+    sha256: hash(text),
+    url: "",
+    license: "Synthetic test text",
+  });
+  const target = source(
+    "jinja",
+    "Jinja",
+    "Jinja is a templating engine that renders HTML templates.",
+  );
+  for (const text of [
+    "Flask does not use Jinja.",
+    "Flask never depends on Jinja.",
+    "Flask uses Jinja or another template engine.",
+    "Flask uses another engine instead of Jinja.",
+    "Flask and Jinja are mentioned in this document.",
+    "```python\nFlask uses Jinja.\n```",
+    "[Flask uses Jinja]: https://example.org",
+    "<div title='Flask uses Jinja'> </div>",
+  ]) {
+    assert.equal(
+      buildDocumentMap("Flask", [source("flask", "Flask", text), target]).links
+        .length,
+      0,
+      text,
+    );
+  }
+  const flask = source(
+    "flask",
+    "Flask",
+    "😀 Context first.\n\nFlask uses Jinja for HTML pages.",
+  );
+  const valid = buildDocumentMap("Flask", [flask, target]);
+  assert.equal(valid.links.length, 1);
+  assert.equal(valid.links[0].label, "Uses");
+  const quote = valid.links[0].evidence[0];
+  assert.equal(
+    Array.from(flask.text).slice(quote.start, quote.end).join(""),
+    quote.quote,
+  );
+  assert.equal(
+    buildDocumentMap("Flask", [
+      flask,
+      target,
+      { ...target, id: "other", version: "2" },
+    ]).links.length,
+    0,
+  );
+  const many = Array.from({ length: 30 }, (_, i) =>
+    source(
+      "s" + i,
+      "Project" + i,
+      "This project renders HTML templates with autoescaping.",
+    ),
+  );
+  const dense = buildDocumentMap("HTML templates", many);
+  assert(dense.nodes.length <= 6 && dense.links.length <= 8);
+  assert.deepEqual(buildDocumentMap("", []), { nodes: [], links: [] });
+});
+
+test("circular relationship UI scopes to selected sources, ignores GraphRAG metadata and escapes evidence", async () => {
+  const bundle = await build({
+    stdin: {
+      contents:
+        'import React from "react";import {renderToStaticMarkup} from "react-dom/server.node";import {RelationshipGraph} from "./frontend/RelationshipGraph";export const render=(props)=>renderToStaticMarkup(React.createElement(RelationshipGraph,props));',
+      resolveDir: process.cwd(),
+      loader: "tsx",
+    },
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "cjs",
+    define: { "process.env.NODE_ENV": '"production"' },
+  });
+  const module = { exports: {} };
+  new Function("require", "module", "exports", bundle.outputFiles[0].text)(
+    createRequire(import.meta.url),
+    module,
+    module.exports,
+  );
+  const sources = JSON.parse(
+    readFileSync("data/demo-readmes/snapshots.json", "utf8"),
+  ).map((row) => row.source);
+  const selected = sources.filter((s) => /flask|jinja/.test(s.title));
+  const graph = {
+    question: "How does Flask use Jinja?",
+    phase: "ready",
+    requestId: 1,
+    revision: 0,
+    scopeKey: "test",
+    report: {
+      passages: selected.map((s) => ({ source_id: s.id })),
+      graph_paths: [],
+      connections: [],
+    },
+  };
+  let calls = 0;
+  const props = {
+    graph,
+    sources,
+    openSource: () => {
+      calls++;
+    },
+    reset: () => {
+      calls++;
+    },
+  };
+  const html = module.exports.render(props);
+  assert.match(html, /Circular project relationship map/);
+  assert.match(html, /Began as a wrapper around/);
+  assert.match(html, /role="button" tabindex="0"/);
+  assert.match(html, /WHY THIS CONNECTION/);
+  assert.doesNotMatch(html, /Inspect Quart|Inspect Click|Inspect Werkzeug/);
+  assert.equal(
+    module.exports.render({
+      ...props,
+      graph: {
+        ...graph,
+        report: {
+          ...graph.report,
+          connections: [{ anything: "ignored" }],
+          graph_paths: [{ anything: "ignored" }],
+        },
+      },
+    }),
+    html,
+  );
+  const hostileQuestion = module.exports.render({
+    ...props,
+    graph: { ...graph, question: "Flask <script>alert(1)</script> Jinja" },
+  });
+  assert(!hostileQuestion.includes("<script>"));
+  assert(hostileQuestion.includes("&lt;script&gt;"));
+  const mentionHtml = module.exports.render({
+    ...props,
+    graph: { ...graph, question: "which mention https" },
+  });
+  assert.match(mentionHtml, /Where your question appears/);
+  assert.match(mentionHtml, /Both mention HTTPS/);
+  assert.match(mentionHtml, /relationship-edge mention/);
+  assert.match(mentionHtml, /does not establish a feature/);
+  const relatedHtml = module.exports.render({
+    ...props,
+    graph: { ...graph, question: "which mention security" },
+  });
+  assert.match(relatedHtml, /No literal mention of security/);
+  assert(!relatedHtml.includes("Both mention security"));
+  const unsafe = selected.map((s) => ({
+    ...s,
+    text: s.text + "\n\n<script>alert('test')</script>",
+  }));
+  assert(
+    !module.exports.render({ ...props, sources: unsafe }).includes("<script>"),
+  );
+  assert.match(
+    module.exports.render({
+      ...props,
+      graph: { ...graph, phase: "loading", report: undefined },
+    }),
+    /map will appear/,
+  );
+  assert.match(
+    module.exports.render({
+      ...props,
+      graph: { ...graph, phase: "error", report: undefined },
+    }),
+    /Source selection could not finish/,
+  );
+  assert.match(
+    module.exports.render({
+      ...props,
+      graph: { ...graph, report: { passages: [] } },
+    }),
+    /No supported project relationships/,
+  );
+  assert.match(
+    module.exports.render({ ...props, graph: null, sources: [] }),
+    /Add documentation/,
+  );
+  assert(
+    !module.exports
+      .render({ ...props, graph: null })
+      .includes("Send a Model chat question"),
+  );
+  assert.equal(calls, 0);
+});
+
+test("graph handles routing and Python questions using prose and inert code examples", async () => {
+  const bundled = await build({
+    entryPoints: ["frontend/document-relations.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { buildDocumentMap } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundled.outputFiles[0].text).toString("base64")
+  );
+  const sources = JSON.parse(
+    readFileSync("data/demo-readmes/snapshots.json", "utf8"),
+  ).map((row) => row.source);
+  for (const question of [
+    "how do i add routing?",
+    "how do I implement routes?",
+    "which ones use python?",
+    "which of these are using Python?",
+  ]) {
+    const map = buildDocumentMap(question, sources);
+    assert(map.nodes.length > 0, question);
+    assert(map.nodes.length <= 6 && map.links.length <= 8);
+    const python = /python/i.test(question);
+    if (python) assert.equal(map.nodes.length, 6);
+    else
+      assert.deepEqual(map.nodes.map((n) => n.name.toLowerCase()).sort(), [
+        "flask",
+        "quart",
+        "werkzeug",
+      ]);
+    for (const node of map.nodes)
+      assert(
+        node.capabilities.some((c) => c.id === (python ? "python" : "routing")),
+        node.name,
+      );
+    for (const evidence of [
+      ...map.nodes.flatMap((n) => n.capabilities.map((c) => c.evidence)),
+      ...map.links.flatMap((l) => l.evidence),
+    ]) {
+      const source = sources.find((s) => s.id === evidence.source_id);
+      assert.equal(evidence.sha256, source.sha256);
+      assert.equal(
+        Array.from(source.text).slice(evidence.start, evidence.end).join(""),
+        evidence.quote,
+      );
+    }
+  }
+  const source = (title, text) => ({
+    id: title,
+    title: title + " documentation",
+    text,
+    version: "1",
+    sha256: hash(text),
+    url: "",
+    license: "Synthetic",
+  });
+  const example = source(
+    "ExampleApp",
+    "😀 Documentation\n\n```python\n@app.route('/hello')\ndef hello():\n    return 'hello'\n```",
+  );
+  const routing = buildDocumentMap("add routing", [example]);
+  assert.equal(routing.nodes[0].role, "Routing examples");
+  assert.match(
+    routing.nodes[0].capabilities.find((c) => c.id === "routing").evidence
+      .quote,
+    /@app\.route/,
+  );
+  const markup = source("Markup", "```pycon\n>>> escape('<tag>')\n```");
+  assert.equal(
+    buildDocumentMap("which ones use Python", [markup]).nodes[0].role,
+    "Python examples",
+  );
+  for (const text of [
+    "There is no supported language here.",
+    "This is not Python software.",
+    "```javascript\n// Python\nconst route = 'routing';\n```",
+    "```python\n# @app.route('/fake')\nprint('no routing example')\n```",
+    "<div title='Python routing'>A document with no capabilities</div>",
+  ]) {
+    const item = source("Plain", text);
+    assert.equal(
+      buildDocumentMap("how do I add routing?", [item]).nodes.length,
+      0,
+    );
+    if (!text.startsWith("```python"))
+      assert.equal(
+        buildDocumentMap("which ones use Python?", [item]).nodes.length,
+        0,
+      );
+  }
+});
+
+test("mention maps handle URLs and arbitrary terms, with honest security-related fallback", async () => {
+  const bundle = await build({
+    entryPoints: ["frontend/document-relations.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { buildDocumentMap } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundle.outputFiles[0].text).toString("base64")
+  );
+  const sources = JSON.parse(
+    readFileSync("data/demo-readmes/snapshots.json", "utf8"),
+  ).map((r) => r.source);
+  const https = buildDocumentMap("which mention https", sources);
+  assert.equal(https.mode, "mentions");
+  assert.equal(https.nodes.length, 6);
+  assert.equal(https.links.length, 5);
+  assert(
+    https.links.every(
+      (l) => l.kind === "mention" && l.label === "Both mention HTTPS",
+    ),
+  );
+  for (const e of https.links.flatMap((l) => l.evidence)) {
+    const source = sources.find((s) => s.id === e.source_id);
+    assert.equal(
+      Array.from(source.text).slice(e.start, e.end).join(""),
+      e.quote,
+    );
+    assert.match(e.quote, /https/i);
+  }
+  const security = buildDocumentMap("which mention security", sources);
+  assert.equal(security.mode, "related");
+  assert.match(security.note, /No literal mention of security/);
+  assert.deepEqual(security.nodes.map((n) => n.name.toLowerCase()).sort(), [
+    "jinja",
+    "markupsafe",
+  ]);
+  assert(security.links.every((l) => l.kind !== "mention"));
+  assert.equal(
+    buildDocumentMap('which mention "security"', sources).nodes.length,
+    0,
+  );
+  const generic = sources.map((s, i) => ({ ...s, title: "Source " + (i + 1) }));
+  assert.equal(
+    buildDocumentMap("which mention https", generic).nodes.length,
+    6,
+  );
+  assert.equal(
+    buildDocumentMap("which mention security", generic).nodes.length,
+    2,
+  );
+  const source = (id, text) => ({
+    id,
+    title: id,
+    version: "1",
+    text,
+    sha256: hash(text),
+    url: "",
+    license: "Synthetic",
+  });
+  const synthetic = [
+    source(
+      "Source A",
+      "😀 https://example.org/security-policy has retry_budget documented.",
+    ),
+    source("Source B", "Security text documents retry_budget in plain text."),
+    source(
+      "Source C",
+      "Insecurity is a different word; https://example.org is a URL.",
+    ),
+  ];
+  const literal = buildDocumentMap("which mention security", synthetic);
+  assert.equal(literal.mode, "mentions");
+  assert.equal(literal.nodes.length, 2);
+  assert.equal(literal.links[0].label, "Both mention security");
+  const arbitrary = buildDocumentMap("which contain retry_budget", synthetic);
+  assert.equal(arbitrary.nodes.length, 2);
+  assert.equal(arbitrary.links[0].label, "Both mention retry_budget");
+  assert.equal(
+    buildDocumentMap("which mention security and https", synthetic).nodes
+      .length,
+    1,
+  );
+  assert.equal(
+    buildDocumentMap("which mention security or https", synthetic).nodes.length,
+    3,
+  );
+  const negative = buildDocumentMap("which don't mention security", synthetic);
+  assert.equal(negative.nodes.length, 0);
+  assert.match(negative.note, /Negative mention filters/);
+  assert.equal(
+    buildDocumentMap('which mention "https"', [
+      source("Only HTTP", "Use HTTP for local testing."),
+    ]).nodes.length,
+    0,
+  );
+  assert.equal(
+    buildDocumentMap('which mention "http"', [
+      source("Only HTTPS", "https://example.org"),
+    ]).nodes.length,
+    0,
+  );
+  const malicious = ".*";
+  assert.equal(
+    buildDocumentMap(`which mention "${malicious}"`, [
+      source("X", "Ordinary text, no pattern operators."),
+    ]).nodes.length,
+    0,
+  );
+  const unicode = [
+    source("A", "😀 HTTPS and café are mentioned."),
+    source("B", "café is also mentioned here."),
+  ];
+  const cafe = buildDocumentMap('which mention "café"', unicode);
+  assert.equal(cafe.nodes.length, 2);
+  for (const e of cafe.links.flatMap((l) => l.evidence))
+    assert.equal(
+      Array.from(unicode.find((s) => s.id === e.source_id).text)
+        .slice(e.start, e.end)
+        .join(""),
+      e.quote,
+    );
+});
+
+test("synthetic frontend/backend demo spans three versions and produces useful maps", async () => {
+  const manifest = JSON.parse(
+    readFileSync("data/demo-documents/manifest.json", "utf8"),
+  );
+  const sources = manifest.documents.map((row) => {
+    const text = readFileSync("data/demo-documents/" + row.path, "utf8");
+    const sha256 = hash(text);
+    assert.equal(sha256, row.sha256);
+    return {
+      ...row,
+      text,
+      sha256,
+      id: "s-" + hash(row.version + "\0" + sha256).slice(0, 20),
+      license: "MIT; original synthetic documentation",
+    };
+  });
+  assert.equal(sources.length, 6);
+  assert.equal(new Set(sources.map((s) => s.title)).size, 2);
+  for (const title of new Set(sources.map((s) => s.title)))
+    assert.deepEqual(
+      sources.filter((s) => s.title === title).map((s) => s.version),
+      ["1.0", "2.0", "3.0"],
+    );
+  const bundle = await build({
+    entryPoints: ["frontend/document-relations.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { buildDocumentMap } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundle.outputFiles[0].text).toString("base64")
+  );
+  for (const question of [
+    "How do the backend and frontend work together?",
+    "how do I add routing?",
+    "which mention security",
+    "which mention https",
+  ]) {
+    const map = buildDocumentMap(question, sources);
+    assert.equal(map.nodes.length, 6, question);
+    assert(map.links.length > 0 && map.links.length <= 8, question);
+    for (const e of map.links.flatMap((l) => l.evidence))
+      assert.equal(
+        Array.from(sources.find((s) => s.id === e.source_id).text)
+          .slice(e.start, e.end)
+          .join(""),
+        e.quote,
+      );
+  }
+  const python = buildDocumentMap("which ones use Python?", sources);
+  assert.equal(python.nodes.length, 3);
+  assert(python.nodes.every((n) => n.name === "HarborAPI"));
+  const latest = sources.filter((s) => s.version === "3.0");
+  const pair = buildDocumentMap("backend and frontend", latest);
+  assert.equal(pair.nodes.length, 2);
+  assert(
+    pair.links.some(
+      (l) => l.kind === "explicit" && l.label === "Integrates with",
+    ),
+  );
+  const component = await build({
+    stdin: {
+      contents:
+        'import React from "react";import {renderToStaticMarkup} from "react-dom/server.node";import {RelationshipGraph} from "./frontend/RelationshipGraph";export const render=(props)=>renderToStaticMarkup(React.createElement(RelationshipGraph,props));',
+      resolveDir: process.cwd(),
+      loader: "tsx",
+    },
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "cjs",
+    define: { "process.env.NODE_ENV": '"production"' },
+  });
+  const module = { exports: {} };
+  new Function("require", "module", "exports", component.outputFiles[0].text)(
+    createRequire(import.meta.url),
+    module,
+    module.exports,
+  );
+  const html = module.exports.render({
+    graph: null,
+    sources,
+    openSource: () => {},
+    reset: () => {},
+  });
+  for (const version of ["1.0", "2.0", "3.0"])
+    assert.equal(
+      (
+        html.match(
+          new RegExp(
+            `class="relationship-node-version"[^>]*>${version.replace(".", "\\.")}</text>`,
+            "g",
+          ),
+        ) ?? []
+      ).length,
+      2,
+    );
 });

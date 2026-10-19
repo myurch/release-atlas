@@ -12,13 +12,13 @@ export const help: Record<string, HelpText> = {
   },
   Sources: {
     title: "Original documents",
-    what: "Keep versioned release notes and reference text together. Paste text, fetch a public GitHub README into a draft, or import public GitHub release notes. PDF, Word and source-folder uploads are not supported.",
+    what: "Keep versioned release notes and reference text together. Paste text, fetch a public GitHub README into a draft, or import the bundled demo READMEs. PDF, Word and source-folder uploads are not supported.",
     why: "Every finding and citation points back here. Adding a source requires fresh analysis.",
   },
   Graph: {
-    title: "Connections in the evidence",
-    what: "Explore links between sources, findings, technical identifiers and application components.",
-    why: "Graph relationships help you trace why a change might matter and retrieve evidence beyond matching words.",
+    title: "Documentation relationships",
+    what: "Explore a circular map of project roles, explicit relationships and shared capabilities. Send a Model chat question in Ask Atlas here to focus it on the selected sources.",
+    why: "Select a project or numbered connection to read exact supporting text. Solid lines show explicit statements; dashed lines show shared capabilities; dotted lines show literal text mentions, including links. A related-concept fallback is labeled when no literal term occurs. These associations do not prove dependencies. This separate English rule-based MVP never changes Ask Atlas retrieval. Show documentation overview returns to saved-source exploration.",
   },
   Questions: {
     title: "Questions saved with your review",
@@ -115,11 +115,6 @@ export const help: Record<string, HelpText> = {
     what: "Stores the versioned text and a content fingerprint in the shared workspace.",
     why: "Saving invalidates earlier analysis. Analyze again to incorporate the new source into findings and answers.",
   },
-  feed: {
-    title: "Public GitHub release feed",
-    what: "Fetch up to three release-note entries from an owner/repository pair.",
-    why: "This imports documentation snapshots, not repository source code. Each entry retains its version and origin.",
-  },
   search: {
     title: "Search the evidence",
     what: "Filter cards by words or identifiers in their quoted text.",
@@ -185,11 +180,6 @@ export const help: Record<string, HelpText> = {
     what: "Open the evidence card supporting this answer.",
     why: "Read its original quote and version before trusting the summary, especially when sources disagree.",
   },
-  graphNode: {
-    title: "Explore a graph connection",
-    what: "Select a node to inspect its type and neighboring relationships.",
-    why: "Connections explain how your application's usage reaches the documented findings.",
-  },
   signin: {
     title: "Join the shared review",
     what: "Use a display name and the workspace access code to collaborate.",
@@ -252,9 +242,7 @@ export const helpLabels: Record<string, string> = {
   "Snapshot fingerprint": "fingerprint",
   "How this was produced": "category",
   "Open original source": "url",
-  "Fetch release snapshots": "feed",
   "Your question": "ask",
-  "Focus on an entity or component": "graphNode",
   "Go to Sources": "Sources",
   "Assistant mode": "assistantMode",
   "Message Atlas": "chatMessage",
@@ -285,9 +273,6 @@ export const helpLabels: Record<string, string> = {
   "License or permission for the release text": "rights",
   "Source text": "sourceText",
   "Save source": "saveSource",
-  Repository: "feed",
-  "Import releases": "feed",
-  "Import a public GitHub release feed": "feed",
   "Search evidence": "search",
   Category: "category",
   "Evidence scope": "scope",

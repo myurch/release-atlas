@@ -37,14 +37,14 @@ export const tutorialSteps: TutorialStep[] = [
     title: "1. Gather the original documents",
     goal: "Know where a finding came from.",
     explanation:
-      "A source is saved text, such as release notes or a configuration guide, labeled with its version. Sources has both the documents and forms for adding your own text or a public GitHub release feed. This example already has three documents.",
+      "A source is saved text, such as release notes or a configuration guide, labeled with its version. Sources shows saved documents and a form for pasting text or fetching a public GitHub README. This example already has three documents.",
     takeaway:
       "Keep the version and permission to use the text with each source. A saved snapshot does not update when the original website changes.",
     how: {
       concept: "API and data-feed integration",
       tools: "Python · FastAPI · HTTPX · GitHub REST API",
       explanation:
-        "An API lets programs exchange structured data. In the live workspace, FastAPI handles requests and HTTPX fetches up to three public GitHub releases as JSON. Each release becomes a versioned source you can review. The tutorial uses prepared documents.",
+        "An API lets programs exchange structured data. In the live workspace, FastAPI handles requests and HTTPX fetches a public GitHub README through the GitHub API. Review the fetched draft, then save it as a versioned source. The tutorial uses prepared documents.",
     },
     tab: "Overview",
     target: '[data-tour="nav-Sources"]',
@@ -185,16 +185,16 @@ export const tutorialSteps: TutorialStep[] = [
   },
   {
     title: "6. Explore how the evidence connects",
-    goal: "Follow a component to the settings and claims around it.",
+    goal: "Understand what a documented project relationship can show.",
     explanation:
-      "A graph is a map of items, called nodes, connected by relationships, called links. Checkout service connects to retry_limit; that setting connects to cited claims. The selector and the list let you move around the map.",
+      "The Graph page maps project roles and relationships supported by saved documentation. Select a numbered connection to inspect its exact evidence. These short tutorial documents may not contain supported project relationships; the live bundled README examples provide a richer map.",
     takeaway:
-      "Connections show why evidence was found. They do not prove causation. The list gives a readable alternative to the diagram.",
+      "An explicit relationship and a shared capability mean different things. Neither proves upgrade safety. The readable connection list mirrors the diagram.",
     how: {
       concept: "Knowledge graphs and network analysis",
-      tools: "Python · NetworkX",
+      tools: "TypeScript · React · SVG",
       explanation:
-        "NetworkX builds a knowledge graph linking sources, claims, settings and application components. Typed relationships describe how items connect; a node’s degree counts its links. Inspecting neighbors and paths lets you trace a component to the evidence behind a finding.",
+        "The independent display extracts project names, documented roles and a few English relationship patterns, then ranks them for a question. A circular SVG map shows up to six projects and eight evidence-backed links. Ask Atlas separately keeps its existing NetworkX graph-assisted retrieval; the display does not change that pipeline.",
     },
     tab: "Overview",
     target: '[data-tour="nav-Graph"]',

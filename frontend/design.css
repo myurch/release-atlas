@@ -187,7 +187,6 @@ h2 {
 .claim-detail dt,
 footer,
 .source-item small,
-.graph-legend,
 .activity-row small,
 .source-text small {
   color: var(--muted);
@@ -406,7 +405,6 @@ label {
 .attention-row,
 .usage-item,
 .activity-row,
-.graph-row,
 footer {
   border-color: var(--line);
 }
@@ -417,8 +415,7 @@ footer {
 .usage-item code {
   color: var(--muted);
 }
-.attention-row:hover,
-.graph-row:hover {
+.attention-row:hover {
   background: var(--surface-soft);
 }
 .avatar,
@@ -527,30 +524,6 @@ blockquote {
 .close:hover {
   background: var(--surface-hover);
   color: var(--ink);
-}
-.graph-canvas {
-  background-image: radial-gradient(
-    var(--line-strong) 0.7px,
-    transparent 0.7px
-  );
-}
-.graph-canvas text {
-  fill: var(--muted);
-}
-.graph-canvas line {
-  stroke: var(--line-strong);
-}
-.graph-canvas > circle {
-  fill: var(--accent-soft);
-}
-.graph-canvas circle {
-  transition:
-    stroke-width 150ms,
-    r 150ms;
-}
-.graph-canvas circle:hover {
-  stroke: var(--accent);
-  stroke-width: 3px;
 }
 .progress {
   color: var(--accent);
@@ -1092,4 +1065,200 @@ blockquote {
   color: var(--ink);
   font-size: 16px;
   font-weight: 650;
+}
+
+.relationship-panel {
+  margin-top: 12px;
+}
+.relationship-question {
+  font-size: 18px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  max-width: 900px;
+}
+.relationship-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.relationship-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: radial-gradient(
+    ellipse at center,
+    var(--accent-soft),
+    transparent 72%
+  );
+}
+.relationship-canvas {
+  width: 100%;
+  min-width: 560px;
+  display: block;
+}
+.relationship-canvas text {
+  fill: var(--ink);
+  font-size: 13px;
+}
+.relationship-orbit {
+  fill: none;
+  stroke: var(--line);
+  stroke-dasharray: 2 10;
+}
+.relationship-edge path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+.relationship-edge.shared path {
+  stroke-dasharray: 7 6;
+}
+.relationship-edge circle {
+  fill: var(--surface-raised);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.relationship-edge.active path {
+  stroke-width: 4;
+}
+.relationship-edge g,
+.relationship-node {
+  cursor: pointer;
+  outline: none;
+}
+.relationship-edge g:focus-visible circle,
+.relationship-node:focus-visible rect {
+  stroke: var(--ink);
+  stroke-width: 4;
+}
+.relationship-edge.dim {
+  opacity: 0.35;
+}
+.relationship-node.dim {
+  opacity: 0.55;
+}
+.relationship-node rect {
+  fill: var(--surface-raised);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.relationship-node.templates rect,
+.relationship-node.escaping rect {
+  stroke: #a68fdd;
+}
+.relationship-node.cli rect,
+.relationship-node.async rect {
+  stroke: #ba976a;
+}
+.relationship-node:hover rect,
+.relationship-node[aria-pressed="true"] rect {
+  stroke-width: 4;
+}
+.relationship-node-name {
+  font-size: 19px !important;
+  font-weight: 650;
+}
+.relationship-center rect {
+  fill: var(--surface);
+  stroke: var(--line-strong);
+}
+.relationship-center text {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.relationship-center text.relationship-center-title {
+  fill: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+.relationship-detail {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  overflow-wrap: anywhere;
+}
+.relationship-detail h3 {
+  margin: 12px 0;
+}
+.relationship-quote {
+  border-top: 1px solid var(--line);
+  margin-top: 18px;
+  padding-top: 16px;
+}
+.relationship-quote > strong,
+.relationship-quote > span {
+  display: block;
+}
+.relationship-quote blockquote {
+  margin: 12px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 240px;
+  overflow: auto;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.relationship-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+.relationship-choice {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  line-height: 1.5;
+}
+.relationship-choice[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.relationship-choice strong,
+.relationship-choice > span > span {
+  display: block;
+}
+.relationship-choice > span > span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.relationship-number {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+@media (max-width: 1100px) {
+  .relationship-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .relationship-list {
+    grid-template-columns: 1fr;
+  }
+  .relationship-detail {
+    padding: 16px;
+  }
+}
+
+.relationship-edge.mention path {
+  stroke-dasharray: 2 6;
+}
+
+.relationship-canvas .relationship-node-version {
+  fill: var(--muted);
+  font-size: 10px;
 }

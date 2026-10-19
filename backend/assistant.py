@@ -95,6 +95,7 @@ def assistant_context(state: Workspace, request: AssistantRequest):
     retrieval = coverage.pop('retrieval')
     coverage['encoder'] = retrieval['encoder']
     coverage['notices'] = retrieval['notices']
+    coverage['graph_paths'] = retrieval['graph_paths']
     coverage['selection_reasons'] = [{'passage_id':p['id'],'reasons':p['reasons']} for p in retrieval['passages']]
     rows = []
     if ready:
@@ -154,10 +155,11 @@ def assistant_context(state: Workspace, request: AssistantRequest):
     return context
 
 
-async def assist(config: ProviderConfig, state: Workspace, request: AssistantRequest, transport=None):
+async def assist(config: ProviderConfig, state: Workspace, request: AssistantRequest, transport=None, *, context=None):
     source_actions = (SourceActions(state, request.message, request.selected_source)
         if config.kind == 'openai' and source_action_requested(state, request.message, request.selected_source) else None)
-    context = await run_in_threadpool(assistant_context, state, request)
+    if context is None:
+        context = await run_in_threadpool(assistant_context, state, request)
     messages = [{'role': 'system', 'content': MANUAL}, {'role': 'user', 'content': json.dumps({'context': {k:v for k,v in context.items() if k != 'retrieval'}, 'conversation': [m.model_dump() for m in request.history], 'question': request.message}, ensure_ascii=False)}]
     payload = {'model': config.model, 'messages': messages, 'stream': False}
     if config.kind == 'openai':

@@ -1,0 +1,52 @@
+{
+  "documents": [
+    {
+      "repository": "demo/lumenui",
+      "version": "1.0",
+      "title": "LumenUI frontend documentation",
+      "path": "lumenui-1.0.md",
+      "url": "https://example.invalid/demo/lumenui/blob/v1.0/README.md",
+      "sha256": "9e984b9356fa5cb9552ec0964456d1e542f927a7b1ace497e130ab2fb7c22500"
+    },
+    {
+      "repository": "demo/lumenui",
+      "version": "2.0",
+      "title": "LumenUI frontend documentation",
+      "path": "lumenui-2.0.md",
+      "url": "https://example.invalid/demo/lumenui/blob/v2.0/README.md",
+      "sha256": "7f8d9341abc51f130c66b1ae18e6fe040fee72d4a0c95c2c9d8bd4c7dc6b8030"
+    },
+    {
+      "repository": "demo/lumenui",
+      "version": "3.0",
+      "title": "LumenUI frontend documentation",
+      "path": "lumenui-3.0.md",
+      "url": "https://example.invalid/demo/lumenui/blob/v3.0/README.md",
+      "sha256": "417196a9a9f0799178e501699311b754ea01e868026b2a9a4314b81818000dc9"
+    },
+    {
+      "repository": "demo/harborapi",
+      "version": "1.0",
+      "title": "HarborAPI backend documentation",
+      "path": "harborapi-1.0.md",
+      "url": "https://example.invalid/demo/harborapi/blob/v1.0/README.md",
+      "sha256": "2c1424513ecff11ff360983c363004ec143ea72938972823fc34055d31356e04"
+    },
+    {
+      "repository": "demo/harborapi",
+      "version": "2.0",
+      "title": "HarborAPI backend documentation",
+      "path": "harborapi-2.0.md",
+      "url": "https://example.invalid/demo/harborapi/blob/v2.0/README.md",
+      "sha256": "8ebe33ddd620eb8289f91cb9c26041a00691f3a7b82abeacf49094135b61ff17"
+    },
+    {
+      "repository": "demo/harborapi",
+      "version": "3.0",
+      "title": "HarborAPI backend documentation",
+      "path": "harborapi-3.0.md",
+      "url": "https://example.invalid/demo/harborapi/blob/v3.0/README.md",
+      "sha256": "ecc3464fe4c42b2702c1206e982ccda9fb9429e488124c28914a6c63d19f5dbe"
+    }
+  ]
+}

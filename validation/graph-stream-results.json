@@ -1,0 +1,11 @@
+{
+  "result": "PASS",
+  "transport": "real loopback HTTP with held mock generation",
+  "retrieval_received_before_model_released": true,
+  "exact_progress_and_answer_context": true,
+  "graph_bridge": "jinja",
+  "saved_user_workspaces_accessed": false,
+  "synthetic_workspace_unchanged": true,
+  "generation_api_calls": 0,
+  "browser_tested": false
+}

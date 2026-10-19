@@ -460,11 +460,12 @@ try {
       0,
     );
     await hosted.getByRole("button", { name: "Graph", exact: true }).click();
-    assert.equal(
-      await hosted.getByLabel("Focus on an entity or component").inputValue(),
-      "e:legacy_auth",
-    );
-    await hosted.getByText("4 direct connections", { exact: true }).waitFor();
+    await hosted
+      .getByRole("region", { name: "Documentation relationship map" })
+      .waitFor();
+    await hosted
+      .getByRole("heading", { name: "How these projects fit together" })
+      .waitFor();
     assert.equal(
       await hosted
         .getByRole("button", { name: "Questions", exact: true })

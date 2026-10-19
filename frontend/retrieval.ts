@@ -13,8 +13,17 @@ export const retrievalReasons = [
   "conflict partner",
   "neighboring context",
   "terminology match",
+  "graph connection",
 ] as const;
+export type GraphPath = {
+  from_passage: string;
+  to_passage: string;
+  via: string;
+  relation: "technology reference" | "shared identifier";
+};
 export type RetrievalReport = {
+  graph_paths?: GraphPath[];
+  connections?: GraphPath[];
   encoder: "neural-minilm" | "statistical-lsa";
   mode: "focused" | "overview";
   model: string;
@@ -84,5 +93,65 @@ export function validatedRetrieval(
     row.candidate_count > 600
   )
     return fail();
+  const validatePaths = (paths: GraphPath[], expansion: boolean) => {
+    if (!Array.isArray(paths) || paths.length > (expansion ? 2 : 12))
+      return fail();
+    const seen = new Set<string>();
+    const targets = new Set<string>();
+    for (const path of paths) {
+      if (
+        !path ||
+        !text(path.via, 100) ||
+        !/^[a-zA-Z][a-zA-Z0-9_.:/-]{2,99}$/.test(path.via) ||
+        !["technology reference", "shared identifier"].includes(path.relation)
+      )
+        return fail();
+      const origin = row.passages.find((p) => p.id === path.from_passage);
+      const target = row.passages.find((p) => p.id === path.to_passage);
+      if (
+        !origin ||
+        !target ||
+        origin.source_id === target.source_id ||
+        (expansion &&
+          (!target.reasons.includes("graph connection") ||
+            targets.has(target.id)))
+      )
+        return fail();
+      const key = JSON.stringify([
+        [origin.source_id, target.source_id].sort(),
+        path.via,
+        path.relation,
+      ]);
+      if (seen.has(key)) return fail();
+      seen.add(key);
+      targets.add(target.id);
+      const includes = (value: string) =>
+        new RegExp(
+          `(^|[^\\w.-])${path.via.split(".").join("\\.")}(?![\\w-]|\\.\\w)`,
+          "i",
+        ).test(value);
+      const source = sources.find((s) => s.id === target.source_id)!;
+      if (
+        !includes(origin.quote) ||
+        !includes(
+          path.relation === "technology reference"
+            ? source.title
+            : target.quote,
+        )
+      )
+        return fail();
+    }
+    if (
+      expansion &&
+      row.passages.some(
+        (p) => p.reasons.includes("graph connection") && !targets.has(p.id),
+      )
+    )
+      return fail();
+  };
+  if (row.graph_paths !== undefined) validatePaths(row.graph_paths, true);
+  else if (row.passages.some((p) => p.reasons.includes("graph connection")))
+    return fail();
+  if (row.connections !== undefined) validatePaths(row.connections, false);
   return row;
 }

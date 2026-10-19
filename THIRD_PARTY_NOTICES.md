@@ -4,6 +4,12 @@ Release Atlas implementation and original synthetic data are MIT licensed.
 
 The standalone HTML bundles React, React DOM and Scheduler. Their notices are preserved below and legal comments are retained in the generated bundle. Source development dependencies and Python packages are restored from the exact lockfiles; they are not vendored in this repository. Installed dependency distributions retain their own licenses. A server image includes those distributions and their license files. Review dependency licenses before redistribution in a different form.
 
+## Bundled documentation examples
+
+`data/demo-documents/` contains original fictional MIT-licensed documentation written for Release Atlas with AI assistance. It is not third-party Pallets material. The Sources demo button now uses that synthetic corpus.
+
+`data/demo-readmes/snapshots.json` retains licensed regression fixtures containing verbatim public README snapshots from Werkzeug (the myurch/werkzeug fork), Flask, Jinja, Click, MarkupSafe and Quart. These documents are third-party material, separate from the original synthetic demonstration data. Each snapshot records its repository, immutable commit, original README URL, content fingerprint and license URL. The bundle's [provenance record](data/demo-readmes/README.md) lists the commits. The corresponding complete copyright and license notices are retained in [data/demo-readmes/licenses](data/demo-readmes/licenses): Werkzeug, Flask, Jinja, Click and MarkupSafe use BSD-3-Clause; Quart uses MIT. Preserve these notices when redistributing this bundle. No endorsement by these projects is implied.
+
 ## react
 
 MIT License

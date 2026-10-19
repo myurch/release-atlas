@@ -41,7 +41,6 @@ function topicFor(target: HTMLElement): string | undefined {
   if (target.matches(".source-link,.source-item")) return "Sources";
   if (target.matches(".evidence-card,.attention-row")) return "Evidence";
   if (target.matches(".topic")) return "topics";
-  if (target.matches(".graph-row")) return "graphNode";
   if (target.matches(".workspace-choice")) return "workspaces";
   return undefined;
 }

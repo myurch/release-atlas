@@ -1,0 +1,656 @@
+{
+  "generation_api_calls": 0,
+  "saved_workspaces_accessed": false,
+  "browser_tested": false,
+  "limitations": [
+    "Original synthetic fixtures only; not a production accuracy benchmark.",
+    "No generated answers evaluated.",
+    "Technology identities use distinctive leading source titles or owner/repository names; ambiguous names are skipped."
+  ],
+  "statistical": {
+    "web_case": {
+      "baseline": [
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README"
+      ],
+      "expanded": [
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/jinja README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README"
+      ],
+      "first_four_preserved": true,
+      "graph_paths": [
+        {
+          "from_passage": "p-s-4ca6407c91d6679343ba-372-535",
+          "to_passage": "p-s-b209baa3433f836838d7-24-169",
+          "via": "jinja",
+          "relation": "technology reference"
+        }
+      ],
+      "connections": [
+        {
+          "from_passage": "p-s-4ca6407c91d6679343ba-372-535",
+          "to_passage": "p-s-b209baa3433f836838d7-24-169",
+          "via": "jinja",
+          "relation": "technology reference"
+        }
+      ],
+      "encoder": "statistical-lsa",
+      "within_budget": true,
+      "exact_quotes": true,
+      "unchanged": false,
+      "pass": true
+    },
+    "direct_selection_case": {
+      "baseline": [
+        "Flask documentation",
+        "Jinja documentation"
+      ],
+      "expanded": [
+        "Flask documentation",
+        "Jinja documentation"
+      ],
+      "first_four_preserved": true,
+      "graph_paths": [],
+      "connections": [
+        {
+          "from_passage": "p-s-2300d29c254d1f018a65-0-79",
+          "to_passage": "p-s-72f2f5271e9ba1cd9dbf-0-75",
+          "via": "jinja",
+          "relation": "technology reference"
+        }
+      ],
+      "encoder": "statistical-lsa",
+      "within_budget": true,
+      "exact_quotes": true,
+      "unchanged": true,
+      "pass": true
+    },
+    "existing_cases": [
+      {
+        "baseline": [
+          "Authentication API",
+          "Identity guide",
+          "Client settings"
+        ],
+        "expanded": [
+          "Authentication API",
+          "Identity guide",
+          "Client settings"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Authentication keyword",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Authentication API",
+          "Client settings"
+        ],
+        "expanded": [
+          "Authentication API",
+          "Client settings"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Identity paraphrase",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Authentication API",
+          "Identity guide",
+          "Client settings"
+        ],
+        "expanded": [
+          "Authentication API",
+          "Identity guide",
+          "Client settings"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Credential configuration",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Client settings",
+          "Identity guide",
+          "SQL storage",
+          "Authentication API"
+        ],
+        "expanded": [
+          "Client settings",
+          "Identity guide",
+          "SQL storage",
+          "Authentication API"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Exact setting",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Authentication API",
+          "Client settings"
+        ],
+        "expanded": [
+          "Authentication API",
+          "Client settings"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "API function",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Session recovery"
+        ],
+        "expanded": [
+          "Session recovery"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Expired sign-in",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Installing",
+          "Client settings",
+          "Identity guide",
+          "SQL storage",
+          "Authentication API"
+        ],
+        "expanded": [
+          "Installing",
+          "Client settings",
+          "Identity guide",
+          "SQL storage",
+          "Authentication API"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Installation",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Report printing",
+          "SQL storage"
+        ],
+        "expanded": [
+          "Report printing",
+          "SQL storage"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Printing subject",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Authentication API",
+          "Identity guide",
+          "Client settings"
+        ],
+        "expanded": [
+          "Authentication API",
+          "Identity guide",
+          "Client settings"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Follow-up",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Report printing",
+          "SQL storage"
+        ],
+        "expanded": [
+          "Report printing",
+          "SQL storage"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Subject switch",
+        "pass_": true
+      },
+      {
+        "baseline": [],
+        "expanded": [],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "No match",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Report printing",
+          "SQL storage",
+          "Logging",
+          "Identity guide",
+          "Authentication API",
+          "Client settings",
+          "Session recovery",
+          "Installing"
+        ],
+        "expanded": [
+          "Report printing",
+          "SQL storage",
+          "Logging",
+          "Identity guide",
+          "Authentication API",
+          "Client settings",
+          "Session recovery",
+          "Installing"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "statistical-lsa",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "All-source overview",
+        "pass_": true
+      }
+    ],
+    "pass": true
+  },
+  "model_revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+  "neural": {
+    "web_case": {
+      "baseline": [
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README"
+      ],
+      "expanded": [
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/jinja README",
+        "pallets/flask README",
+        "pallets/flask README",
+        "pallets/flask README"
+      ],
+      "first_four_preserved": true,
+      "graph_paths": [
+        {
+          "from_passage": "p-s-4ca6407c91d6679343ba-730-893",
+          "to_passage": "p-s-b209baa3433f836838d7-24-169",
+          "via": "jinja",
+          "relation": "technology reference"
+        }
+      ],
+      "connections": [
+        {
+          "from_passage": "p-s-4ca6407c91d6679343ba-730-893",
+          "to_passage": "p-s-b209baa3433f836838d7-24-169",
+          "via": "jinja",
+          "relation": "technology reference"
+        }
+      ],
+      "encoder": "neural-minilm",
+      "within_budget": true,
+      "exact_quotes": true,
+      "unchanged": false,
+      "pass": true
+    },
+    "direct_selection_case": {
+      "baseline": [
+        "Jinja documentation",
+        "Flask documentation"
+      ],
+      "expanded": [
+        "Jinja documentation",
+        "Flask documentation"
+      ],
+      "first_four_preserved": true,
+      "graph_paths": [],
+      "connections": [
+        {
+          "from_passage": "p-s-2300d29c254d1f018a65-0-79",
+          "to_passage": "p-s-72f2f5271e9ba1cd9dbf-0-75",
+          "via": "jinja",
+          "relation": "technology reference"
+        }
+      ],
+      "encoder": "neural-minilm",
+      "within_budget": true,
+      "exact_quotes": true,
+      "unchanged": true,
+      "pass": true
+    },
+    "existing_cases": [
+      {
+        "baseline": [
+          "Identity guide",
+          "Authentication API",
+          "Client settings",
+          "Session recovery"
+        ],
+        "expanded": [
+          "Identity guide",
+          "Authentication API",
+          "Client settings",
+          "Session recovery"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Authentication keyword",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Authentication API"
+        ],
+        "expanded": [
+          "Authentication API"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Identity paraphrase",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Identity guide",
+          "Authentication API",
+          "Client settings",
+          "Session recovery"
+        ],
+        "expanded": [
+          "Identity guide",
+          "Authentication API",
+          "Client settings",
+          "Session recovery"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Credential configuration",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Client settings",
+          "Identity guide",
+          "Authentication API"
+        ],
+        "expanded": [
+          "Client settings",
+          "Identity guide",
+          "Authentication API"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Exact setting",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Authentication API",
+          "Client settings",
+          "Identity guide"
+        ],
+        "expanded": [
+          "Authentication API",
+          "Client settings",
+          "Identity guide"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "API function",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Session recovery",
+          "Identity guide"
+        ],
+        "expanded": [
+          "Session recovery",
+          "Identity guide"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Expired sign-in",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Installing",
+          "Client settings"
+        ],
+        "expanded": [
+          "Installing",
+          "Client settings"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Installation",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Report printing",
+          "SQL storage"
+        ],
+        "expanded": [
+          "Report printing",
+          "SQL storage"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Printing subject",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Authentication API",
+          "Identity guide",
+          "Client settings",
+          "Session recovery"
+        ],
+        "expanded": [
+          "Authentication API",
+          "Identity guide",
+          "Client settings",
+          "Session recovery"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Follow-up",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Report printing",
+          "SQL storage"
+        ],
+        "expanded": [
+          "Report printing",
+          "SQL storage"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "Subject switch",
+        "pass_": true
+      },
+      {
+        "baseline": [],
+        "expanded": [],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "No match",
+        "pass_": true
+      },
+      {
+        "baseline": [
+          "Report printing",
+          "SQL storage",
+          "Logging",
+          "Identity guide",
+          "Authentication API",
+          "Client settings",
+          "Session recovery",
+          "Installing"
+        ],
+        "expanded": [
+          "Report printing",
+          "SQL storage",
+          "Logging",
+          "Identity guide",
+          "Authentication API",
+          "Client settings",
+          "Session recovery",
+          "Installing"
+        ],
+        "first_four_preserved": true,
+        "graph_paths": [],
+        "connections": [],
+        "encoder": "neural-minilm",
+        "within_budget": true,
+        "exact_quotes": true,
+        "unchanged": true,
+        "case": "All-source overview",
+        "pass_": true
+      }
+    ],
+    "pass": true
+  },
+  "result": "PASS"
+}

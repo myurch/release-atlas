@@ -22,10 +22,11 @@ from .models import MAX_REVISION, Answer, Graph, Review, Source, SourceInput, St
 from .nlp import analyze, retrieve, source_digest
 from .providers import ProviderConfig, ProviderError, embed, generate
 from .store import Conflict, Store
-from .assistant import AssistantRequest, assist
+from .assistant import AssistantRequest, assist, assistant_context
 from .source_actions import add_source as apply_add_source, delete_source as apply_delete_source
 from .input_validation import json_object
 from .readme import ReadmeError, fetch_readme
+from .demo_documents import load_demo_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -321,6 +322,28 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
         current(data.revision)
         return {'revision':data.revision,**result.model_dump()}
 
+    @app.post('/api/sources/demo-documents')
+    async def import_demo_documents(data: Revision, request: Request):
+        user = actor(request)
+        current(data.revision)
+        try:
+            results = await run_in_threadpool(load_demo_documents)
+        except (OSError, ValueError, TypeError, KeyError) as exc:
+            raise HTTPException(503, 'Bundled demo documentation is missing or invalid. Restore the data/demo-documents files and restart Atlas. No sources were saved.') from exc
+        if actor(request) != user:
+            raise HTTPException(401, 'Session changed. No demo sources were saved.')
+        state = current(data.revision)
+        imported, skipped = [], []
+        for repository, source in results:
+            if any(existing.id == source.id for existing in state.sources):
+                skipped.append(repository)
+            else:
+                apply_add_source(state, SourceInput(**source.model_dump(exclude={'id', 'sha256'})))
+                imported.append(repository)
+        if imported:
+            state = publish(state, data.revision, user, 'Imported synthetic demo documents: '+', '.join(imported))
+        return {'workspace': state, 'imported': imported, 'skipped': skipped, 'failed': []}
+
     @app.post('/api/sources')
     async def add_source(data: AddSource, request: Request):
         user = actor(request)
@@ -408,8 +431,7 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
             raise HTTPException(422, 'Selected source is no longer available')
         if busy.locked():
             raise HTTPException(409, 'Another analysis or model request is running. Try again shortly.')
-        async with busy:
-            answer = await assist(provider, state, data)
+        def finish(answer):
             if actor(request) != user:
                 raise HTTPException(401, 'Session changed. Send your question again.')
             current(data.revision)
@@ -428,6 +450,34 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
                     'expires': time.monotonic()+600}
                 result['source_action'] = {**prepared.model_dump(), 'token': token, 'revision': data.revision}
             return result
+
+        if data.page == 'Graph' and 'application/x-ndjson' in request.headers.get('accept',''):
+            async def stream_answer():
+                def frame(kind, **value):
+                    return json.dumps({'type':kind, **value},ensure_ascii=False)+'\n'
+                try:
+                    # Recheck at generator entry: another request may have taken
+                    # the lock between response creation and body iteration.
+                    if busy.locked():
+                        raise HTTPException(409,'Another analysis or model request is running. Try again shortly.')
+                    async with busy:
+                        context = await run_in_threadpool(assistant_context,state,data)
+                        if actor(request) != user:
+                            raise HTTPException(401,'Session changed. Send your question again.')
+                        current(data.revision)
+                        yield frame('retrieval',revision=data.revision,retrieval=context['retrieval'])
+                        answer = await assist(provider,state,data,context=context)
+                        yield frame('answer',data=finish(answer))
+                except HTTPException as exc:
+                    yield frame('error',status=exc.status_code,detail=exc.detail)
+                except ProviderError as exc:
+                    yield frame('error',status=502,detail=str(exc))
+                except Exception:
+                    yield frame('error',status=502,detail='The assistant could not answer. Try again or use App guide.')
+            return StreamingResponse(stream_answer(),media_type='application/x-ndjson',
+                headers={'Cache-Control':'no-store','X-Accel-Buffering':'no'})
+        async with busy:
+            return finish(await assist(provider,state,data))
 
     @app.post('/api/assistant/source-action')
     async def confirm_source_action(data: ConfirmSourceAction, request: Request):

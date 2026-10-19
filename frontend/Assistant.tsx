@@ -1,3 +1,5 @@
+import { AssistantStreamError, readAssistantReply } from "./assistant-stream";
+import { QuestionGraphEvent } from "./question-graph";
 import React, { useEffect, useRef, useState } from "react";
 import { Workspace } from "./types";
 import { guideReply } from "./guide";
@@ -34,6 +36,7 @@ export function Assistant({
   onAuthExpired,
   refresh,
   blocked = false,
+  onQuestionGraph,
 }: {
   workspace: Workspace;
   page: string;
@@ -50,6 +53,7 @@ export function Assistant({
   onAuthExpired: () => void;
   refresh: () => Promise<unknown>;
   blocked?: boolean;
+  onQuestionGraph?: (event: QuestionGraphEvent) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
@@ -64,13 +68,26 @@ export function Assistant({
   const transcript = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
-  const current = useRef({ revision: workspace.revision, live, blocked });
-  current.current = { revision: workspace.revision, live, blocked };
+  const current = useRef({
+    revision: workspace.revision,
+    live,
+    blocked,
+    page,
+    onQuestionGraph,
+  });
+  current.current = {
+    revision: workspace.revision,
+    live,
+    blocked,
+    page,
+    onQuestionGraph,
+  };
   const close = () => {
     setOpen(false);
     trigger.current?.focus();
   };
   const stop = () => {
+    current.current.onQuestionGraph?.(null);
     sequence.current++;
     abort.current?.abort();
     abort.current = null;
@@ -124,6 +141,7 @@ export function Assistant({
     const user: ChatTurn = { role: "user", content: message };
     setTurns((t) => [...t.slice(-38), user]);
     if (mode === "guide" || !live) {
+      if (page === "Graph") current.current.onQuestionGraph?.(null);
       setTurns((t) => [
         ...t,
         {
@@ -141,10 +159,35 @@ export function Assistant({
     const run = ++sequence.current,
       revision = workspace.revision;
     setPending(true);
+    let graphReport: RetrievalReport | undefined;
+    const graphRequest = page === "Graph";
+    const graphEvent = (
+      phase: "loading" | "ready" | "error",
+      report?: RetrievalReport,
+    ) => {
+      if (
+        graphRequest &&
+        run === sequence.current &&
+        current.current.live &&
+        !current.current.blocked &&
+        current.current.revision === revision
+      )
+        current.current.onQuestionGraph?.({
+          requestId: run,
+          revision,
+          question: message,
+          phase,
+          report,
+        });
+    };
+    graphEvent("loading");
     try {
       const response = await fetch("/api/assistant", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(graphRequest ? { Accept: "application/x-ndjson" } : {}),
+        },
         signal: controller.signal,
         body: JSON.stringify({
           revision,
@@ -155,7 +198,21 @@ export function Assistant({
           history: previous,
         }),
       });
-      const value = await response.json();
+      const value = await readAssistantReply(response, (event) => {
+        if (
+          run !== sequence.current ||
+          !current.current.live ||
+          current.current.blocked ||
+          current.current.revision !== revision
+        )
+          return;
+        if (event.revision !== revision)
+          throw new Error("The workspace changed. Send your question again.");
+        graphReport = validatedRetrieval(event.retrieval, workspace.sources);
+        if (!graphReport)
+          throw new Error("The retrieved context could not be verified.");
+        graphEvent("ready", graphReport);
+      });
       if (
         run !== sequence.current ||
         !current.current.live ||
@@ -189,6 +246,13 @@ export function Assistant({
         workspace.sources,
       );
       const retrieval = validatedRetrieval(value.retrieval, workspace.sources);
+      if (
+        graphReport &&
+        JSON.stringify(graphReport) !== JSON.stringify(retrieval)
+      )
+        throw new Error(
+          "The assistant context changed unexpectedly. Try the question again.",
+        );
       const sourceAction = validatedSourceAction(
         value.source_action,
         workspace,
@@ -206,9 +270,16 @@ export function Assistant({
         },
       ]);
       setDraft("");
+      graphEvent("ready", retrieval);
     } catch (e) {
-      if (run === sequence.current && (e as Error).name !== "AbortError")
+      if (run === sequence.current && (e as Error).name !== "AbortError") {
+        if (e instanceof AssistantStreamError && e.status === 401)
+          onAuthExpired();
+        if (e instanceof AssistantStreamError && e.status === 409)
+          void refresh();
         setError((e as Error).message);
+        graphEvent("error", graphReport);
+      }
     } finally {
       if (run === sequence.current) {
         setPending(false);
@@ -303,6 +374,7 @@ export function Assistant({
               onClick={() => {
                 setTurns([]);
                 setError("");
+                current.current.onQuestionGraph?.(null);
               }}
             >
               ↺

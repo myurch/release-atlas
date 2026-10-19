@@ -1,0 +1,3 @@
+# Source hashes and exact quote offsets must survive Windows checkouts.
+data/demo-documents/*.md text eol=lf
+data/demo-documents/manifest.json text eol=lf

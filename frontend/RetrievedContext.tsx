@@ -32,8 +32,9 @@ export function RetrievedContext({
       <p className="small muted">
         NLP signals: structural text matching, embedding similarity,
         documentation-purpose classification, NMF topic preferences and typed
-        technical entities. Reasons below describe selection, not proof that a
-        passage answers your question.
+        technical entities, with bounded graph expansion across source
+        references and shared identifiers. Reasons below describe selection, not
+        proof that a passage answers your question.
       </p>
       {report.fallback && <p className="chat-caution">{report.fallback}</p>}
       {report.partial && (
@@ -70,6 +71,22 @@ export function RetrievedContext({
                 </span>
               ))}
             </div>
+            {report.graph_paths
+              ?.filter((path) => path.to_passage === p.id)
+              .map((path) => {
+                const origin = report.passages.find(
+                  (item) => item.id === path.from_passage,
+                );
+                const source = sources.find(
+                  (item) => item.id === origin?.source_id,
+                );
+                return (
+                  <p className="small muted" key={path.from_passage}>
+                    Connected from {source?.title || "Source no longer current"}{" "}
+                    through {path.via} ({path.relation}).
+                  </p>
+                );
+              })}
             <blockquote>{p.quote}</blockquote>
             <p className="small muted">
               Characters {p.start + 1}–{p.end}. Context used for this answer,

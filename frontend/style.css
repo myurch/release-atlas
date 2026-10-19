@@ -1045,64 +1045,6 @@ details p {
   font-size: 10px;
   margin-top: 5px;
 }
-.graph-layout {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 22px;
-}
-.graph-canvas {
-  width: 100%;
-  min-height: 240px;
-  background: radial-gradient(#dfe6d6 0.7px, transparent 0.7px);
-  background-size: 15px 15px;
-  border-radius: 10px;
-}
-.graph-legend {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  font-size: 10px;
-  color: #859378;
-  margin: 8px 0 18px;
-  flex-wrap: wrap;
-}
-.graph-legend i {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  margin-right: 5px;
-}
-.legend-claim {
-  background: #e5b975;
-}
-.legend-entity {
-  background: #8ba998;
-}
-.legend-component {
-  background: #223d36;
-}
-.graph-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: 0;
-  border-bottom: 1px solid #e7ebdf;
-  padding: 15px 0;
-  font-size: 11px;
-  line-height: 1.6;
-}
-.graph-row > span:nth-child(2) {
-  flex: 1;
-  overflow-wrap: anywhere;
-}
-.graph-row svg {
-  width: 15px;
-  flex-shrink: 0;
-}
 .progress {
   display: flex;
   gap: 10px;
@@ -1241,9 +1183,6 @@ details p {
   }
   .page-heading > .button {
     margin-top: 10px;
-  }
-  .graph-layout {
-    grid-template-columns: 1fr;
   }
   .evidence-grid {
     grid-template-columns: 0.9fr 1fr;
@@ -1401,18 +1340,6 @@ details p {
   }
   .form-columns {
     grid-template-columns: 1fr;
-  }
-  .graph-panel {
-    padding: 17px;
-  }
-  .graph-canvas {
-    min-height: 200px;
-  }
-  .graph-row {
-    min-height: 48px;
-  }
-  .graph-legend {
-    gap: 12px;
   }
   .source-text {
     font-size: 11px;

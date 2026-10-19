@@ -13,10 +13,12 @@ export function SourceForm({
   revision,
   save,
   fetchReadme,
+  importDemo,
 }: {
   disabled: boolean;
   revision: number;
   save: (source: Record<string, string>) => Promise<boolean>;
+  importDemo?: () => Promise<void>;
   fetchReadme?: (
     url: string,
     revision: number,
@@ -27,6 +29,8 @@ export function SourceForm({
   const [repositoryUrl, setRepositoryUrl] = useState("");
   const [fetching, setFetching] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const importRef = useRef(false);
   const savingRef = useRef(false);
   const readmeDetails = useRef<HTMLDetailsElement>(null);
   const [message, setMessage] = useState("");
@@ -148,6 +152,37 @@ export function SourceForm({
   return (
     <section className="panel source-form">
       <h2>Add Evidence</h2>
+      {importDemo && (
+        <div className="source-demo-import">
+          <button
+            type="button"
+            className="button full"
+            disabled={disabled || saving || fetching || importing}
+            onClick={async () => {
+              if (disabled || importRef.current) return;
+              importRef.current = true;
+              setImporting(true);
+              try {
+                await importDemo();
+              } finally {
+                importRef.current = false;
+                setImporting(false);
+              }
+            }}
+          >
+            {importing
+              ? "Importing demo documents…"
+              : "Import mock data for demo purposes"}
+          </button>
+          <p className="small muted">
+            Adds six fictional documents: LumenUI frontend and HarborAPI
+            backend, each at versions 1.0, 2.0 and 3.0. Includes shared APIs,
+            migrations and one deliberate documentation disagreement. No network
+            requests. Existing sources stay; identical demo documents are
+            skipped.
+          </p>
+        </div>
+      )}
       {fetchReadme && (
         <details ref={readmeDetails} className="source-readme">
           <summary>Fetch a public GitHub README</summary>

@@ -21,14 +21,14 @@ from .models import Strict, Workspace
 from .document_parser import parse_document
 from .document_classifier import document_classifier
 from .technical_entities import extract_entities
-from . import semantic
+from . import semantic, retrieval_graph
 
 PASSAGE_SIZE=2000
 PASSAGE_OVERLAP=100
 MAX_PASSAGES=8
 MAX_SOURCE_TEXT=16000
 WINDOW=1000
-REASONS=Literal['lexical match','semantic match','statistical similarity','exact entity','related topic','purpose match','selected source','source overview','conflict partner','neighboring context','terminology match']
+REASONS=Literal['lexical match','semantic match','statistical similarity','exact entity','related topic','purpose match','selected source','source overview','conflict partner','neighboring context','terminology match','graph connection']
 
 
 class SourcePassage(Strict):
@@ -44,7 +44,16 @@ class RetrievedPassage(SourcePassage):
     reasons: list[REASONS] = Field(max_length=8)
 
 
+class GraphPath(Strict):
+    from_passage: str = Field(max_length=200)
+    to_passage: str = Field(max_length=200)
+    via: str = Field(min_length=1,max_length=100)
+    relation: Literal['technology reference','shared identifier']
+
+
 class RetrievalReport(Strict):
+    connections: list[GraphPath] = Field(default_factory=list,max_length=12)
+    graph_paths: list[GraphPath] = Field(default_factory=list,max_length=2)
     encoder: Literal['neural-minilm','statistical-lsa']
     mode: Literal['focused','overview']
     model: str = Field(max_length=120)
@@ -136,6 +145,7 @@ class Index:
     topic_vectors: np.ndarray
     entity_sets: list[set[str]]
     token_sets: list[set[str]]
+    graph: object
 
 
 @lru_cache(maxsize=2)
@@ -190,9 +200,10 @@ def build_index(key,config,fallback):
             topic_weights[prose]=weights
             topic_vectors=normalize(topic_weights.T@vectors)
         except ValueError: pass
+    entity_sets=[{m.normalized for m in extract_entities(r.passage.quote)} for r in rows]
     return Index(rows,vectorizer,matrix,metadata,vectors,projector,config,fallback,model,purpose_vectors,intents,topic_weights,topic_vectors,
-                 [{m.normalized for m in extract_entities(r.passage.quote)} for r in rows],
-                 [set(re.findall(r'\w+',r.passage.quote.casefold())) for r in rows])
+                 entity_sets,
+                 [set(re.findall(r'\w+',r.passage.quote.casefold())) for r in rows], retrieval_graph.build_graph(rows,entity_sets))
 
 
 def get_index(state):
@@ -251,13 +262,13 @@ def scoped_sources(state,question,selected):
     return allowed,notices
 
 
-def source_passages(state: Workspace,question: str,selected_source: str='',*,history=(),selected_claim=''):
+def source_passages(state: Workspace,question: str,selected_source: str='',*,history=(),selected_claim='',graph_expansion=True):
     index=get_index(state)
     config=index.config if index else None
     allowed,notices=scoped_sources(state,question,selected_source)
     overview=bool(re.search(r'\b(?:summari[sz]e|overview|compare|list)\b.*\b(?:all|each|every|sources|documents)\b|^summari[sz]e[.!?]?$|do you see (?:any )?sources|how many sources|\bcompare\b.*\bversion',question,re.I))
     query=effective_query(question,history)
-    chosen=[];reasons={};scores={}
+    chosen=[];reasons={};scores={};graph_paths=[];graph_candidates={}
     if index:
         rows=index.rows
         generic={'explain','show','tell','configure','configuration','setup','use','using','work','works','mean','means','source','sources','document','documents','please','summarize','summarise','compare','best','guess','version','versions'}
@@ -356,6 +367,15 @@ def source_passages(state: Workspace,question: str,selected_source: str='',*,his
         if not order and len(allowed)==1 and re.search(r'\bsummari[sz]e\b',question,re.I):
             order=valid
             for i in order: reasons[i]=['source overview']
+        if graph_expansion and not overview and order:
+            # Preserve the four leading hybrid candidates; graph additions only
+            # compete with lower-ranked context, and cannot cross explicit scope.
+            expansions=retrieval_graph.expand(index.graph,rows,order,allowed,lexical,dense,index.vectors,bool(config))
+            for target,seed,via,relation in expansions:
+                graph_candidates[target]=(seed,via,relation)
+                reasons.setdefault(target,[]).append('graph connection')
+            added=list(graph_candidates)
+            order=order[:4]+added+[i for i in order[4:] if i not in graph_candidates]
         from .nlp import source_digest
         ready=bool(state.analysis and state.analysis.source_digest==source_digest(state))
         claims={c.id:c for c in state.claims} if ready else {}
@@ -369,6 +389,8 @@ def source_passages(state: Workspace,question: str,selected_source: str='',*,his
             return [claims[ident] for ident in sorted(found)]
         for i in order:
             candidate=rows[i].passage
+            if i in graph_candidates and not any(p.id==rows[graph_candidates[i][0]].passage.id for p in chosen):
+                continue
             if len(chosen)>=MAX_PASSAGES: break
             if any(p.source_id==candidate.source_id and max(0,min(p.end,candidate.end)-max(p.start,candidate.start))>=.65*min(p.end-p.start,candidate.end-candidate.start) for p in chosen): continue
             group=[(candidate,reasons.get(i,['source overview']))]
@@ -403,6 +425,15 @@ def source_passages(state: Workspace,question: str,selected_source: str='',*,his
         included_sources=len(covered),total_sources=len(state.sources),candidate_count=len(index.rows) if index else 0,
         partial=partial,fallback=index.fallback if index else '',notices=notices,
         passages=[RetrievedPassage(**p.model_dump(),reasons=reasons.get(p.id,['source overview'])) for p in chosen])
+    selected_ids={p.id for p in chosen}
+    for target,(seed,via,relation) in graph_candidates.items():
+        if rows[target].passage.id in selected_ids and rows[seed].passage.id in selected_ids:
+            graph_paths.append(GraphPath(from_passage=rows[seed].passage.id,to_passage=rows[target].passage.id,via=via,relation=relation))
+    report.graph_paths=graph_paths
+    if index and chosen:
+        sources={s.id:s for s in state.sources}
+        selected_rows=[Candidate(p,'','paragraph',sources[p.source_id].title) for p in chosen]
+        report.connections=[GraphPath(**path) for path in retrieval_graph.selected_connections(selected_rows,index.rows,index.vectors,bool(config),graph_paths,reference_graph=index.graph)]
     coverage={'included_sources':len(covered),'total_sources':len(state.sources),'partial':partial,
               'method':'hybrid passage retrieval','retrieval':report.model_dump()}
     return [p.model_dump() for p in chosen],coverage
