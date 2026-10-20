@@ -815,9 +815,9 @@
       "id": 1,
       "terms": [
         "supported version",
+        "supported",
         "retry_limit setting",
         "retry_limit",
-        "supported",
         "version",
         "setting"
       ],
@@ -841,11 +841,11 @@
       "id": 2,
       "terms": [
         "legacy_auth",
-        "legacy_auth adapter",
         "adapter",
+        "legacy_auth adapter",
         "deprecated",
         "available",
-        "works"
+        "adapter deprecated"
       ],
       "count": 3,
       "weights": [
@@ -867,11 +867,11 @@
       "id": 3,
       "terms": [
         "export_batch",
-        "report",
-        "added",
-        "report exports",
+        "exports",
         "bulk",
-        "bulk report"
+        "bulk report",
+        "report",
+        "added"
       ],
       "count": 3,
       "weights": [

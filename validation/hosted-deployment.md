@@ -1,6 +1,6 @@
 # Hosted deployment validation
 
-Prepared October 19, 2026. This record describes a deployment candidate, not a live cloud release.
+Updated October 19, 2026 (America/Los_Angeles). The authenticated GPT Site and AWS Lightsail backend are deployed. Earlier cycles below describe preparation; the production cycles record the actual cloud checks.
 
 ## Acceptance criteria
 
@@ -25,7 +25,9 @@ The hosting target changed to AWS Lightsail. The Render configuration remains op
 
 [lightsail-compose-results.json](lightsail-compose-results.json) records the checks and limits. The probe substitutes loopback HTTP for public HTTPS to avoid requesting test certificates; it does not claim to validate cloud certificate issuance. A follow-up run of `tests/test_hosted_gateway.py` passed all 20 cases after the AWS CLI installation. The initial command used a nonexistent test filename and ran no tests; the corrected path passed. Credential-pattern review of all eight changed files and `git diff --check` passed. Docker Desktop runs the AMD64 application under emulation. Earlier ARM64 measurements are not a performance guarantee for Lightsail.
 
-## Evidence and limits
+## Predeployment evidence and limits (historical)
+
+The following checks preceded cloud provisioning. Their cloud-access limitations are superseded by the production cycles below.
 
 - Python: `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m pytest -q` reports 425 passed. One existing Starlette/httpx deprecation warning remains.
 - Site: `npm test` reports 11 passed; `npm run typecheck` and the Sites `build-site.mjs` helper succeed.
@@ -34,3 +36,12 @@ The hosting target changed to AWS Lightsail. The Render configuration remains op
 - No real OpenAI calls or saved user workspace reads were performed for these checks. No browser interaction was used as evidence of local correctness. The visible hosted Site remains the prior demo until the replacement is deployed.
 - The base container uses statistical retrieval. Its optional MiniLM worker is not configured. Do not label the deployment as neural retrieval without an additional verified setup.
 - AWS account access and approval of the concrete Lightsail charges remain prerequisites to provisioning. The proposed current service is a Linux IPv4 virtual server with 1 GB RAM and a 40 GB disk. The earlier Render proposal is not active. Native deployment acceptance must confirm actual charges and successful startup; local configuration alone does not establish success.
+
+## Production deployment cycles
+
+| Cycle | Change | Validation | Review and improvement | Next action |
+| --- | --- | --- | --- | --- |
+| 6 | Provisioned the approved $7 Lightsail Ubuntu server, attached a static IP, restricted SSH, added the approved DNS A record and installed Atlas behind Caddy. Kept credentials in a root-owned 0600 runtime file outside source and build inputs. | Public HTTPS, private gateway/session guards, real Python analysis, SSE, one real OpenAI answer, credential-free HTML/export and exact workspace persistence after a cloud restart passed. | The initial cloud probe used the wrong /api/state envelope; the corrected probe passed before a model request. The real answer cited both conflicting passages and did not invent a resolution. | Publish and validate the prepared Site gateway. |
+| 7 | Set the private Site gateway token and backend origin, removed the unused Site OpenAI secret, and deployed saved gateway version 3. | Site sign-in, secure host-only cookies, PUT writes, SSE, stale-revision rejection, no-cache/private responses and logout passed. The in-app browser ran analysis and a second real OpenAI question, then opened its cited evidence. | The first client connection timed out; the unchanged check and browser subsequently passed. The timeout cause is unidentified. Browser review found obsolete local-file sign-in guidance. | Correct sign-in guidance, finish access handoff and revoke temporary deployment credentials. |
+
+[hosted-cloud-results.json](hosted-cloud-results.json) records the cloud checks, retained failures, two real model tasks and remaining limits. The deployment uses statistical retrieval; the optional MiniLM encoder is not installed. The default fixture is fictional, and the workspace requires its private access code before data or model access.

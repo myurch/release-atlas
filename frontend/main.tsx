@@ -1669,8 +1669,8 @@ function Workbench({
             />
             <h2 id="login-title">Join the review.</h2>
             <p className="muted">
-              Enter a display name and your local workspace access code. The
-              code is saved in the server’s .atlas/access-code file.
+              Enter a display name and the workspace access code provided by the
+              workspace owner.
             </p>
             <form
               onSubmit={(e) => {

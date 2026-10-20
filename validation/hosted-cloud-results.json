@@ -1,0 +1,41 @@
+{
+  "checked_on": "2026-10-19 America/Los_Angeles",
+  "result": "PASS",
+  "site_url": "https://release-atlas.kakashisensai.chatgpt.site",
+  "backend_url": "https://atlas-api.maryanayurchyshyna.com",
+  "provider": "AWS Lightsail, Linux AMD64, Ubuntu 24.04, 1 GB RAM",
+  "initial_backend_commit": "692ef61b79379343142277a0f74b007742a1d8e6",
+  "site_source_commit": "176deb16b180758cc9f2e0af8583086c91d3a872",
+  "checks": [
+    "Valid public HTTPS and backend health",
+    "Gateway and workspace authentication required before data/model access",
+    "Initialized fresh deployment with fictional Harbor review",
+    "Live Python analysis completed",
+    "Server-sent event stream arrives through Caddy",
+    "Real OpenAI answer returned with retrieval-first streaming",
+    "Live HTML, exported workspace and response contain no credentials",
+    "Sign-out revokes the workspace session",
+    "Actual Lightsail container restart preserves exact workspace and expires old sessions",
+    "Published Site reaches the healthy backend and rejects unauthenticated/forged/cross-origin access",
+    "Host-only secure cookie and authenticated workspace through the Site",
+    "Live PUT writes, streamed updates and stale-revision rejection through the Site",
+    "Live HTML and exports are not cached and contain no deployment credentials",
+    "Published Site sign-out revokes the session",
+    "In-app browser: sign-in, Analyze sources, real Model chat, both source citations and evidence navigation"
+  ],
+  "paid_model_tasks": 2,
+  "model": "gpt-6-luna",
+  "synthetic_material": "Original Harbor SDK fixture, 3 sources and 12 analyzed passages",
+  "answer_review": "Both API and browser answers correctly described the same-version retry_limit disagreement, cited both sources and preserved uncertainty.",
+  "retained_failures": [
+    "Initial backend probe expected revision at the top level of /api/state; corrected the probe to use the documented workspace envelope before any model call.",
+    "First published-Site check timed out connecting from the client. The unchanged check and browser subsequently passed; the transient connection cause was not identified.",
+    "Temporary Lightsail SSH certificate expired during later verification; renewed the temporary certificate through the authenticated AWS API."
+  ],
+  "limits": [
+    "Two fictional model tasks are a smoke test, not a load or accuracy benchmark.",
+    "The optional MiniLM neural encoder is not installed; statistical retrieval is used.",
+    "One shared workspace and one server are not a multitenant or highly available service.",
+    "The instance disk survives restart and redeploy, not instance deletion; retain external workspace exports."
+  ]
+}

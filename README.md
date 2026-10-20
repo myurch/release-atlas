@@ -4,21 +4,25 @@
 
 A collaborative workbench for reviewing software upgrade evidence. Bring versioned release notes and reference text, declare the APIs your application uses, inspect cited changes and conflicting guidance, and record a review with your team.
 
-**Status: v0.1 local preview.** The Python service, responsive interface, analysis, retrieval, collaboration and contextual assistant are implemented and tested as described below. The Chromium CI suite covers live and standalone-file workflows; container execution remains unverified. This is not an enterprise security product or an upgrade-safety certification.
+**Status: v0.1 preview.** The Python service, responsive interface, analysis, retrieval, collaboration and contextual assistant run locally and in the authenticated hosted application. Docker startup, persistence, public HTTPS, the Site gateway and real OpenAI chat were verified on AWS Lightsail. See [deployment validation](validation/hosted-deployment.md) for the checks and limits. This is not an enterprise security product or an upgrade-safety certification.
 
 ![Release Atlas Graph page focused on legacy_auth, with all four connected evidence entries and Ask Atlas open](assets/legacy-auth-graph.jpg)
 
 *The fictional Harbor SDK example: explore the `legacy_auth` evidence neighborhood, read its connected evidence, and get workflow guidance from Ask Atlas.*
 
-## Hosted demo
+## Hosted application
 
-[Open the interactive demo](https://maryanayurchyshyna.com/release-atlas/). Anyone with the link can explore it.
+[Project page](https://maryanayurchyshyna.com/release-atlas/) · [Open the authenticated workspace](https://release-atlas.kakashisensai.chatgpt.site/)
 
-The hosted demo opens with the fictional Harbor SDK review already loaded. Explore the available pages, inspect evidence and graph connections, and try the beginner tutorial. Ask Atlas uses built-in **App guide** help. There is no live LLM connection, Python service, shared editing or new analysis on the demo site. Prepared tutorial decisions and answers are labeled as examples.
+The hosted workspace includes live Python analysis, persistent shared reviews, streaming updates and Ask Atlas with OpenAI. Enter a display name and obtain the workspace access code from its owner. The initial workspace contains the fictional Harbor SDK review. Use **Workspaces** to create or switch reviews, or try the isolated beginner tutorial.
 
-**Reset example** restores the sample review. Import and Export work in the current browser view; imported data is not sent to a backend. Refreshing returns to the original example. To run analysis, collaborate or use model chat, use the full application below.
+The OpenAI key stays on the Python server. A separate private gateway token connects the GPT Site to the HTTPS backend; neither credential is sent to the browser. This is one shared workspace for trusted reviewers, not separate private accounts. The optional MiniLM encoder is not installed in this deployment; statistical retrieval remains available.
 
-`npm run build` produces both `dist/release-atlas.html` for the live service/file viewer and `dist/index.html` for static demo hosting. Serve the demo index through any static host. Its explicit build mode prevents API, session, event-stream and model requests even over HTTPS. The original live-service behavior is preserved.
+## Standalone demonstration
+
+`npm run build` produces `dist/release-atlas.html` for the live service/file viewer and `dist/index.html` for static demonstrations. The static index contains prepared fictional data and App guide help. Its explicit demo mode prevents API, session, event-stream and model requests even over HTTPS. It does not provide live analysis, shared editing or OpenAI chat.
+
+In the static demonstration, **Reset example** restores the sample review, and Import and Export operate only in the browser view. Prepared tutorial decisions and answers are labeled. The live hosted application above uses the full service entry instead.
 
 ## Try the application
 
