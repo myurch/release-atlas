@@ -37,5 +37,16 @@
     "The optional MiniLM neural encoder is not installed; statistical retrieval is used.",
     "One shared workspace and one server are not a multitenant or highly available service.",
     "The instance disk survives restart and redeploy, not instance deletion; retain external workspace exports."
-  ]
+  ],
+  "deployed_backend_commit": "015506b6f6a1ce74d2ee15640826b0a7c82fb47b",
+  "final_acceptance": {
+    "updated_sign_in_copy": true,
+    "exact_export_preserved_after_redeploy": true,
+    "revision": 4,
+    "frontend_tests_passed": 27,
+    "additional_model_tasks": 0,
+    "aws_cli_logged_out_and_verified": true,
+    "temporary_ssh_files_removed": true,
+    "private_access_handoff_created": true
+  }
 }
