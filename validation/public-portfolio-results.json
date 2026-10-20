@@ -1,0 +1,74 @@
+{
+  "result": "PASS",
+  "checks": [
+    {
+      "site": "https://maryanayurchyshyna.com/release-atlas",
+      "anonymous_access": true,
+      "workspace_sources_at_check": 4,
+      "workspace_revision_at_check": 7,
+      "same_hostname": true,
+      "foreign_origin_blocked": true,
+      "sse_received": true,
+      "no_credentials": true
+    },
+    {
+      "site": "https://release-atlas.kakashisensai.chatgpt.site",
+      "anonymous_access": true,
+      "workspace_sources_at_check": 4,
+      "workspace_revision_at_check": 7,
+      "same_hostname": true,
+      "foreign_origin_blocked": true,
+      "sse_received": true,
+      "no_credentials": true
+    },
+    {
+      "portfolio_path": "/",
+      "original_content_preserved": true,
+      "normalization": "Excluded only Cloudflare-injected challenge script for HTML comparison"
+    },
+    {
+      "portfolio_path": "/styles.css",
+      "original_content_preserved": true,
+      "normalization": "Excluded only Cloudflare-injected challenge script for HTML comparison"
+    },
+    {
+      "portfolio_path": "/resume/Maryana_Yurchyshyna_Resume.pdf",
+      "original_content_preserved": true,
+      "normalization": "Excluded only Cloudflare-injected challenge script for HTML comparison"
+    },
+    {
+      "portfolio_path": "/resume/Maryana_Yurchyshyna_Resume.html",
+      "original_content_preserved": true,
+      "normalization": "Excluded only Cloudflare-injected challenge script for HTML comparison"
+    },
+    {
+      "portfolio_path": "/fancy/",
+      "original_content_preserved": true,
+      "normalization": "Excluded only Cloudflare-injected challenge script for HTML comparison"
+    }
+  ],
+  "paid_model_tasks": 1,
+  "limits": [
+    "Shared public workspace; live AI incurs usage charges",
+    "Provider model check is recorded separately in browser acceptance"
+  ],
+  "retained_findings": [
+    "The initial anonymous visit loaded the three-source Harbor example. Concurrent shared edits advanced revisions and changed sources during later read-only checks; those edits were preserved.",
+    "First exact HTML byte check detected the platform Cloudflare challenge script; original content comparison passes after excluding that specific injected script."
+  ],
+  "browser_acceptance": {
+    "portfolio_url": "https://maryanayurchyshyna.com/release-atlas",
+    "no_sign_in_prompt": true,
+    "initial_sources": 3,
+    "initial_analyzed_passages": 12,
+    "live_analysis_completed": true,
+    "real_model_answer": "Correctly reported the same-version retry_limit disagreement and cited both Harbor sources.",
+    "streamed_retrieval_before_answer": true,
+    "shared_updates_observed": true,
+    "busy_response": "First request reported another operation in progress; retry after the workspace advanced succeeded."
+  },
+  "backend_commit": "518a71c4d5e2ff4dd38fc2f49f82407ce2dd0366",
+  "portfolio_commit": "9070c137c7beba99dbf891eaa2ef69aa4f864099",
+  "portfolio_version": 8,
+  "aws_cli_logged_out": true
+}

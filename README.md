@@ -12,7 +12,7 @@ A collaborative workbench for reviewing software upgrade evidence. Bring version
 
 ## Hosted application
 
-[Project page](https://maryanayurchyshyna.com/release-atlas/) · [Open Release Atlas](https://maryanayurchyshyna.com/release-atlas/)
+[Open Release Atlas](https://maryanayurchyshyna.com/release-atlas/) · [Maryana’s portfolio](https://maryanayurchyshyna.com/)
 
 The hosted workspace includes live Python analysis, persistent shared reviews, streaming updates and Ask Atlas with OpenAI. The public portfolio deployment opens directly without an access code. The initial workspace contains the fictional Harbor SDK review. Use **Workspaces** to create or switch reviews, or try the isolated beginner tutorial.
 
