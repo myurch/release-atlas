@@ -1,0 +1,21 @@
+{
+  "result": "PASS",
+  "application_architecture": "Linux AMD64 under Docker Desktop emulation",
+  "checks": [
+    "production Compose settings",
+    "no Atlas host port",
+    "no provider key in Caddy",
+    "non-root read-only application",
+    "private gateway and user sign-in",
+    "real analysis and evidence review through Caddy",
+    "unbuffered SSE",
+    "workspace persistence and session expiry after restart",
+    "no credentials in HTML or exported workspace"
+  ],
+  "paid_api_calls": 0,
+  "cloud_resources_created": 0,
+  "limits": [
+    "HTTP loopback replaces public HTTPS for this probe",
+    "AWS provisioning, DNS, public certificate and real OpenAI access remain unverified"
+  ]
+}

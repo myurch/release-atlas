@@ -1,0 +1,14 @@
+{
+	admin off
+	skip_install_trust
+}
+
+{$ATLAS_BACKEND_HOSTNAME} {
+	header -Server
+	request_body {
+		max_size 2000000
+	}
+	reverse_proxy atlas:8765 {
+		flush_interval -1
+	}
+}

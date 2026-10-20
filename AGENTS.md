@@ -32,6 +32,8 @@ Release Atlas helps software maintainers review upgrade evidence. It connects ve
 
 ## Hosted service boundary
 
+- The current hosting target is AWS Lightsail. `deploy/lightsail/compose.yaml` runs a non-root read-only Atlas container behind pinned Caddy, with named volumes for the workspace and certificates. Do not publish port 8765 or put secrets in cloud-init/user-data, image builds, Compose source or logs. Keep the Compose project name stable and never prune live volumes. `tools/lightsail_probe.py` uses a uniquely named disposable Compose project with synthetic credentials and loopback HTTP; it cannot verify public TLS or real OpenAI access.
+
 - `backend/hosted.py` is the fail-closed production entrypoint behind the GPT Site. Require a strong private gateway token, a separate workspace access code, an OpenAI key, exact HTTPS origins and a persistent data directory. Force authentication and secure cookies. Keep the existing local startup behavior unchanged.
 - `Guard` requires exactly one valid gateway token for every HTTP request except GET `/api/health`. Gateway authentication never replaces Atlas session authentication. Do not return tokens or forward arbitrary user authorization headers. Keep logout cookie attributes aligned with login.
 - `render.yaml` defines one paid Docker service and a persistent `/data` disk with automatic deployments off. Obtain approval for the concrete hosting charges before provisioning. Never commit secrets or use credential-bearing Docker build arguments. The optional MiniLM worker is not installed in this image.
