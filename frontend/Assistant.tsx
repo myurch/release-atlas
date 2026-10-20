@@ -1,3 +1,4 @@
+import { apiPath } from "./api-path";
 import { AssistantStreamError, readAssistantReply } from "./assistant-stream";
 import { QuestionGraphEvent } from "./question-graph";
 import React, { useEffect, useRef, useState } from "react";
@@ -182,7 +183,7 @@ export function Assistant({
     };
     graphEvent("loading");
     try {
-      const response = await fetch("/api/assistant", {
+      const response = await fetch(apiPath("assistant"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -300,7 +301,7 @@ export function Assistant({
     setApplying(true);
     setError("");
     try {
-      const response = await fetch("/api/assistant/source-action", {
+      const response = await fetch(apiPath("assistant/source-action"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

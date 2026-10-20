@@ -56,3 +56,11 @@ The following checks preceded cloud provisioning. Their cloud-access limitations
 The deployed backend image is `release-atlas:015506b`, from commit `015506b6f6a1ce74d2ee15640826b0a7c82fb47b`. The Site gateway uses source commit `176deb16b180758cc9f2e0af8583086c91d3a872`; native deployment status succeeded. Subsequent documentation-only commits do not require rebuilding the runtime image.
 
 Remaining limits: one shared workspace and one server; no high-availability or load guarantee; optional MiniLM not installed; two synthetic real-provider tasks are smoke tests, not accuracy benchmarks. Data survives restart and redeploy but requires external exports to survive instance deletion. AWS CLI logout clears the local cached login; it is not a claim that all account sessions or already-issued temporary credentials were centrally revoked. Browser account sessions were left unchanged.
+
+## Public portfolio follow-up (October 19, 2026)
+
+The owner explicitly requested anonymous access on both entry points and a live app under `maryanayurchyshyna.com/release-atlas/`. This supersedes the earlier mandatory workspace-code acceptance criterion. The private gateway, provider-secret isolation, exact origins and revision checks remain required.
+
+| Cycle | Change | Validation | Review and improvement | Next action |
+| --- | --- | --- | --- | --- |
+| 10 | Added explicit public hosted mode, first-database fictional example initialization and same-origin API paths for the portfolio mount. Prepared the portfolio Worker and exact-prefix API gateway. | 428 Python tests, 28 frontend tests, typecheck/format/build and synthetic evaluation passed. Portfolio: 31 tests, typecheck and Worker build passed; real local HTTP verified original homepage, stylesheet, resume PDF and fancy gate bytes. | Initial full-suite failures exposed a test fixture leaking configured environment settings. Registering all modified keys with monkeypatch restored isolation; all cases then passed. Existing databases are never reset, and private backend access remains gateway-protected. | Deploy backend and portfolio, verify fresh public visits and a real streamed answer. |

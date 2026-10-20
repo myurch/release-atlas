@@ -4,7 +4,7 @@
 
 A collaborative workbench for reviewing software upgrade evidence. Bring versioned release notes and reference text, declare the APIs your application uses, inspect cited changes and conflicting guidance, and record a review with your team.
 
-**Status: v0.1 preview.** The Python service, responsive interface, analysis, retrieval, collaboration and contextual assistant run locally and in the authenticated hosted application. Docker startup, persistence, public HTTPS, the Site gateway and real OpenAI chat were verified on AWS Lightsail. See [deployment validation](validation/hosted-deployment.md) for the checks and limits. This is not an enterprise security product or an upgrade-safety certification.
+**Status: v0.1 preview.** The Python service, responsive interface, analysis, retrieval, collaboration and contextual assistant run locally and in the hosted application. Docker startup, persistence, public HTTPS, the Site gateway and real OpenAI chat were verified on AWS Lightsail. See [deployment validation](validation/hosted-deployment.md) for the checks and limits. This is not an enterprise security product or an upgrade-safety certification.
 
 ![Release Atlas Graph page focused on legacy_auth, with all four connected evidence entries and Ask Atlas open](assets/legacy-auth-graph.jpg)
 
@@ -12,11 +12,11 @@ A collaborative workbench for reviewing software upgrade evidence. Bring version
 
 ## Hosted application
 
-[Project page](https://maryanayurchyshyna.com/release-atlas/) · [Open the authenticated workspace](https://release-atlas.kakashisensai.chatgpt.site/)
+[Project page](https://maryanayurchyshyna.com/release-atlas/) · [Open Release Atlas](https://maryanayurchyshyna.com/release-atlas/)
 
-The hosted workspace includes live Python analysis, persistent shared reviews, streaming updates and Ask Atlas with OpenAI. Enter a display name and obtain the workspace access code from its owner. The initial workspace contains the fictional Harbor SDK review. Use **Workspaces** to create or switch reviews, or try the isolated beginner tutorial.
+The hosted workspace includes live Python analysis, persistent shared reviews, streaming updates and Ask Atlas with OpenAI. The public portfolio deployment opens directly without an access code. The initial workspace contains the fictional Harbor SDK review. Use **Workspaces** to create or switch reviews, or try the isolated beginner tutorial.
 
-The OpenAI key stays on the Python server. A separate private gateway token connects the GPT Site to the HTTPS backend; neither credential is sent to the browser. This is one shared workspace for trusted reviewers, not separate private accounts. The optional MiniLM encoder is not installed in this deployment; statistical retrieval remains available.
+The OpenAI key stays on the Python server. A separate private gateway token connects the GPT Site to the HTTPS backend; neither credential is sent to the browser. This is one public shared workspace, not separate private accounts. Visitors can edit the example and use paid AI requests. The optional MiniLM encoder is not installed in this deployment; statistical retrieval remains available.
 
 ## Standalone demonstration
 

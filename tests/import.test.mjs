@@ -1780,3 +1780,31 @@ test("synthetic frontend/backend demo spans three versions and produces useful m
       2,
     );
 });
+
+test("API paths stay on the current root or portfolio mount", async () => {
+  const bundled = await build({
+    entryPoints: ["frontend/api-path.ts"],
+    bundle: true,
+    write: false,
+    platform: "node",
+    format: "esm",
+  });
+  const { apiPath } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(bundled.outputFiles[0].text).toString("base64")
+  );
+  for (const path of [
+    "state",
+    "assistant",
+    "assistant/source-action",
+    "events",
+  ]) {
+    assert.equal(apiPath(path, "/"), "/api/" + path);
+    assert.equal(
+      apiPath(path, "/release-atlas/"),
+      "/release-atlas/api/" + path,
+    );
+    assert.equal(apiPath(path, "/release-atlas"), "/release-atlas/api/" + path);
+    assert.equal(apiPath(path, "/release-atlas-other/"), "/api/" + path);
+  }
+});

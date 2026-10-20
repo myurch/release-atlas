@@ -85,6 +85,9 @@ def configured_env(tmp_path, monkeypatch):
         'OPENAI_API_KEY': 'synthetic-provider-key', 'ATLAS_SITE_ORIGIN': ORIGIN,
         'RENDER_EXTERNAL_URL': 'https://atlas-backend.onrender.com',
         'ATLAS_DATA_DIR': str(tmp_path), 'PORT': '10000',
+        # configure() writes these keys; register them so monkeypatch restores each one.
+        'ATLAS_AUTH_ENABLED': '0', 'ATLAS_COOKIE_SECURE': '0', 'ATLAS_HOST': '127.0.0.1',
+        'ATLAS_PORT': '8765', 'ATLAS_ORIGINS': '', 'ATLAS_LLM_KIND': '', 'ATLAS_LLM_BASE': '',
     }.items():
         monkeypatch.setenv(key, value)
 
@@ -108,6 +111,42 @@ def test_hosted_entrypoint_forces_auth_and_explicit_origins(configured_env, monk
     ('PORT', '0'), ('PORT', '65536'), ('PORT', '1.5'),
 ])
 def test_invalid_hosted_settings_are_rejected(configured_env, monkeypatch, key, value):
+    monkeypatch.setenv(key, value)
+    with pytest.raises(ValueError):
+        configure()
+
+
+def test_public_hosted_mode_is_explicit_and_keeps_gateway_guards(configured_env, monkeypatch, tmp_path):
+    monkeypatch.setenv('ATLAS_PUBLIC_ACCESS', '1')
+    monkeypatch.delenv('ATLAS_ACCESS_CODE')
+    monkeypatch.setenv('ATLAS_ADDITIONAL_SITE_ORIGINS', 'https://portfolio.example')
+    configure()
+    assert os.environ['ATLAS_AUTH_ENABLED'] == '0'
+    assert 'https://portfolio.example' in os.environ['ATLAS_ORIGINS'].split(',')
+    app = create_app(tmp_path)
+    with TestClient(app, base_url=ORIGIN) as client:
+        assert client.get('/api/state').status_code == 403
+        response = client.get('/api/state', headers=HEADERS)
+        assert response.status_code == 200
+        data = response.json()
+        assert data['auth_enabled'] is False and data['user'] == 'Public reviewer'
+        assert len(data['workspace']['sources']) == 3
+        assert data['workspace']['analysis']
+        assert 'set-cookie' not in response.headers
+        assert not (tmp_path/'access-code').exists()
+        assert client.post('/api/login', json={'name': 'A', 'passcode': ACCESS}, headers=HEADERS).status_code == 404
+        revision = data['workspace']['revision']
+        assert client.post('/api/analyze', json={'revision': revision}, headers=HEADERS).status_code == 200
+        assert client.post('/api/analyze', json={'revision': revision}, headers=HEADERS).status_code == 409
+        assert client.post('/api/analyze', json={'revision': revision}, headers={**HEADERS, 'Origin': 'https://evil.example'}).status_code == 403
+        saved = app.state.store.read().model_dump(mode='json')
+    restarted = create_app(tmp_path)
+    with TestClient(restarted, base_url=ORIGIN) as client:
+        assert client.get('/api/state', headers=HEADERS).json()['workspace'] == saved
+
+
+@pytest.mark.parametrize('key,value', [('ATLAS_PUBLIC_ACCESS', 'yes'), ('ATLAS_ADDITIONAL_SITE_ORIGINS', 'https://portfolio.example/path')])
+def test_public_settings_reject_ambiguous_values(configured_env, monkeypatch, key, value):
     monkeypatch.setenv(key, value)
     with pytest.raises(ValueError):
         configure()

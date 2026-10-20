@@ -146,12 +146,16 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
         if auth_setting not in ('0', '1'):
             raise ValueError('ATLAS_AUTH_ENABLED must be 0 or 1')
         auth_enabled = auth_setting == '1'
+    public_setting = os.getenv('ATLAS_PUBLIC_ACCESS', '0')
+    if public_setting not in ('0', '1'):
+        raise ValueError('ATLAS_PUBLIC_ACCESS must be 0 or 1')
+    public_access = public_setting == '1'
     gateway_token = os.getenv('ATLAS_GATEWAY_TOKEN', '')
     if gateway_token:
         if not re.fullmatch(r'[A-Za-z0-9_-]{32,200}', gateway_token):
             raise ValueError('ATLAS_GATEWAY_TOKEN must contain 32 to 200 URL-safe characters')
-        if not auth_enabled or os.getenv('ATLAS_COOKIE_SECURE') != '1':
-            raise ValueError('Hosted gateway mode requires authentication and secure cookies')
+        if (not auth_enabled and not public_access) or os.getenv('ATLAS_COOKIE_SECURE') != '1':
+            raise ValueError('Hosted mode requires secure cookies and authentication or explicit public access')
     code_path = data_dir/'access-code'
     if auth_enabled and passcode is None:
         passcode = os.getenv('ATLAS_ACCESS_CODE')
@@ -164,7 +168,15 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
     if auth_enabled and not passcode:
         raise ValueError('An access code is required')
     origins = origins or os.getenv('ATLAS_ORIGINS', 'http://127.0.0.1:8765,http://localhost:8765').split(',')
-    store = Store(data_dir/'workspace.sqlite3')
+    database_path = data_dir/'workspace.sqlite3'
+    first_start = not database_path.exists()
+    store = Store(database_path)
+    if public_access and gateway_token and first_start:
+        # Initialize a fresh public deployment only. Never reset saved visitor work.
+        raw = json.loads((ROOT/'data/demo-input.json').read_text())
+        example = Workspace(title=raw['title'], sources=[Source.create(SourceInput(**s)) for s in raw['sources']],
+                            usage=[Usage(**u) for u in raw['usage']])
+        store.save(analyze(example), 0, 'Public reviewer', 'Initialized synthetic Harbor example')
     provider = provider or ProviderConfig.environment()
     embedding = ProviderConfig.environment('ATLAS_EMBED') if os.getenv('ATLAS_EMBED_MODEL') else None
     sessions: dict[str, tuple[str,float]] = {}
@@ -180,7 +192,7 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
 
     def actor(request: Request):
         if not auth_enabled:
-            return 'Local reviewer'
+            return 'Public reviewer' if public_access and gateway_token else 'Local reviewer'
         key = request.cookies.get('atlas_session', '')
         identity = sessions.get(key)
         if not identity or identity[1] < time.time():

@@ -1,3 +1,4 @@
+import { apiPath } from "./api-path";
 import { RelationshipGraph } from "./RelationshipGraph";
 import {
   QuestionGraph,
@@ -285,7 +286,7 @@ function Workbench({
   ) {
     if (tutorial || !isServer)
       throw new Error("This view cannot contact the workspace service.");
-    const response = await fetch("/api/" + path, {
+    const response = await fetch(apiPath(path), {
       signal,
       method: body === undefined ? "GET" : method,
       headers: body === undefined ? {} : { "Content-Type": "application/json" },
@@ -375,7 +376,7 @@ function Workbench({
   }, []);
   useEffect(() => {
     if (!live) return;
-    const events = new EventSource("/api/events");
+    const events = new EventSource(apiPath("events"));
     events.onopen = () => setConnected(true);
     events.onerror = () => setConnected(false);
     events.onmessage = (event) => {

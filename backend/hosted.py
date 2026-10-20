@@ -22,12 +22,17 @@ def configure() -> None:
     gateway = os.getenv('ATLAS_GATEWAY_TOKEN', '')
     if not re.fullmatch(r'[A-Za-z0-9_-]{32,200}', gateway):
         raise ValueError('Set a strong ATLAS_GATEWAY_TOKEN before starting the hosted service')
+    public_access = os.getenv('ATLAS_PUBLIC_ACCESS', '0')
+    if public_access not in ('0', '1'):
+        raise ValueError('ATLAS_PUBLIC_ACCESS must be 0 or 1')
     access_code = os.getenv('ATLAS_ACCESS_CODE', '')
-    if len(access_code) < 32 or len(access_code) > 200 or not access_code.isascii():
+    if public_access != '1' and (len(access_code) < 32 or len(access_code) > 200 or not access_code.isascii()):
         raise ValueError('Set an ATLAS_ACCESS_CODE of 32 to 200 ASCII characters')
     if not (os.getenv('ATLAS_LLM_KEY') or os.getenv('OPENAI_API_KEY', '')).strip():
         raise ValueError('Configure the OpenAI runtime secret before starting the hosted service')
     site = https_origin(os.getenv('ATLAS_SITE_ORIGIN', ''))
+    additional = os.getenv('ATLAS_ADDITIONAL_SITE_ORIGINS', '')
+    sites = [site] + [https_origin(value.strip()) for value in additional.split(',') if value.strip()]
     backend = https_origin(os.getenv('ATLAS_BACKEND_ORIGIN') or os.getenv('RENDER_EXTERNAL_URL', ''))
     data_path = Path(os.getenv('ATLAS_DATA_DIR', ''))
     if not data_path.is_absolute() or data_path == Path('/'):
@@ -36,11 +41,11 @@ def configure() -> None:
     if not port.isascii() or not port.isdecimal() or not 1 <= int(port) <= 65535:
         raise ValueError('PORT must be between 1 and 65535')
     os.environ.update({
-        'ATLAS_AUTH_ENABLED': '1',
+        'ATLAS_AUTH_ENABLED': '0' if public_access == '1' else '1',
         'ATLAS_COOKIE_SECURE': '1',
         'ATLAS_HOST': '0.0.0.0',
         'ATLAS_PORT': port,
-        'ATLAS_ORIGINS': ','.join(dict.fromkeys([site, backend, f'http://127.0.0.1:{port}'])),
+        'ATLAS_ORIGINS': ','.join(dict.fromkeys([*sites, backend, f'http://127.0.0.1:{port}'])),
         'ATLAS_LLM_KIND': 'openai',
         'ATLAS_LLM_BASE': 'https://api.openai.com/v1',
     })
