@@ -1,0 +1,32 @@
+# Deployment requires approval of Render compute/disk charges and runtime secrets.
+services:
+  - type: web
+    name: release-atlas-backend
+    runtime: docker
+    plan: 0.5c-512mb
+    region: oregon
+    numInstances: 1
+    autoDeployTrigger: off
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: python -m backend.hosted
+    healthCheckPath: /api/health
+    disk:
+      name: atlas-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: ATLAS_DATA_DIR
+        value: /data
+      - key: ATLAS_SITE_ORIGIN
+        sync: false
+      - key: ATLAS_GATEWAY_TOKEN
+        sync: false
+      - key: ATLAS_ACCESS_CODE
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENBLAS_NUM_THREADS
+        value: "1"
+      - key: OMP_NUM_THREADS
+        value: "1"

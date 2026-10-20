@@ -238,6 +238,30 @@ GitHub import accepts only `owner/repository`, uses the fixed public GitHub rele
 | Delivery and support | Locked dependencies, single HTML build, tests, launcher, container and CI recipes | Local rebuilds and hosted Chromium CI tested; Docker runtime remains unverified |
 | Contextual assistance | `backend/assistant.py`, `frontend/Assistant.tsx`, `frontend/guide.ts` | Page-aware chat, confirmed source add/delete only, source reading independent of findings, exact citations, conflict-pair checks and built-in workflow fallback |
 
+## Hosted Python service
+
+The full application can run behind a GPT Site gateway using `python -m backend.hosted`. This uses the same Python analysis, SQLite persistence, live HTML and Ask Atlas implementation as the local app. A browser talks to the Site; the Site forwards authenticated requests to the fixed HTTPS backend. The OpenAI key belongs only in the Python host's runtime secrets. The browser receives neither that key nor the separate gateway token.
+
+[render.yaml](render.yaml) prepares one Docker service in Oregon with a 1 GB disk mounted at `/data`. The selected `0.5c-512mb` compute plan and disk incur charges; confirm current pricing before creating them. Automatic deployments are disabled. Keep one worker and one service instance because collaboration locks and sessions are process-local. This is a shared workspace for trusted reviewers, not isolated accounts for public visitors. Anyone with the workspace access code can read, edit and initiate paid requests. Set provider billing limits before sharing the code.
+
+Set these values privately through the hosting provider, never in Git, Docker build arguments or browser code:
+
+| Setting | Python service | GPT Site |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | OpenAI runtime secret | Not required by the gateway |
+| `ATLAS_GATEWAY_TOKEN` | Random URL-safe secret, 32 to 200 characters | The same runtime secret |
+| `ATLAS_ACCESS_CODE` | Private workspace code, 32 to 200 ASCII characters | Never store in frontend code |
+| `ATLAS_SITE_ORIGIN` | Exact HTTPS Site origin | Not needed |
+| `ATLAS_BACKEND_ORIGIN` | Optional on Render, which supplies `RENDER_EXTERNAL_URL` | Exact HTTPS backend origin |
+| `ATLAS_DATA_DIR` | `/data` on an attached persistent disk | Not needed |
+| `PORT` | Set by the host, defaults to `8765` | Not needed |
+
+The hosted entrypoint rejects missing secrets, invalid origins or an invalid data directory. It forces authentication, secure cookies and the official OpenAI endpoint. A private gateway token is required even to load the backend HTML; only the bounded GET health response is exempt. The gateway token does not replace the user's session. Sign-in uses HttpOnly, Secure, SameSite=Strict cookies; logout clears those same attributes. State changes retain exact-origin checks and revision protection. Restarting the process ends sessions but keeps workspace data on the persistent disk.
+
+The base image runs the statistical retrieval path. The optional separate MiniLM interpreter/model is not bundled; do not claim neural retrieval was deployed without configuring and validating that worker. Ordinary analysis and OpenAI chat do not require it. Production acceptance must verify sign-in, document save and analysis, streamed chat against the real provider, unauthorized access rejection, and workspace persistence after a host restart. Local gateway and Docker checks are recorded in [hosted deployment validation](validation/hosted-deployment.md). A prepared configuration is not evidence that a cloud service is live.
+
+Deployment configuration follows Render's [Docker](https://render.com/docs/docker), [persistent disk](https://render.com/docs/disks) and [Blueprint](https://render.com/docs/blueprint-spec) contracts. Keep backups of important workspace exports; disk persistence is not a substitute for a recovery plan.
+
 ## Correctness and deployment boundaries
 
 - Source text is immutable within its snapshot; SHA-256 and content identities are validated on import. Claim offsets use Unicode code points and must reproduce the exact quote. A source hash is integrity evidence, not an endorsement of its author or truth.
@@ -250,7 +274,7 @@ GitHub import accepts only `owner/repository`, uses the fixed public GitHub rele
 - Database inputs are validated and passed as bound parameters to fixed SQL statements. Code examples, quotes and SQL keywords remain exact inert source text; stripping or escaping their contents would break hashes and citations. Invalid Unicode and control characters (NUL, other C0 controls except tab/CR/LF, and DEL) are rejected, not silently rewritten. Request JSON must be an unambiguous UTF-8 object without duplicate keys, non-finite numbers or nesting beyond 64 levels. Unknown fields and existing size limits remain enforced. Write revisions are strict integers within SQLite's signed 64-bit range; workspace selectors are validated IDs.
 - Runtime SQLite connections permit only the required reads/inserts/updates on the two workspace tables, transaction control and the three catalog functions. They deny schema changes, table-level deletes, attachment, unexpected functions and trigger/view-origin operations. Defensive mode is enabled, schema trust and extension loading are disabled, and SQLite resource limits are bounded. Only fixed startup migrations receive schema privileges. All saves revalidate the complete workspace inside an atomic transaction. These controls supplement [parameter binding](https://docs.python.org/3/library/sqlite3.html#sqlite3-placeholders) and [SQLite's hardening guidance](https://www.sqlite.org/security.html).
 - Bounds: 30 sources, 12,000 code points per source, 300,000 source code points, 200 claims, 40 usage entries, 30 answers, 1.8 MB serialized workspace, 2 MB request/import, one analysis/query at a time, 40 event listeners and 100 sessions. Oversize analysis fails explicitly rather than truncating evidence.
-- For remote or phone access, `localhost` names the device making the request. A phone must reach the host through a deliberately configured HTTPS reverse proxy. Enable `ATLAS_AUTH_ENABLED=1`, set the exact HTTPS `ATLAS_ORIGINS`, use `ATLAS_COOKIE_SECURE=1`, protect the data directory and keep one worker. Never expose Ollama publicly. Remote proxy deployment has not been tested here.
+- For remote or phone access, `localhost` names the device making the request. A phone must reach the host through a deliberately configured HTTPS reverse proxy. Enable `ATLAS_AUTH_ENABLED=1`, set the exact HTTPS `ATLAS_ORIGINS`, use `ATLAS_COOKIE_SECURE=1`, protect the data directory and keep one worker. Never expose Ollama publicly. The Site gateway has an isolated HTTP integration probe; actual cloud TLS and provider access still require deployment verification.
 - Dependency versions are locked for reproducibility, not a permanent security guarantee. This preview is not an independent security audit.
 
 Current validation includes 64 database-security tests, 30 batch-source tests and 68 README tests, with 352 Python tests and nineteen frontend checks in total, including 19 new documentation-pipeline Python cases. See the [database-security record](validation/database-security-validation.md) and [batch-source record](validation/source-batches-validation.md) for payloads, tested boundaries and limits. See the [README fetch validation record](validation/readme-validation.md) for automated failure cases and a real public GitHub fetch. Invalid controls in older data are rejected rather than silently altering source identities.

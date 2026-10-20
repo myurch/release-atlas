@@ -1,0 +1,24 @@
+{
+  "result": "PASS",
+  "transport": "real loopback HTTP through the actual Site gateway",
+  "checks": [
+    "direct backend guard",
+    "sign-in before model calls",
+    "private credentials",
+    "live HTML",
+    "real analysis",
+    "profile and review PUT",
+    "revision conflicts",
+    "SSE collaboration",
+    "retrieval-first NDJSON chat",
+    "export",
+    "secure logout"
+  ],
+  "model_generation": "held synthetic mock",
+  "paid_api_calls": 0,
+  "limits": [
+    "Cloud TLS and provider hosting are not tested",
+    "Real OpenAI access requires a provisioned backend",
+    "No existing user workspaces or secrets were read"
+  ]
+}

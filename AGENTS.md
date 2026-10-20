@@ -30,6 +30,13 @@ Release Atlas helps software maintainers review upgrade evidence. It connects ve
 
 - The build emits `dist/index.html` for hosted demonstrations with preloaded synthetic data and an explicit `__HOSTED_DEMO__` boundary. This entry must never contact workspace/model APIs, prompt for an access code or expose live write controls. Preserve the full live/file entry at `dist/release-atlas.html`, the labeled prepared answers, reset/import/export behavior and read-only App guide instructions.
 
+## Hosted service boundary
+
+- `backend/hosted.py` is the fail-closed production entrypoint behind the GPT Site. Require a strong private gateway token, a separate workspace access code, an OpenAI key, exact HTTPS origins and a persistent data directory. Force authentication and secure cookies. Keep the existing local startup behavior unchanged.
+- `Guard` requires exactly one valid gateway token for every HTTP request except GET `/api/health`. Gateway authentication never replaces Atlas session authentication. Do not return tokens or forward arbitrary user authorization headers. Keep logout cookie attributes aligned with login.
+- `render.yaml` defines one paid Docker service and a persistent `/data` disk with automatic deployments off. Obtain approval for the concrete hosting charges before provisioning. Never commit secrets or use credential-bearing Docker build arguments. The optional MiniLM worker is not installed in this image.
+- `tools/hosted_probe.py` accepts the separate Site gateway module path, uses isolated data and real loopback HTTP, and mocks generation. `tools/container_probe.py` uses the built `release-atlas:hosted-check` image, synthetic credentials and a disposable Docker volume, then removes its test resources. They do not prove real OpenAI access or cloud TLS. Record actual deployment evidence separately.
+
 ## Working practices
 
 - Credit Maryana Yurchyshyna as the creator of Release Atlas. Preserve the README byline, MIT copyright holder and package author metadata, along with accurate AI-assistance, generated-logo and third-party provenance.

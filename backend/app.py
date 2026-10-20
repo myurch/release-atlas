@@ -88,8 +88,9 @@ class Feed(Revision):
 
 class Guard:
     """Enforce host, origin and streamed request limits before JSON parsing."""
-    def __init__(self, app, origins):
+    def __init__(self, app, origins, gateway_token=""):
         self.app = app
+        self.gateway_token = gateway_token
         self.origins = origins
         self.hosts = {urlsplit(x).netloc for x in origins}
 
@@ -97,6 +98,12 @@ class Guard:
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
         headers = dict(scope['headers'])
+        health_probe = scope['method'] == 'GET' and scope['path'] == '/api/health'
+        if self.gateway_token and not health_probe:
+            tokens = [value for name, value in scope['headers'] if name == b'x-atlas-gateway-token']
+            expected = self.gateway_token.encode('ascii')
+            if len(tokens) != 1 or not secrets.compare_digest(tokens[0], expected):
+                return await JSONResponse({'detail':'Site gateway authentication required'}, status_code=403)(scope, receive, send)
         if headers.get(b'host', b'').decode() not in self.hosts:
             return await JSONResponse({'detail':'Host is not allowed'}, status_code=400)(scope, receive, send)
         if scope['method'] not in ('GET','HEAD','OPTIONS'):
@@ -139,6 +146,12 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
         if auth_setting not in ('0', '1'):
             raise ValueError('ATLAS_AUTH_ENABLED must be 0 or 1')
         auth_enabled = auth_setting == '1'
+    gateway_token = os.getenv('ATLAS_GATEWAY_TOKEN', '')
+    if gateway_token:
+        if not re.fullmatch(r'[A-Za-z0-9_-]{32,200}', gateway_token):
+            raise ValueError('ATLAS_GATEWAY_TOKEN must contain 32 to 200 URL-safe characters')
+        if not auth_enabled or os.getenv('ATLAS_COOKIE_SECURE') != '1':
+            raise ValueError('Hosted gateway mode requires authentication and secure cookies')
     code_path = data_dir/'access-code'
     if auth_enabled and passcode is None:
         passcode = os.getenv('ATLAS_ACCESS_CODE')
@@ -161,7 +174,7 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
     readme_busy = asyncio.Lock()
     source_proposals = {}
     app = FastAPI(title='Release Atlas', version='0.1.0', docs_url=None, redoc_url=None)
-    app.add_middleware(Guard, origins=origins)
+    app.add_middleware(Guard, origins=origins, gateway_token=gateway_token)
     app.state.store, app.state.listeners = store, listeners
     app.state.auth_enabled = auth_enabled
 
@@ -237,7 +250,8 @@ def create_app(data_dir: Path | None = None, passcode: str | None = None, origin
     @app.post('/api/logout')
     async def logout(request: Request, response: Response):
         sessions.pop(request.cookies.get('atlas_session',''),None)
-        response.delete_cookie('atlas_session')
+        response.delete_cookie('atlas_session', httponly=True, samesite='strict',
+                               secure=os.getenv('ATLAS_COOKIE_SECURE') == '1')
         return {'ok':True}
 
     @app.get('/api/state')

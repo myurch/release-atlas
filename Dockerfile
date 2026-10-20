@@ -12,5 +12,5 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 ATLAS_HOST=0.0.0.0 ATLAS_DATA_D
 USER 10001
 EXPOSE 8765
 VOLUME ["/data"]
-HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/api/health', timeout=3)"
+HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:'+os.getenv('PORT', os.getenv('ATLAS_PORT', '8765'))+'/api/health', timeout=3)"
 CMD ["python", "-m", "backend"]

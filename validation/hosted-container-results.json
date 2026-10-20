@@ -1,0 +1,22 @@
+{
+  "result": "PASS",
+  "image": "release-atlas:hosted-check",
+  "checks": [
+    "non-root startup",
+    "512 MB memory limit",
+    "custom PORT health probe",
+    "gateway and user authentication",
+    "real analysis",
+    "evidence review",
+    "SQLite data preserved across container restart",
+    "sessions expire at restart",
+    "no credentials in live HTML or exported workspace"
+  ],
+  "sampled_memory": "131.1MiB / 512MiB",
+  "paid_api_calls": 0,
+  "limits": [
+    "Docker Desktop Linux arm64, not Render infrastructure",
+    "One small synthetic workspace, not a capacity guarantee",
+    "No real model request or browser interaction"
+  ]
+}
